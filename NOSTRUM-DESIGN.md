@@ -8,6 +8,8 @@ This document is the single source of truth for the look, feel, motion, structur
 
 **The client's framing:** *"Nothing is set in stone - this is so we're on the same page before you start… tell me what's tricky, what you'd do differently, and rough timing/cost. Then we start."* He wants a reaction and a recommendation, not silent compliance.
 
+> **Interpretation principle (how to read this brief): silence ≠ prohibition.** Anything the client **didn't** mention is **fair game** to propose and build — we're not limited to the literal list. The **only hard constraints are the things he explicitly said NOT to do.** Those are: **no chatbot** (→ WhatsApp), **no walls of text** (History excepted), **no wishlist/favorites**, **don't limit purchase quantity**, **don't repeat the broken Google login** — plus his guardrails: **nothing that hurts load time or feels gimmicky, respect reduced-motion, premium = restraint.** Enhancements he never asked for (loader, split-screen menu, zero-lag cursor, etc.) are welcome as long as they honor those guardrails. **He explicitly likes loaders** — treat a branded loader as a feature, not scope creep.
+
 ---
 
 ## 0. The Gist (client's own 5-line summary)
@@ -169,6 +171,9 @@ Only **Shop** and **Product** get rough layout sketches (the light/white part); 
 
 ### Home · dark
 The **brand moment.** Big hero, cinematic, dark — *"should feel premium the second it loads."* A **strong CTA into the Shop.** This is where the **animation ideas (§9) live.** Also carries a **B2B CTA** pointing to the B2B block (§7 · B2B).
+
+### Loading / intro · dark (wanted — the client likes loaders)
+A **branded loading/intro moment** on first load — the client **likes loaders a lot**, so this is an asset, not a risk to minimize. Make it *feel* premium and set up the hero (e.g. the wordmark resolving, or the **golden light-streaks igniting** into the hero, §9.1). **Constraints (his guardrails, §9/§18):** must not fight *"premium the second it loads"* or the performance budget — keep it **short, skippable/self-dismissing, GPU-cheap, and reduced-motion-safe** (near-instant fallback). Fine to reuse as a subtle route-transition veil between dark pages; the **Shop** should feel instant, not gated behind a heavy loader.
 
 ### Shop · LIGHT / white
 Flips bright: **white, lots of whitespace, product photos front and center** (LV / Balmain). **Clean grid, minimal chrome.** Flow: **product list → product page → cart → checkout.**

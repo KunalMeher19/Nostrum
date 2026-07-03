@@ -59,8 +59,14 @@ Slow, elegant, custom easing (~0.8–1.2s, expo/power3). Scroll reveals = fade +
 ## Tech stack
 Client's call (Shopify vs custom). Next.js + TS · Tailwind · GSAP+ScrollTrigger · Lenis · R3F/Three.js(+Spline) golden hero light · Rive (richer) · Framer Motion/Motion One · Sanity CMS · Cloudinary/next/image · Resend · Vercel · **Shopify Storefront API OR Stripe+Postgres/Neon**. Must satisfy: multilingual (ES/EN/CA, ZH-ready), working Google login, admin+customer-export, custom dark design + animations (Shopify theming is restrictive — weigh it).
 
-## DON'T
-Dark Shop or white brand pages · flat-fill big lime/gold areas · dense copy (except History) · cluttered grids · generic video-bg hero · fast/flashy/childish motion · chatbot (dropped) · stock green WhatsApp bubble · themed Shopify/Amazon storefront · broken Google login · forced-signup checkout · hardcoded contact/WhatsApp details · tanking Core Web Vitals.
+## Interpretation principle: silence ≠ prohibition
+Anything the client didn't mention is fair game to propose/build — only his explicit "don'ts" are hard limits. **He LIKES loaders** → a branded loader is a wanted feature (short, GPU-cheap, skippable, reduced-motion-safe; Shop stays instant, don't gate it). Enhancements he never asked for (split-screen menu, zero-lag cursor, loader) are welcome if they honor the guardrails below.
+
+## Hard DON'Ts (things he explicitly said not to do)
+Chatbot (dropped → WhatsApp) · walls of text (History excepted) · wishlist/favorites · limiting purchase quantity · repeating the broken Google login. Guardrails: nothing that hurts load time or feels gimmicky · respect reduced-motion · premium = restraint.
+
+## Also avoid (design-language consistency)
+Dark Shop or white brand pages · flat-fill big lime/gold areas · cluttered grids · stock green WhatsApp bubble · themed Shopify/Amazon storefront · forced-signup checkout · hardcoded contact/WhatsApp details · tanking Core Web Vitals.
 
 ## When invoked
 1. If unsure of a concrete value, read `NOSTRUM-DESIGN.md`.
