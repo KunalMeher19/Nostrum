@@ -133,22 +133,27 @@ export default function UnderlayNav() {
           tl.set(overlayEl, { visibility: "visible", pointerEvents: "auto" }, 0)
 
             // Slide page + overlay left to expose the menu panel
-            .to([mainEl, overlayEl], { x: getMenuOffset, duration: 0.7 }, 0)
+            // (slower + softer expo curve for a smooth, luxurious open)
+            .to(
+              [mainEl, overlayEl],
+              { x: getMenuOffset, duration: 1.15, ease: "expo.out" },
+              0
+            )
 
             // Dim the exposed page content
-            .to(darkEl, { autoAlpha: 1, duration: 0.5 }, 0)
+            .to(darkEl, { autoAlpha: 1, duration: 0.8 }, 0)
 
             // Decorative border corners scale in
-            .to(corners, { scale: 1, duration: 0.5 }, 0)
+            .to(corners, { scale: 1, duration: 0.8 }, 0)
 
             // Border rows slide in from top/bottom
-            .to(overlayBorders, { yPercent: 0, duration: 0.5 }, 0)
+            .to(overlayBorders, { yPercent: 0, duration: 0.8 }, 0)
 
             // "Menu" label scrolls up, revealing "Close" below it
-            .to(toggleLabels, { yPercent: -100, duration: 0.4 }, 0)
+            .to(toggleLabels, { yPercent: -100, duration: 0.5 }, 0)
 
             // Toggle button colour transitions to match the open menu's fg
-            .to(toggleBtn, { color: openColor, duration: 0.4 }, 0)
+            .to(toggleBtn, { color: openColor, duration: 0.5 }, 0)
 
             // Hamburger bars cross to form an ✕
             .to(
@@ -163,11 +168,19 @@ export default function UnderlayNav() {
             )
 
             // Large nav items slide in from the right
+            // (much slower + longer stagger + soft expo curve — the links
+            //  should unfurl gently, one after another)
             .fromTo(
               largeItems,
               { autoAlpha: 0, xPercent: 25 },
-              { autoAlpha: 1, xPercent: 0, duration: 0.7, stagger: 0.05 },
-              0
+              {
+                autoAlpha: 1,
+                xPercent: 0,
+                duration: 1.25,
+                stagger: 0.11,
+                ease: "expo.out",
+              },
+              0.15
             )
 
             // Small bottom items rise up
@@ -177,15 +190,15 @@ export default function UnderlayNav() {
               {
                 autoAlpha: 1,
                 yPercent: 0,
-                duration: 0.5,
-                stagger: 0.03,
-                ease: "power3.out",
+                duration: 0.9,
+                stagger: 0.06,
+                ease: "expo.out",
               },
-              0.3
+              0.5
             )
 
             // Bottom border scales in from the left
-            .to(menuBorder, { scaleX: 1, duration: 0.5 }, "<");
+            .to(menuBorder, { scaleX: 1, duration: 0.8 }, "<");
 
           // Mark where the ENTER sequence ends so toggle() knows the state.
           enterEndTime = tl.duration();
