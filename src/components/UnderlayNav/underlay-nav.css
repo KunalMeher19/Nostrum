@@ -1,0 +1,347 @@
+/* ============================================================
+   UnderlayNav — Nostrum dark theme
+   Adapted from Osmo "underlay nav" pattern.
+
+   --nav-bg     : warm-dark panel that slides in from the right
+   --nav-fg     : primary text (nostrum-white)
+   --nav-accent : gold accent for active/hover states
+   --nav-page-bg: matches the site's page background — used by the
+                  corner cut-out trick so the corner "blends" into the
+                  menu panel correctly.
+   ============================================================ */
+
+:root {
+  --menu-width: 30em;
+  --nav-bg: #0f0d0a;        /* warm dark panel                */
+  --nav-fg: #f5f5f3;        /* nostrum-white                  */
+  --nav-accent: #e6b45a;    /* nostrum-gold                   */
+  --nav-border: rgba(245, 245, 243, 0.1);
+}
+
+/* ---- Base ---- */
+.underlay-nav a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---- Fixed Header Bar ---- */
+.underlay-nav__header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  color: var(--nav-fg);
+  /* Only the interactive children (logo, toggle) intercept pointer events so
+     the full-width bar doesn't accidentally block hovers on the hero below. */
+  pointer-events: none;
+  /* Fade in once the loader finishes */
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+/* Hide nav while the crisp loader is active before the text and thumbnail
+   navigation reveal starts.
+   
+   Two conditions cover the entire pre-reveal window:
+   1. body:has(.crisp-header.is--hidden)  — before JS has run at all.
+      The CrispHeader is server-rendered with is--hidden; JS removes it in the
+      same onStart callback that adds is--intro-active, so there is no gap.
+   2. body.is--intro-active              — while the GSAP intro plays.
+      Removed by the timeline when the heading/nav text starts revealing. */
+body.is--intro-active .underlay-nav__header,
+body:has(.crisp-header.is--hidden) .underlay-nav__header {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+
+.underlay-nav__bar {
+  width: 100%;
+  pointer-events: auto;
+}
+
+.underlay-nav__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2em 2.5em;
+}
+
+/* Logo — matches CrispHeader brand wordmark style */
+.underlay-nav__logo {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.25em;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
+  color: var(--nav-fg);
+  pointer-events: auto;
+  text-decoration: none;
+}
+
+/* ---- Toggle Button ---- */
+.underlay-nav__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  /* Expand the click target without affecting layout */
+  margin: -1em;
+  padding: 1em;
+  pointer-events: auto;
+  outline: none;
+}
+
+.underlay-nav__toggle-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  height: 1.5em;
+  overflow: hidden;
+}
+
+.underlay-nav__toggle-label {
+  font-size: 1em;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.underlay-nav__toggle-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375em;
+  width: 1.5em;
+  flex: none;
+  margin-bottom: -0.3em;
+}
+
+.underlay-nav__toggle-bar {
+  display: block;
+  width: 100%;
+  height: 0.125em;
+  background-color: currentColor;
+  flex: none;
+}
+
+/* ---- Menu Panel (fixed right edge, always in DOM) ---- */
+.underlay-nav__menu {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+  width: var(--menu-width);
+  background-color: var(--nav-bg);
+  color: var(--nav-fg);
+}
+
+.underlay-nav__inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 2em;
+  width: 100%;
+  height: 100%;
+  padding: 7.5em 2em 2em;
+  overflow-y: auto;
+  
+  /* Hide scrollbar for a cleaner look */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.underlay-nav__inner::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Nav Lists ---- */
+.underlay-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.underlay-nav__list.is--small {
+  gap: 0.75em;
+}
+
+/* ---- Large Primary Links ---- */
+.underlay-nav__link-large {
+  display: block;
+  width: 100%;
+  padding: 0.4em 0.75em;
+  border-radius: 0.25em;
+  transition: color 0.25s ease;
+}
+
+.underlay-nav__link-large:hover .underlay-nav__link-label {
+  color: var(--nav-accent);
+}
+
+.underlay-nav__link-large.is--current .underlay-nav__link-label {
+  color: var(--nav-accent);
+}
+
+.underlay-nav__link-label {
+  display: block;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 3.25em;
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  transition: color 0.25s ease;
+}
+
+/* ---- Bottom Section ---- */
+.underlay-nav__bottom {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  padding-top: 1.5em;
+  position: relative;
+}
+
+.underlay-nav__bottom-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  flex: 1;
+}
+
+.underlay-nav__link-small {
+  font-size: 0.875em;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+.underlay-nav__link-small:hover {
+  color: var(--nav-accent);
+}
+
+.underlay-nav__link-small.is--faded {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.underlay-nav__bottom-border {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.12;
+  transform-origin: left center;
+}
+
+/* ---- Overlay (slides with [data-main] content) ---- */
+.underlay-nav__overlay {
+  position: fixed;
+  inset: 0 -1px 0 0; /* -1px on right closes a subpixel gap */
+  z-index: 100;
+  pointer-events: none;
+  cursor: pointer;
+  visibility: hidden;
+  overflow: clip;
+}
+
+.underlay-nav__dark {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+}
+
+/* ---- Decorative borders that appear at top & bottom of the overlay ---- */
+.underlay-nav__borders {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.underlay-nav__border-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* 1em coloured bar that peeks above/below the overlay edge */
+.underlay-nav__border {
+  width: 100%;
+  height: 1em;
+  background-color: var(--nav-bg);
+}
+
+/* Quarter-circle "rounded corner" trick:
+   The corner element fills with a radial-gradient that is TRANSPARENT in
+   the arc region and matches --nav-bg outside it.  When the overlay slides
+   left to reveal the menu panel, this makes the menu panel's top-right and
+   bottom-right edges appear rounded.  The colour must match --nav-bg exactly. */
+.underlay-nav__corner {
+  width: 2em;
+  height: 2em;
+  transform-origin: 100% 0%;
+  /* Top-right corner: arc sweeps from bottom-left of the element */
+  background-image: radial-gradient(
+    circle farthest-side at 0% 100%,
+    transparent 99%,
+    var(--nav-bg)
+  );
+}
+
+.underlay-nav__corner.is--bottom {
+  transform-origin: 100% 100%;
+  /* Bottom-right corner: arc sweeps from top-left of the element */
+  background-image: radial-gradient(
+    circle farthest-side at 0% 0%,
+    transparent 99%,
+    var(--nav-bg)
+  );
+}
+
+/* ---- Mobile ---- */
+@media screen and (max-width: 767px) {
+  :root {
+    --menu-width: 85vw;
+  }
+
+  .underlay-nav__container {
+    padding: 1.25em;
+  }
+
+  .underlay-nav__logo {
+    font-size: 1em;
+  }
+
+  .underlay-nav__toggle-label {
+    font-size: 0.875em;
+  }
+
+  .underlay-nav__inner {
+    padding: 5em 1.25em 1.25em;
+  }
+
+  .underlay-nav__link-label {
+    font-size: 2.25em;
+  }
+
+  .underlay-nav__bottom {
+    flex-direction: column;
+    gap: 1.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+}

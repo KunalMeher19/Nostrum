@@ -1,0 +1,362 @@
+/* ------------------------------------------------------------------ */
+/* Nostrum loader theme — on-brand per NOSTRUM-DESIGN.md §3            */
+/* Black canvas · white accent · gold is the light. Green stays a     */
+/* footer-only moment, so it never appears here.                      */
+/* ------------------------------------------------------------------ */
+.crisp-header {
+  --crisp-bg: #050505;      /* nostrum-black — the canvas (§3)        */
+  --crisp-fg: #f5f5f3;      /* nostrum-white — text, used sparingly   */
+  --crisp-accent: #e6b45a;  /* nostrum-gold — light/energy accent     */
+  --crisp-amber: #ff8a3d;   /* nostrum-amber — hotter light highlight */
+}
+
+/* Disable Scroll on Loading */
+main:has(.crisp-header.is--loading) {
+  height: 100dvh;
+}
+
+/* Loader */
+
+.crisp-loader {
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1vw;
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  /* z-index: 0 creates a stacking context here so that the z-index: 1 on
+     .crisp-loader__wrap (needed to keep it above the gold-bloom ::before) is
+     confined INSIDE the loader's own context.  Without this, z-index: 1 leaks
+     into the parent context and causes the loader to paint ABOVE
+     .crisp-header__content, hiding the word-reveal animation behind the
+     expanding images and making the text appear to flash instead of slide up. */
+  z-index: 0;
+}
+
+/* Signature gold "light through darkness" (§6) — a soft bloom that sits
+   behind the rolling images so the loader reads as Nostrum's hero energy,
+   not a generic device loader. Kept low-opacity and slow, never flashy.
+   Widened and brightened so the warm centre spills across the image strip
+   and the loader bg feels cohesive — no isolated dark patches. */
+.crisp-loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 50%,
+      rgba(230, 180, 90, 0.22) 0%,
+      rgba(200, 140, 60, 0.10) 40%,
+      rgba(10, 7, 3, 0.55) 72%,
+      transparent 70%
+    );
+}
+
+.crisp-loader__wrap {
+  font-size: var(--size-font);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: relative;
+  z-index: 1; /* keep the images above the gold bloom */
+}
+
+.crisp-loader__groups {
+  position: relative;
+  overflow: hidden;
+  /* Use mask-image to smoothly fade out the edges of the rolling images.
+     This naturally reveals the gold bloom underneath without needing 
+     artificial solid black overlays. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.crisp-loader__group {
+  border-radius: .5em;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: relative;
+}
+
+.crisp-loader__single {
+  padding-left: 1em;
+  padding-right: 1em;
+  position: relative;
+}
+
+.crisp-loader__media {
+  border-radius: .5em;
+  justify-content: center;
+  align-items: center;
+  width: 10em;
+  height: 10em;
+  display: flex;
+  position: relative;
+}
+
+.crisp-loader__media.is--scaling {
+  will-change: transform;
+  border-radius: 0;
+  transition-property: border-radius;
+  transition-duration: .5s;
+  transition-timing-function: cubic-bezier(1, 0, 0, 1);
+  display: flex;
+}
+
+.crisp-loader__cover-img {
+  object-fit: cover;
+  border-radius: inherit;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+/* TEMPORARY placeholder treatment (§10 — mark placeholders as temporary).
+   The stock images are tech-product close-ups whose greens/purples clash
+   with the black+gold palette. Until the client supplies real olive-oil
+   photography, warm-desaturate them into a muted amber monochrome so the
+   loader stays on-brand. Delete this filter when real imagery lands. */
+.crisp-loader__cover-img,
+.crisp-header__slider-slide-inner {
+  filter: grayscale(0.35) sepia(0.42) saturate(0.95) brightness(0.82)
+    contrast(1.04);
+}
+
+.crisp-loader__media.is--scaling.is--radius {
+  border-radius: .5em;
+}
+
+.crisp-loader__group.is--relative {
+  position: relative;
+  left: 100%;
+}
+
+.crisp-loader__group.is--duplicate {
+  position: absolute;
+}
+
+.crisp-loader__cover-img.is--scale-down {
+  will-change: transform;
+}
+
+.crisp-loader__fade {
+  display: none; /* Replaced by mask-image on .crisp-loader__groups to fix blending issues */
+}
+.crisp-loader__fade.is--duplicate {
+  display: none;
+}
+
+/* Header */
+
+.crisp-header {
+  background-color: var(--crisp-bg);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Loading: Hidden */
+.crisp-header.is--loading.is--hidden {
+  display: none;
+}
+
+/* Loading: is Loading */
+.crisp-header.is--loading .crisp-header__slider {
+  display: none;
+}
+
+.crisp-header.is--loading .crisp-loader {
+  display: flex;
+}
+
+/* Loading: Loading Done */
+.crisp-loader {
+  display: none;
+}
+
+.crisp-header__content {
+  color: var(--crisp-fg);
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100dvh;
+  padding: 2.5em;
+  display: flex;
+  position: relative;
+}
+
+.crisp-header__top {
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  display: flex;
+}
+
+.crisp-header__center {
+  width: 100%;
+  padding: 1.5em;
+  position: absolute;
+  left: 0;
+}
+
+.crisp-header__bottom {
+  grid-column-gap: 2em;
+  grid-row-gap: 2em;
+  flex-flow: column;
+  align-items: center;
+  margin-top: auto;
+  display: flex;
+}
+
+.crisp-header__brand {
+  color: currentColor;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.5em;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
+}
+
+.crisp-header__hamburger {
+  grid-column-gap: .375em;
+  grid-row-gap: .375em;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  width: 2em;
+  height: 2em;
+  display: flex;
+}
+
+.crisp-header__hamburger-bar {
+  background-color: currentColor;
+  width: 1.875em;
+  height: .125em;
+}
+
+.crisp-header__slider-list {
+  grid-template-rows: 100%;
+  grid-template-columns: 100%;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  overflow: hidden;
+}
+
+.crisp-header__slider-nav {
+  grid-column-gap: .5em;
+  grid-row-gap: .5em;
+  padding: 1em;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.crisp-header__slider-nav-btn {
+  cursor: pointer;
+  border: 1px solid #0000;
+  border-radius: .25em;
+  width: 3.5em;
+  height: 3.5em;
+  position: relative;
+  transition: border-color 0.75s cubic-bezier(0.625, 0.05, 0, 1);
+}
+.crisp-header__slider-nav-btn img {
+  transform: scale(1) rotate(0.001deg);
+  transition: transform 0.75s cubic-bezier(0.625, 0.05, 0, 1);
+}
+
+.crisp-header__slider-nav:has(.crisp-header__slider-nav-btn:hover) img {
+  transform: scale(0.825) rotate(0.001deg);
+}
+
+.crisp-header__slider-nav:has(.crisp-header__slider-nav-btn:hover) .crisp-header__slider-nav-btn:hover img {
+  transform: scale(1) rotate(0.001deg);
+}
+
+.crisp-header__slider-nav-btn.is--current {
+  border-color: var(--crisp-accent);
+}
+
+.crisp-header__p {
+  text-align: center;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  color: var(--crisp-accent);
+}
+
+.crisp-header__slider {
+  grid-column-gap: 1rem;
+  grid-row-gap: 1rem;
+  border-radius: .5em;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: absolute;
+}
+
+.crisp-header__slider-slide {
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  grid-area: 1 / 1 / -1 / -1;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  position: relative;
+  overflow: hidden;
+}
+
+.crisp-header__slider-slide.is--current {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.crisp-header__slider-slide-inner {
+  object-fit: cover;
+  will-change: transform;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.crisp-header__a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.crisp-header__h1 {
+  text-align: center;
+  letter-spacing: -.03em;
+  margin-top: 0;
+  margin-bottom: .125em;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: calc(4vw + 4dvh);
+  font-weight: 400;
+  line-height: .95;
+}
+
+.crisp-header__h1 > * {
+  margin: -0.1em -0.05em;
+  padding: 0.1em 0.05em;
+}
