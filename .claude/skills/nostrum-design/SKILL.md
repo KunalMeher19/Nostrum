@@ -5,57 +5,64 @@ description: Design language, visual rules, motion direction, and build conventi
 
 # Nostrum Design
 
-Nostrum is **a luxury brand experience that happens to sell products** — story first, product second. The client's references (Bugatti, Rolls-Royce, YSL, Audemars Piguet, Balmain, Aston Martin, Bang & Olufsen, Locomotive, Basic/Dept, Framer) all sell a *feeling*. Never build generic e-commerce (no Amazon/Shopify patterns).
+Nostrum is **a premium, dark, agriculture-rooted olive oil brand — with a clean white Shop that gets out of the way and lets you buy.** Story first, product second. Dark brand pages (luxury car / fashion house), bright white Shop (LV/Balmain). Keep the **family, from-the-land soul** under the luxury polish — *olive oil, not a supercar.* Never generic e-commerce (no Amazon/Shopify patterns).
 
-**Always read `NOSTRUM-DESIGN.md` (repo root) for the full spec.** This skill is the quick enforcement layer.
+**Always read `NOSTRUM-DESIGN.md` (repo root) for the full spec** — it's now grounded in the client's official brief (`assests/Nostrum.pdf`). This skill is the quick enforcement layer.
 
-## The 6 principles
-1. Luxury first — every interaction intentional and refined.
-2. Minimal but cinematic — space + motion over clutter.
-3. Tell the story — don't just list products.
-4. Motion with purpose — guide attention, never distract.
-5. Photography is 80% of the result — layout elevates images.
-6. Consistent language — black, lime, clean type, smooth transitions, subtle light.
+## The principles
+1. Luxury first — every interaction intentional, exclusive, expensive.
+2. Minimal but cinematic — space + motion over clutter. **Premium = restraint.**
+3. Tell the story, don't list products (History is the one text-rich page).
+4. Agriculture soul — warm, family, from-the-land; not cold.
+5. Motion with purpose — subtle, performant, reduced-motion-safe.
+6. Photography is ~80% of the result — layout elevates images.
+7. Fewest words possible — exact words only; design + photos carry the weight.
 
-Mood: **Luxury. Quiet. Confident. Editorial. Cinematic.**
+Mood: **Luxury. Quiet. Confident. Warm. Cinematic.**
 
-## Color (≤4 on screen)
-- Backgrounds: `#050505` (default), `#090909`, `#111111` (cards), `#1a1a1a` (borders).
-- White `#f5f5f3` (sparingly), muted grey `#8a8a8a`.
-- **Light/motion = warm gold/amber** `#e6b45a` / `#ff8a3d` — trails, glow, hero, hover/CTA. The client's actual light-trail assets are gold/amber, NOT green.
-- **Green `#9bd64a` is RESERVED for the footer wordmark ONLY** (client said "cool green" once, only for the B&O-style footer). Do not make green a site-wide accent.
-- The ONE light section (Contact): paper `#f4f4f2`, ink `#0e1a26`.
-- Black is the canvas; white is an accent; gold is energy/light, not flat fill everywhere.
+## Two modes: dark brand, white Shop
+- **Dark:** Home, History, Contact, B2B. **Light/white:** Shop, Product, Cart, Checkout. Don't mix them up (the light section is the **Shop**, NOT Contact — Contact is dark).
 
-## Typography
-- Huge type, very little text, lots of whitespace. **No dense paragraphs.**
-- Display poster-scale (`clamp(3rem,12vw,14rem)`), tight tracking; small eyebrows uppercase + wide tracking.
-- Refined grotesk for UI/body; editorial display for hero. Confirm licensed fonts with client.
-- Headlines may animate word-by-word.
+## Color — CONFIRMED palette (client's, §3)
+- Backgrounds (brand/dark): ink-black `#14160F`, deep-olive `#1E2A16`, bark-brown `#2C2117`. Warm near-black canvas, layer for depth — not flat pure black.
+- Accents ("the jewelry", **sparingly**): **logo-lime `#A6CE3A` AND gold `#E6B422`** — both are legit for CTAs/highlights. Leaf-green `#3B7A3E` for softer organic moments.
+- **Light-streak hero motion = GOLDEN** (`#E6B422`).
+- Shop background = warm-white `#FAF8F2`. Text on dark = off-white `#EDEBE3`. Pure white `#FFFFFF` where needed.
+- Keep ≤ a handful of colors on screen. Never flat-fill big areas with lime/gold. (Lime is a real accent now — NOT footer-only.)
 
-## Structure (scenes, not sections)
-Hero → Brand Story → Featured Products → Philosophy → Collection Preview → Gallery/Lifestyle → Process/Craftsmanship → Professional Clients/Restaurants (B2B "¿Eres chef profesional?") → Shop → Contact (light section) → Large poster-scale footer wordmark.
-Smooth inertia scroll; scene-to-scene storytelling; luxury spacing.
-**Scroll color shift:** background tone transitions subtly as you scroll to the bottom (Basic Agency cue — client liked this). Slow/atmospheric, not a hard switch.
-**Gallery/Lifestyle scene:** floating 3D image gallery modeled on Framer's ImageWheel; slow/elegant motion.
+## Typography (open, direction fixed)
+- Huge type, very little text, lots of whitespace. **No dense paragraphs** (except History).
+- Editorial display for headlines (a little character) + clean readable sans for body/UI. **2 families max.**
+- **Must support ES/CA accents** (CJK if ZH). Avoid generic/overused fonts.
+- Display poster-scale (`clamp(3rem,12vw,14rem)`), tight tracking; eyebrows uppercase + wide tracking; headlines may animate word-by-word.
+
+## Structure (multi-page, 4-item nav)
+Home (dark hero + CTA into Shop) · Shop (LIGHT: list→product→cart→checkout) · History (dark, scroll-driven story) · B2B (small block at end of Shop + CTAs) · Contact (dark) · Account→portal · Admin. Global: language switcher (ES/EN/CA·maybe ZH) · floating WhatsApp · cookie banner · footer. Nav = logo center/left + menu + **search** + account + cart. It's a multi-page site — cinematic scenes live mainly on Home + History (not one long scroll page).
 
 ## Signature interactions
-- **Hero:** light moving through darkness — canvas/shader **gold/amber** light-trails, motion-blurred, mouse-reactive, soft glow. NOT a video background. Subtle, never flashy. (Borrow only Locomotive's immersive hero-heading idea, not its overall style.)
-- **Menu:** Rolls-Royce split screen — links on one side, the **actual current page background image BLURRED** bleeding through on the other (not a flat overlay). Open with blur + fade + scale, smooth. No instant popup.
-- **Cursor:** custom white circle tracking the mouse with **ZERO lag — no lerp/easing** (client liked Rolls' no-delay cursor). Hover = reveal/scale/fade/mask/blur/glow. (Magnetic buttons = optional suggestion, NOT client-requested.)
-- **Footer:** poster-like oversized "NOSTRUM" wordmark, minimal links; home of the reserved green moment.
-- **Contact:** single paper section, big headline, small details, whitespace, no fancy form. Balmain 3-card block (Boutiques/Care/FAQ) goes HERE, not the homepage.
+- **Hero (Home):** cinematic dark; **golden light-streaks/car-light-trails**, motion-blurred, mouse-reactive, soft glow. NOT a video bg. Subtle. (Rive OK for richer pieces.)
+- **Motion ideas (options, Home):** spinning olives on scroll (rotate on own axis, not tumbling); hand-drawn/sketch (esbozo) olives/branch/logo for craft warmth; "draining/pouring" (escurrir) micro-anim on the Shop CTA; optional toggleable ambient leaf sound.
+- **Menu:** Rolls-Royce split screen — links one side, **actual current page bg BLURRED** bleeding through the other. Open blur+fade+scale, smooth. No instant popup.
+- **Cursor:** custom circle, **ZERO lag — no lerp/easing** (Rolls no-delay). Hover = reveal/scale/fade/mask/blur/glow.
+- **Footer:** poster-scale "NOSTRUM" wordmark + Balmain-style sections/socials/legal/lang+country.
+- **WhatsApp:** floating bubble bottom-right (with the arrow), every page — on-brand dark pill, NOT a stock green widget. Replaces the (dropped) chatbot.
+
+## Shop / Product specifics
+Shop = white, whitespace, big product images, clean grid, quick add-to-cart on hover. Products: olive oil, mainly 5L, x1/x2/x3 packs + other sizes, ~€35/5L. Product page: big image(s) · name·€price · size selector · quantity x1/x2/x3 OR free custom amount (don't limit them) · add to cart · tight description + shipping note. Catalog flexible (honey maybe later).
+
+## Accounts (all in scope)
+Login: email+password + **working Google** (was broken on GK.IA — must work). Portal: order history · active orders (shipping status) · downloadable invoices · shipping/account details · CTA to buy more · NO wishlist. Admin: orders · exportable customers list (for email marketing) · shop management (products/prices/stock/sizes/packs). GDPR: consent checkbox on signup/checkout + privacy policy.
 
 ## Motion
-Slow, elegant, custom easing (~0.8–1.2s, expo/power3-style). Scroll reveals = fade + slight rise + clip-path mask. Purposeful only.
+Slow, elegant, custom easing (~0.8–1.2s, expo/power3). Scroll reveals = fade + slight rise + clip-path mask. Purposeful only. Respect `prefers-reduced-motion`. Never hurt load time / feel gimmicky.
 
 ## Tech stack
-Next.js + TypeScript · Tailwind · GSAP + ScrollTrigger · Lenis · React Three Fiber/Three.js (+ Spline) for hero light · Framer Motion / Motion One for micro-interactions · Cloudinary / next/image.
+Client's call (Shopify vs custom). Next.js + TS · Tailwind · GSAP+ScrollTrigger · Lenis · R3F/Three.js(+Spline) golden hero light · Rive (richer) · Framer Motion/Motion One · Sanity CMS · Cloudinary/next/image · Resend · Vercel · **Shopify Storefront API OR Stripe+Postgres/Neon**. Must satisfy: multilingual (ES/EN/CA, ZH-ready), working Google login, admin+customer-export, custom dark design + animations (Shopify theming is restrictive — weigh it).
 
 ## DON'T
-White default background · dense copy · cluttered grids · generic video-bg hero · fast/flashy/childish motion (no confetti, flying cards, crazy 3D) · >4 colors · Amazon/Shopify commerce patterns.
+Dark Shop or white brand pages · flat-fill big lime/gold areas · dense copy (except History) · cluttered grids · generic video-bg hero · fast/flashy/childish motion · chatbot (dropped) · stock green WhatsApp bubble · themed Shopify/Amazon storefront · broken Google login · forced-signup checkout · hardcoded contact/WhatsApp details · tanking Core Web Vitals.
 
 ## When invoked
 1. If unsure of a concrete value, read `NOSTRUM-DESIGN.md`.
-2. Apply the color/type/motion rules above to the work at hand.
-3. Flag anything that drifts toward generic-ecommerce or flashy/cluttered and steer it back to quiet luxury.
+2. Apply the two-mode color/type/motion/structure rules above.
+3. Flag anything that drifts toward generic-ecommerce, cold/flashy/cluttered, or that loses the agriculture soul — steer back to warm quiet luxury.
