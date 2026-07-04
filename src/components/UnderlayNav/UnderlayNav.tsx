@@ -103,7 +103,6 @@ export default function UnderlayNav() {
         let isOpen = false;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let tl: any;
-        let enterEndTime = 0;
 
         // Dynamically read menu width each time the timeline is invalidated so
         // the offset stays correct after viewport resize.
@@ -120,52 +119,77 @@ export default function UnderlayNav() {
         gsap.set(overlayBorders[1], { yPercent: 100 });
         gsap.set(corners, { scale: 0 });
 
+        /* ── Direct (non-timeline) motions ──────────────────── */
+        // The page-slide, dim, and toggle button are driven DIRECTLY on every
+        // click — never through the reversible timeline.  A full-timeline
+        // reverse back-loads whatever sits at position 0 (it plays last), which
+        // made the page + button feel unresponsive on close.  Driving them
+        // directly means they react instantly in BOTH directions.
+        function slidePage(open: boolean) {
+          gsap.to([mainEl, overlayEl], {
+            x: open ? getMenuOffset() : 0,
+            duration: open ? 1.15 : 0.9,
+            ease: "expo.out", // fast at the start → instant felt response
+            overwrite: "auto",
+          });
+          gsap.to(darkEl, {
+            autoAlpha: open ? 1 : 0,
+            duration: open ? 0.8 : 0.5,
+            overwrite: "auto",
+          });
+        }
+
+        function animateToggleButton(open: boolean) {
+          gsap.to(toggleLabels, {
+            yPercent: open ? -100 : 0,
+            duration: 0.4,
+            ease: open ? "energy" : "power3.in",
+            overwrite: "auto",
+          });
+          gsap.to(toggleBtn, {
+            color: open ? openColor : closedColor,
+            duration: 0.4,
+            overwrite: "auto",
+          });
+          gsap.to(toggleBars[0], {
+            y: open ? "0.25em" : 0,
+            rotation: open ? 45 : 0,
+            duration: 0.35,
+            ease: open ? "back.out(1.4)" : "power3.in",
+            overwrite: "auto",
+          });
+          gsap.to(toggleBars[1], {
+            y: open ? "-0.25em" : 0,
+            rotation: open ? -45 : 0,
+            duration: 0.35,
+            ease: open ? "back.out(1.4)" : "power3.in",
+            overwrite: "auto",
+          });
+        }
+
         /* ── Build timeline ─────────────────────────────────── */
-        // The timeline is built once with a pause between the ENTER sequence
-        // and the EXIT sequence.  play() and reverse() navigate it.
+        // This timeline holds only the decorative / staggered reveals (corners,
+        // borders, nav links).  Opening plays it forward; closing REVERSES it,
+        // so those elements unfurl and fold away as an exact mirror.
         function buildTimeline() {
           tl = gsap.timeline({
             paused: true,
             defaults: { ease: "energy" },
+            // Once fully reversed (closed), hide + disable the overlay so it
+            // stops intercepting clicks on the page beneath it.
+            onReverseComplete: () => {
+              gsap.set(overlayEl, {
+                visibility: "hidden",
+                pointerEvents: "none",
+              });
+            },
           });
 
-          // — ENTER (open) ——————————————————————————————————
-          tl.set(overlayEl, { visibility: "visible", pointerEvents: "auto" }, 0)
-
-            // Slide page + overlay left to expose the menu panel
-            // (slower + softer expo curve for a smooth, luxurious open)
-            .to(
-              [mainEl, overlayEl],
-              { x: getMenuOffset, duration: 1.15, ease: "expo.out" },
-              0
-            )
-
-            // Dim the exposed page content
-            .to(darkEl, { autoAlpha: 1, duration: 0.8 }, 0)
-
-            // Decorative border corners scale in
-            .to(corners, { scale: 1, duration: 0.8 }, 0)
+          // Decorative border corners scale in
+          tl.to(corners, { scale: 1, duration: 0.8 }, 0)
 
             // Border rows slide in from top/bottom
             .to(overlayBorders, { yPercent: 0, duration: 0.8 }, 0)
-
-            // "Menu" label scrolls up, revealing "Close" below it
-            .to(toggleLabels, { yPercent: -100, duration: 0.5 }, 0)
-
-            // Toggle button colour transitions to match the open menu's fg
-            .to(toggleBtn, { color: openColor, duration: 0.5 }, 0)
-
-            // Hamburger bars cross to form an ✕
-            .to(
-              toggleBars[0],
-              { y: "0.25em", rotation: 45, duration: 0.35, ease: "back.out(1.4)" },
-              0.05
-            )
-            .to(
-              toggleBars[1],
-              { y: "-0.25em", rotation: -45, duration: 0.35, ease: "back.out(1.4)" },
-              0.05
-            )
 
             // Large nav items slide in from the right
             // (much slower + longer stagger + soft expo curve — the links
@@ -199,37 +223,6 @@ export default function UnderlayNav() {
 
             // Bottom border scales in from the left
             .to(menuBorder, { scaleX: 1, duration: 0.8 }, "<");
-
-          // Mark where the ENTER sequence ends so toggle() knows the state.
-          enterEndTime = tl.duration();
-
-          // — PAUSE (the timeline waits here when open) ————————
-          tl.addPause();
-
-          // — EXIT (close) ————————————————————————————————————
-          tl.to([largeItems, smallItems], { autoAlpha: 0, duration: 0.3 }, "<")
-            .to([mainEl, overlayEl], { x: 0, duration: 0.6 }, "<")
-            .to(
-              darkEl,
-              { autoAlpha: 0, duration: 0.35, ease: "power2.inOut" },
-              "<"
-            )
-            .to(corners, { scale: 0, duration: 0.5 }, "<")
-            .to(overlayBorders[0], { yPercent: -100, duration: 0.5 }, "<")
-            .to(overlayBorders[1], { yPercent: 100, duration: 0.5 }, "<")
-            .to(toggleBtn, { color: closedColor, duration: 0.25 }, "<+=0.1")
-            .to(
-              toggleLabels,
-              { yPercent: 0, duration: 0.25, ease: "power3.in" },
-              "<"
-            )
-            .to(
-              toggleBars,
-              { y: 0, rotation: 0, duration: 0.25, ease: "power3.in" },
-              "<"
-            )
-            // Hide and disable the overlay once fully closed
-            .set(overlayEl, { visibility: "hidden", pointerEvents: "none" });
         }
 
         /* ── Toggle handler ─────────────────────────────────── */
@@ -243,15 +236,25 @@ export default function UnderlayNav() {
           // Let global CSS react to the open state if needed.
           document.body.setAttribute("data-menu-status", isOpen ? "open" : "");
 
+          // The toggle button + page slide are driven directly so they react
+          // instantly on every click, regardless of open/close direction.
+          animateToggleButton(isOpen);
+
           if (isOpen) {
-            // invalidate() recalculates getMenuOffset() for fresh viewport sizes.
-            tl.invalidate();
-            if (tl.time() >= enterEndTime) tl.timeScale(1).restart();
-            else tl.timeScale(1).play();
+            // Reveal the overlay before it starts sliding in.
+            gsap.set(overlayEl, {
+              visibility: "visible",
+              pointerEvents: "auto",
+            });
+            slidePage(true);
+            tl.timeScale(1).play();
           } else {
-            // If still mid-enter, reverse; otherwise play the exit sequence.
-            if (tl.time() < enterEndTime) tl.timeScale(1).reverse();
-            else tl.timeScale(1).play();
+            // Stop intercepting clicks right away; visibility is cleared once
+            // the reverse fully completes (onReverseComplete).
+            gsap.set(overlayEl, { pointerEvents: "none" });
+            slidePage(false);
+            // Reverse the timeline so the decorative reveals mirror the open.
+            tl.timeScale(1).reverse();
           }
         }
 
