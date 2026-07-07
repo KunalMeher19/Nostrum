@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import "./underlay-nav.css";
 
-/* ── Navigation data ──────────────────────────────────────── */
+/* ---- Navigation data ---------------------------------------- */
 const NAV_LINKS = [
   { href: "/", label: "Home", current: true },
   { href: "/story", label: "Our Story" },
@@ -59,7 +59,7 @@ export default function UnderlayNav() {
       CustomEase.create("energy", "M0,0 C0.32,0.72 0,1 1,1");
 
       ctx = gsap.context(() => {
-        /* ── Element references ─────────────────────────────── */
+        /* ---- Element references ------------------------------- */
         const toggleBtn = root.querySelector<HTMLButtonElement>(
           "[data-underlay-nav-toggle]"
         )!;
@@ -74,11 +74,6 @@ export default function UnderlayNav() {
         )!;
         const largeItems =
           root.querySelectorAll<HTMLElement>("[data-reveal-l]");
-        const smallItems =
-          root.querySelectorAll<HTMLElement>("[data-reveal-s]");
-        const menuBorder = root.querySelector<HTMLElement>(
-          ".underlay-nav__bottom-border"
-        );
         // [data-main] lives outside this component (in the page layout).
         const mainEl = document.querySelector<HTMLElement>("[data-main]")!;
         const overlayEl = root.querySelector<HTMLElement>(
@@ -106,20 +101,19 @@ export default function UnderlayNav() {
 
         // Dynamically read menu width each time the timeline is invalidated so
         // the offset stays correct after viewport resize.
-        const getMenuOffset = () => -menuEl.offsetWidth;
+        const getMenuOffset = () => menuEl.offsetWidth;
 
-        /* ── Initial GSAP state (matches CSS defaults) ─────── */
+        /* ---- Initial GSAP state (matches CSS defaults) ------- */
         gsap.set(overlayEl, { visibility: "hidden", pointerEvents: "none" });
         gsap.set(darkEl, { autoAlpha: 0 });
         gsap.set(mainEl, { x: 0 });
         gsap.set(toggleLabels, { yPercent: 0 });
         gsap.set(toggleBars, { y: 0, rotation: 0 });
-        gsap.set(menuBorder, { scaleX: 0 });
         gsap.set(overlayBorders[0], { yPercent: -100 });
         gsap.set(overlayBorders[1], { yPercent: 100 });
         gsap.set(corners, { scale: 0 });
 
-        /* ── Direct (non-timeline) motions ──────────────────── */
+        /* ---- Direct (non-timeline) motions -------------------- */
         // The page-slide, dim, and toggle button are driven DIRECTLY on every
         // click — never through the reversible timeline.  A full-timeline
         // reverse back-loads whatever sits at position 0 (it plays last), which
@@ -167,7 +161,7 @@ export default function UnderlayNav() {
           });
         }
 
-        /* ── Build timeline ─────────────────────────────────── */
+        /* ---- Build timeline ----------------------------------- */
         // This timeline holds only the decorative / staggered reveals (corners,
         // borders, nav links).  Opening plays it forward; closing REVERSES it,
         // so those elements unfurl and fold away as an exact mirror.
@@ -196,7 +190,7 @@ export default function UnderlayNav() {
             //  should unfurl gently, one after another)
             .fromTo(
               largeItems,
-              { autoAlpha: 0, xPercent: 25 },
+              { autoAlpha: 0, xPercent: -25 },
               {
                 autoAlpha: 1,
                 xPercent: 0,
@@ -205,27 +199,10 @@ export default function UnderlayNav() {
                 ease: "expo.out",
               },
               0.15
-            )
-
-            // Small bottom items rise up
-            .fromTo(
-              smallItems,
-              { autoAlpha: 0, yPercent: 100 },
-              {
-                autoAlpha: 1,
-                yPercent: 0,
-                duration: 0.9,
-                stagger: 0.06,
-                ease: "expo.out",
-              },
-              0.5
-            )
-
-            // Bottom border scales in from the left
-            .to(menuBorder, { scaleX: 1, duration: 0.8 }, "<");
+            );
         }
 
-        /* ── Toggle handler ─────────────────────────────────── */
+        /* ---- Toggle handler ----------------------------------- */
         function toggle() {
           isOpen = !isOpen;
           toggleBtn.setAttribute("aria-expanded", String(isOpen));
@@ -260,7 +237,7 @@ export default function UnderlayNav() {
 
         buildTimeline();
 
-        /* ── Event Listeners ────────────────────────────────── */
+        /* ---- Event Listeners ---------------------------------- */
         const handleOverlayClick = () => { if (isOpen) toggle(); };
         const handleKeydown = (e: KeyboardEvent) => {
           if (e.key === "Escape" && isOpen) {
@@ -308,7 +285,7 @@ export default function UnderlayNav() {
   return (
     <div ref={rootRef} className="underlay-nav">
 
-      {/* ── Fixed header bar ─────────────────────────────────── */}
+      {/* ---- Fixed header bar ----------------------------------- */}
       <header className="underlay-nav__header">
         <div className="underlay-nav__bar">
           <div className="underlay-nav__container">
@@ -341,7 +318,7 @@ export default function UnderlayNav() {
         </div>
       </header>
 
-      {/* ── Slide-in menu panel (fixed to right edge) ────────── */}
+      {/* ---- Slide-in menu panel (fixed to right edge) ---------- */}
       <nav
         data-underlay-nav-menu
         className="underlay-nav__menu"
@@ -364,52 +341,10 @@ export default function UnderlayNav() {
             ))}
           </ul>
 
-          {/* Bottom section: socials + legal */}
-          <div className="underlay-nav__bottom">
-            <div className="underlay-nav__bottom-col">
-              <div data-reveal-s>
-                <span className="underlay-nav__link-small is--faded">
-                  Socials
-                </span>
-              </div>
-              <ul className="underlay-nav__list is--small">
-                {SOCIAL_LINKS.map(({ label, href }) => (
-                  <li key={label} data-reveal-s>
-                    <a href={href} className="underlay-nav__link-small">
-                      {label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="underlay-nav__bottom-col">
-              <div data-reveal-s>
-                <span className="underlay-nav__link-small is--faded">
-                  Legal
-                </span>
-              </div>
-              <ul className="underlay-nav__list is--small">
-                <li data-reveal-s>
-                  <a href="#" className="underlay-nav__link-small">
-                    Privacy Policy ↗
-                  </a>
-                </li>
-                <li data-reveal-s>
-                  <a href="#" className="underlay-nav__link-small">
-                    Terms &amp; Conditions ↗
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Animated border line */}
-            <div className="underlay-nav__bottom-border" />
-          </div>
         </div>
       </nav>
 
-      {/* ── Overlay: slides with page content and dims it ───── */}
+      {/* ---- Overlay: slides with page content and dims it ----- */}
       <div data-underlay-nav-overlay="" className="underlay-nav__overlay">
         {/* Semi-transparent dark film over the exposed page */}
         <div className="underlay-nav__dark" />

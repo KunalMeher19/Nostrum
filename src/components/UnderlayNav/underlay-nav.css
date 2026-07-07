@@ -60,14 +60,17 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 }
 
 .underlay-nav__container {
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   padding: 2em 2.5em;
 }
 
-/* Logo — matches CrispHeader brand wordmark style */
 .underlay-nav__logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   font-family: var(--font-display), Georgia, serif;
@@ -135,7 +138,7 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
   position: fixed;
   top: 0;
   bottom: 0;
-  right: 0;
+  left: 0;
   z-index: 1;
   width: var(--menu-width);
   background-color: var(--nav-bg);
@@ -248,7 +251,7 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 /* ---- Overlay (slides with [data-main] content) ---- */
 .underlay-nav__overlay {
   position: fixed;
-  inset: 0 -1px 0 0; /* -1px on right closes a subpixel gap */
+  inset: 0 0 0 -1px; /* -1px on left closes a subpixel gap */
   z-index: 100;
   pointer-events: none;
   cursor: pointer;
@@ -275,7 +278,7 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 .underlay-nav__border-row {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 /* 1em coloured bar that peeks above/below the overlay edge */
@@ -293,20 +296,20 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 .underlay-nav__corner {
   width: 2em;
   height: 2em;
-  transform-origin: 100% 0%;
-  /* Top-right corner: arc sweeps from bottom-left of the element */
+  transform-origin: 0% 0%;
+  /* Top-right corner: arc sweeps from bottom-right of the element */
   background-image: radial-gradient(
-    circle farthest-side at 0% 100%,
+    circle farthest-side at 100% 100%,
     transparent 99%,
     var(--nav-bg)
   );
 }
 
 .underlay-nav__corner.is--bottom {
-  transform-origin: 100% 100%;
-  /* Bottom-right corner: arc sweeps from top-left of the element */
+  transform-origin: 0% 100%;
+  /* Bottom-right corner: arc sweeps from top-right of the element */
   background-image: radial-gradient(
-    circle farthest-side at 0% 0%,
+    circle farthest-side at 100% 0%,
     transparent 99%,
     var(--nav-bg)
   );
