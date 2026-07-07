@@ -277,21 +277,21 @@ export default function CrispHeader() {
                 animating = false;
               },
             })
-            // Vertical wipe: NEXT (direction 1) sends the current slide down and
-            // out the bottom while the upcoming slide drops in from the top.
-            // PREV reverses it. Signs mirror the old horizontal mapping, axis
-            // swapped X→Y, so the parallax lag on the inner image is preserved.
-            .to(currentSlide, { yPercent: direction * 100 }, 0)
-            .to(currentInner, { yPercent: -direction * 75 }, 0)
+            // Vertical wipe: NEXT (direction 1, scroll down) sends the current
+            // slide up and out the top while the upcoming slide rises in from
+            // the bottom. PREV reverses it. Parallax lag on the inner image is
+            // preserved via the opposing 75% offset.
+            .to(currentSlide, { yPercent: -direction * 100 }, 0)
+            .to(currentInner, { yPercent: direction * 75 }, 0)
             .fromTo(
               upcomingSlide,
-              { yPercent: -direction * 100 },
+              { yPercent: direction * 100 },
               { yPercent: 0 },
               0
             )
             .fromTo(
               upcomingInner,
-              { yPercent: direction * 75 },
+              { yPercent: -direction * 75 },
               { yPercent: 0 },
               0
             );
