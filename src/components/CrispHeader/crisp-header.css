@@ -82,10 +82,14 @@ main:has(.crisp-header.is--loading) {
 .willem__h1 {
   white-space: nowrap;
   justify-content: center;
-  align-items: center;
   /* Match Willem's clean grotesk (site sans = Inter), not the serif display. */
   font-family: var(--font-sans), Arial, sans-serif;
-  font-size: 12.5em; /* 12.5 × the 1vw loader base → 12.5vw */
+  /* Smaller + fluidly responsive. The "small box" is 1em of this size, so a
+     smaller wordmark makes the box genuinely small — restoring the original
+     "small box grows, then expands to fit" read (at 12.5vw the box was so big
+     the image looked like it just appeared). clamp() also removes the need for
+     the old fixed-em breakpoints: it scales smoothly from mobile to desktop. */
+  font-size: clamp(2.5rem, 7.5vw, 7rem);
   font-weight: 500;
   line-height: .75;
   display: flex;
@@ -414,19 +418,4 @@ main:has(.crisp-header.is--loading) {
 .crisp-header__h1 > * {
   margin: -0.1em -0.05em;
   padding: 0.1em 0.05em;
-}
-
-/* Willem loader wordmark — scale down on smaller screens so NOS·TRUM keeps
-   its proportions (mirrors the breakpoints in the original source). The
-   loader base font-size is 1vw, so these are effectively vw-relative. */
-@media screen and (max-width: 991px) {
-  .willem__h1 {
-    font-size: 16em;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .willem__h1 {
-    font-size: 13em;
-  }
 }
