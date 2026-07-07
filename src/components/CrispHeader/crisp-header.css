@@ -58,56 +58,133 @@ main:has(.crisp-header.is--loading) {
     );
 }
 
-.crisp-loader__wrap {
-  font-size: var(--size-font);
+/* ------------------------------------------------------------------ */
+/* Willem-style loader — NOS·[growing image]·TRUM.                     */
+/* The wordmark splits apart while an image grows between the halves,  */
+/* then that image expands to fullscreen and hands off to the reveal.  */
+/* Themed dark + gold to match the rest of the header (was light in    */
+/* the original Willem source).                                        */
+/* ------------------------------------------------------------------ */
+.willem-loader {
+  color: var(--crisp-fg);
+  z-index: 1; /* keep the wordmark above the gold bloom (::before) */
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
   display: flex;
-  position: relative;
-  z-index: 1; /* keep the images above the gold bloom */
-}
-
-.crisp-loader__groups {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   overflow: hidden;
-  /* Use mask-image to smoothly fade out the edges of the rolling images.
-     This naturally reveals the gold bloom underneath without needing 
-     artificial solid black overlays. */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
 }
 
-.crisp-loader__group {
-  border-radius: .5em;
+.willem__h1 {
+  white-space: nowrap;
   justify-content: center;
   align-items: center;
+  /* Match Willem's clean grotesk (site sans = Inter), not the serif display. */
+  font-family: var(--font-sans), Arial, sans-serif;
+  font-size: 12.5em; /* 12.5 × the 1vw loader base → 12.5vw */
+  font-weight: 500;
+  line-height: .75;
   display: flex;
   position: relative;
 }
 
-.crisp-loader__single {
-  padding-left: 1em;
-  padding-right: 1em;
+/* Both halves share ONE fixed width so the growing box (and the image inside
+   it) stays dead-centre on the viewport. NOS (3 letters) and TRUM (4 letters)
+   have different natural widths — without an equal, explicit width the box
+   sits off-centre and the image drifts right as it zooms to fullscreen.
+   Each half justifies its text toward the box, so the letters hug the image
+   symmetrically and any slack falls to the outer edges. Width is generous
+   enough to fit the wider half (TRUM) without clipping. */
+.willem__h1-start {
+  justify-content: flex-end;
+  width: 3em;
+  display: flex;
+  overflow: hidden;
+}
+
+.willem__h1-end {
+  justify-content: flex-start;
+  width: 3em;
+  display: flex;
+  overflow: hidden;
+}
+
+.willem__letter {
+  display: block;
   position: relative;
 }
 
-.crisp-loader__media {
-  border-radius: .5em;
+.willem-loader__box {
+  flex-flow: column;
   justify-content: center;
   align-items: center;
-  width: 10em;
-  height: 10em;
+  width: 0;
   display: flex;
   position: relative;
 }
 
-.crisp-loader__media.is--scaling {
-  will-change: transform;
-  border-radius: 0;
-  transition-property: border-radius;
-  transition-duration: .5s;
-  transition-timing-function: cubic-bezier(1, 0, 0, 1);
+.willem-loader__box-inner {
+  justify-content: center;
+  align-items: center;
+  min-width: 1em;
+  height: 95%;
   display: flex;
+  position: relative;
+}
+
+.willem__growing-image {
+  justify-content: center;
+  align-items: center;
+  width: 0%;
+  height: 100%;
+  display: flex;
+  position: absolute;
+  overflow: hidden;
+  border-radius: .04em;
+}
+
+.willem__growing-image-wrap {
+  width: 100%;
+  min-width: 1em;
+  height: 100%;
+  position: absolute;
+}
+
+.willem__cover-image,
+.willem__cover-image-extra {
+  pointer-events: none;
+  object-fit: cover;
+  -webkit-user-select: none;
+  user-select: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Stacking order for the one-by-one reveal. Each extra sits above the base
+   image (.willem__cover-image = /images/1.png, no z-index). They fade out top
+   to bottom (is--1 first), so the images appear one by one: 2 → 3 → 4 → 5 → 1,
+   ending on 1.png which the first slider slide also opens on (seamless hand-off). */
+.willem__cover-image-extra.is--1 {
+  z-index: 4;
+}
+
+.willem__cover-image-extra.is--2 {
+  z-index: 3;
+}
+
+.willem__cover-image-extra.is--3 {
+  z-index: 2;
+}
+
+.willem__cover-image-extra.is--4 {
+  z-index: 1;
 }
 
 .crisp-loader__cover-img {
@@ -124,33 +201,11 @@ main:has(.crisp-header.is--loading) {
    photography, warm-desaturate them into a muted amber monochrome so the
    loader stays on-brand. Delete this filter when real imagery lands. */
 .crisp-loader__cover-img,
+.willem__cover-image,
+.willem__cover-image-extra,
 .crisp-header__slider-slide-inner {
   filter: grayscale(0.35) sepia(0.42) saturate(0.95) brightness(0.82)
     contrast(1.04);
-}
-
-.crisp-loader__media.is--scaling.is--radius {
-  border-radius: .5em;
-}
-
-.crisp-loader__group.is--relative {
-  position: relative;
-  left: 100%;
-}
-
-.crisp-loader__group.is--duplicate {
-  position: absolute;
-}
-
-.crisp-loader__cover-img.is--scale-down {
-  will-change: transform;
-}
-
-.crisp-loader__fade {
-  display: none; /* Replaced by mask-image on .crisp-loader__groups to fix blending issues */
-}
-.crisp-loader__fade.is--duplicate {
-  display: none;
 }
 
 /* Header */
@@ -359,4 +414,19 @@ main:has(.crisp-header.is--loading) {
 .crisp-header__h1 > * {
   margin: -0.1em -0.05em;
   padding: 0.1em 0.05em;
+}
+
+/* Willem loader wordmark — scale down on smaller screens so NOS·TRUM keeps
+   its proportions (mirrors the breakpoints in the original source). The
+   loader base font-size is 1vw, so these are effectively vw-relative. */
+@media screen and (max-width: 991px) {
+  .willem__h1 {
+    font-size: 16em;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .willem__h1 {
+    font-size: 13em;
+  }
 }
