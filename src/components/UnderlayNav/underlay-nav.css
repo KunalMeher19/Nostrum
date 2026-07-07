@@ -151,12 +151,12 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 .underlay-nav__inner {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: stretch;
+  justify-content: center;
+  align-items: flex-end;
   gap: 2em;
   width: 100%;
   height: 100%;
-  padding: 7.5em 2em 2em;
+  padding: 7.5em 2.5em 2em 2em;
   overflow-y: auto;
 
   /* Hide scrollbar for a cleaner look */
@@ -177,6 +177,8 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
   padding: 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35em;
 }
 
 .underlay-nav__list.is--small {
@@ -186,10 +188,11 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 /* ---- Large Primary Links ---- */
 .underlay-nav__link-large {
   display: block;
-  width: 100%;
-  padding: 0.4em 0.75em;
+  width: auto;
+  padding: 0.45em 0.5em;
   border-radius: 0.25em;
   transition: color 0.25s ease;
+  text-align: right;
 }
 
 .underlay-nav__link-large:hover .underlay-nav__link-label {

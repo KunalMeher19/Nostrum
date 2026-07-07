@@ -240,7 +240,7 @@ export default function CrispHeader() {
           thumb.addEventListener("click", (event) => {
             const targetIndex = parseInt(
               (event.currentTarget as HTMLElement).getAttribute("data-index") ??
-                "0",
+              "0",
               10
             );
             if (targetIndex === current || animating) return;
@@ -251,7 +251,7 @@ export default function CrispHeader() {
 
         // --- Scrolljacking for RR-style scene change on scroll ---
         let lastWheelTime = 0;
-        
+
         const handleWheel = (e: WheelEvent) => {
           // If page is scrolled down, let native scroll handle it.
           if (window.scrollY > 5) return;
@@ -285,21 +285,21 @@ export default function CrispHeader() {
         const handleTouchMove = (e: TouchEvent) => {
           if (window.scrollY > 5) return;
           const touchEndY = e.touches[0].clientY;
-          const deltaY = touchStartY - touchEndY; 
+          const deltaY = touchStartY - touchEndY;
           const direction = deltaY > 0 ? 1 : -1;
-          
+
           if (current === length - 1 && direction === 1) return;
           if (current === 0 && direction === -1) return;
-          
+
           if (Math.abs(deltaY) > 10) {
             e.preventDefault(); // Trap scroll
           } else {
             return;
           }
-          
+
           const now = Date.now();
           if (animating || now - lastWheelTime < 1200) return;
-          
+
           if (Math.abs(deltaY) > 30) {
             navigate(direction);
             lastWheelTime = now;
@@ -361,7 +361,7 @@ export default function CrispHeader() {
       cancelled = true;
       try {
         split?.revert?.();
-      } catch {}
+      } catch { }
       ctx?.revert?.();
       // Reset to the initial loading state in case of dev remount.
       container.classList.add("is--loading", "is--hidden");
