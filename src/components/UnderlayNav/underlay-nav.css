@@ -12,9 +12,12 @@
 
 :root {
   --menu-width: 30em;
-  --nav-bg: #0f0d0a;        /* warm dark panel                */
-  --nav-fg: #f5f5f3;        /* nostrum-white                  */
-  --nav-accent: #e6b45a;    /* nostrum-gold                   */
+  --nav-bg: #0f0d0a;
+  /* warm dark panel                */
+  --nav-fg: #f5f5f3;
+  /* nostrum-white                  */
+  --nav-accent: #e6b45a;
+  /* nostrum-gold                   */
   --nav-border: rgba(245, 245, 243, 0.1);
 }
 
@@ -155,10 +158,12 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
   height: 100%;
   padding: 7.5em 2em 2em;
   overflow-y: auto;
-  
+
   /* Hide scrollbar for a cleaner look */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
 }
 
 .underlay-nav__inner::-webkit-scrollbar {
@@ -251,7 +256,8 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 /* ---- Overlay (slides with [data-main] content) ---- */
 .underlay-nav__overlay {
   position: fixed;
-  inset: 0 0 0 -1px; /* -1px on left closes a subpixel gap */
+  inset: 0 0 0 -1px;
+  /* -1px on left closes a subpixel gap */
   z-index: 100;
   pointer-events: none;
   cursor: pointer;
@@ -298,21 +304,17 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
   height: 2em;
   transform-origin: 0% 0%;
   /* Top-right corner: arc sweeps from bottom-right of the element */
-  background-image: radial-gradient(
-    circle farthest-side at 100% 100%,
-    transparent 99%,
-    var(--nav-bg)
-  );
+  background-image: radial-gradient(circle farthest-side at 100% 100%,
+      transparent 99%,
+      var(--nav-bg));
 }
 
 .underlay-nav__corner.is--bottom {
   transform-origin: 0% 100%;
   /* Bottom-right corner: arc sweeps from top-right of the element */
-  background-image: radial-gradient(
-    circle farthest-side at 100% 0%,
-    transparent 99%,
-    var(--nav-bg)
-  );
+  background-image: radial-gradient(circle farthest-side at 100% 0%,
+      transparent 99%,
+      var(--nav-bg));
 }
 
 /* ---- Mobile ---- */

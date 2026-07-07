@@ -248,10 +248,78 @@ export default function CrispHeader() {
             navigate(direction, targetIndex);
           });
         });
+
+        // --- Scrolljacking for RR-style scene change on scroll ---
+        let lastWheelTime = 0;
+        
+        const handleWheel = (e: WheelEvent) => {
+          // If page is scrolled down, let native scroll handle it.
+          if (window.scrollY > 5) return;
+          // Ignore horizontal scrolls
+          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+          const direction = e.deltaY > 0 ? 1 : -1;
+
+          // Release user to scroll down the page if on last slide
+          if (current === length - 1 && direction === 1) return;
+          // Release user to scroll up (bounce) if on first slide
+          if (current === 0 && direction === -1) return;
+
+          // Inside the slider bounds: trap scroll
+          e.preventDefault();
+
+          const now = Date.now();
+          if (animating || now - lastWheelTime < 1200) return;
+
+          if (Math.abs(e.deltaY) > 10) {
+            navigate(direction);
+            lastWheelTime = now;
+          }
+        };
+
+        let touchStartY = 0;
+        const handleTouchStart = (e: TouchEvent) => {
+          touchStartY = e.touches[0].clientY;
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+          if (window.scrollY > 5) return;
+          const touchEndY = e.touches[0].clientY;
+          const deltaY = touchStartY - touchEndY; 
+          const direction = deltaY > 0 ? 1 : -1;
+          
+          if (current === length - 1 && direction === 1) return;
+          if (current === 0 && direction === -1) return;
+          
+          if (Math.abs(deltaY) > 10) {
+            e.preventDefault(); // Trap scroll
+          } else {
+            return;
+          }
+          
+          const now = Date.now();
+          if (animating || now - lastWheelTime < 1200) return;
+          
+          if (Math.abs(deltaY) > 30) {
+            navigate(direction);
+            lastWheelTime = now;
+            touchStartY = touchEndY;
+          }
+        };
+
+        el.addEventListener("wheel", handleWheel, { passive: false });
+        el.addEventListener("touchstart", handleTouchStart, { passive: false });
+        el.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+        return () => {
+          el.removeEventListener("wheel", handleWheel);
+          el.removeEventListener("touchstart", handleTouchStart);
+          el.removeEventListener("touchmove", handleTouchMove);
+        };
       };
 
       ctx = gsap.context(() => {
-        initSlideShow(container);
+        const cleanupSlideshow = initSlideShow(container);
 
         // Wait for the display font (Fraunces) to be active before splitting
         // text. `document.fonts.ready` can resolve while `font-display: swap`
@@ -282,6 +350,10 @@ export default function CrispHeader() {
             initCrispLoadingAnimation();
           });
         });
+
+        return () => {
+          if (cleanupSlideshow) cleanupSlideshow();
+        };
       }, container);
     })();
 
