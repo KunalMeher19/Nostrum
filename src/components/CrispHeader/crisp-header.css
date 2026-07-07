@@ -179,9 +179,9 @@ main:has(.crisp-header.is--loading) {
 }
 
 /* Stacking order for the one-by-one reveal. Each extra sits above the base
-   image (.willem__cover-image = /images/1.png, no z-index). They fade out top
-   to bottom (is--1 first), so the images appear one by one: 2 → 3 → 4 → 5 → 1,
-   ending on 1.png which the first slider slide also opens on (seamless hand-off). */
+   image (.willem__cover-image = /images/2.png, no z-index). They fade out top
+   to bottom (is--1 first), so the images appear one by one: 4 → 3 → 5 → 1 → 2,
+   ending on 2.png which the first slider slide also opens on (seamless hand-off). */
 .willem__cover-image-extra.is--1 {
   z-index: 4;
 }

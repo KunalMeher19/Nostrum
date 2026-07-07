@@ -133,9 +133,9 @@ export default function CrispHeader() {
         }
 
         // Cycle the stacked images one by one as the wordmark splits: each
-        // extra fades out to reveal the one beneath (2 → 3 → 4 → 5 → 1). The
+        // extra fades out to reveal the one beneath (4 → 3 → 5 → 1 → 2). The
         // stagger is tuned so the final fade lands ~as the fullscreen zoom
-        // begins, leaving 1.png settled and ready to grow. (4 extras × 0.4s
+        // begins, leaving 2.png settled and ready to grow. (4 extras × 0.4s
         // fits the ~1.25s window before the zoom; the original 0.5s would
         // overrun it and fade the last image mid-zoom.)
         if (coverImageExtra.length) {
@@ -429,26 +429,8 @@ export default function CrispHeader() {
           >
             <img
               className="crisp-header__slider-slide-inner"
-              src="/images/1.png"
-              alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
-              data-slideshow="parallax"
-              draggable="false"
-            />
-          </div>
-          <div data-slideshow="slide" className="crisp-header__slider-slide">
-            <img
-              className="crisp-header__slider-slide-inner"
               src="/images/2.png"
               alt="Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light."
-              data-slideshow="parallax"
-              draggable="false"
-            />
-          </div>
-          <div data-slideshow="slide" className="crisp-header__slider-slide">
-            <img
-              className="crisp-header__slider-slide-inner"
-              src="/images/3.png"
-              alt="Close-up of the curved shoulder of a dark amber glass olive oil bottle, reflecting a thin streak of gold light on a black background."
               data-slideshow="parallax"
               draggable="false"
             />
@@ -465,8 +447,26 @@ export default function CrispHeader() {
           <div data-slideshow="slide" className="crisp-header__slider-slide">
             <img
               className="crisp-header__slider-slide-inner"
+              src="/images/3.png"
+              alt="Close-up of the curved shoulder of a dark amber glass olive oil bottle, reflecting a thin streak of gold light on a black background."
+              data-slideshow="parallax"
+              draggable="false"
+            />
+          </div>
+          <div data-slideshow="slide" className="crisp-header__slider-slide">
+            <img
+              className="crisp-header__slider-slide-inner"
               src="/images/5.png"
               alt="Close-up of a silvery-green olive leaf showing its fine veins and matte texture, separated from a black background by warm gold backlight."
+              data-slideshow="parallax"
+              draggable="false"
+            />
+          </div>
+          <div data-slideshow="slide" className="crisp-header__slider-slide">
+            <img
+              className="crisp-header__slider-slide-inner"
+              src="/images/1.png"
+              alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
               data-slideshow="parallax"
               draggable="false"
             />
@@ -489,9 +489,9 @@ export default function CrispHeader() {
                   <div className="willem__growing-image-wrap">
                     <img
                       className="willem__cover-image-extra is--1"
-                      src="/images/2.png"
+                      src="/images/4.png"
                       loading="eager"
-                      alt="Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light."
+                      alt="Close-up of the glossy surface of extra virgin olive oil, its golden-green ripples catching soft amber light."
                     />
                     <img
                       className="willem__cover-image-extra is--2"
@@ -501,21 +501,21 @@ export default function CrispHeader() {
                     />
                     <img
                       className="willem__cover-image-extra is--3"
-                      src="/images/4.png"
-                      loading="eager"
-                      alt="Close-up of the glossy surface of extra virgin olive oil, its golden-green ripples catching soft amber light."
-                    />
-                    <img
-                      className="willem__cover-image-extra is--4"
                       src="/images/5.png"
                       loading="eager"
                       alt="Close-up of a silvery-green olive leaf showing its fine veins and matte texture, separated from a black background by warm gold backlight."
                     />
                     <img
-                      className="willem__cover-image"
+                      className="willem__cover-image-extra is--4"
                       src="/images/1.png"
                       loading="eager"
                       alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
+                    />
+                    <img
+                      className="willem__cover-image"
+                      src="/images/2.png"
+                      loading="eager"
+                      alt="Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light."
                     />
                   </div>
                 </div>
@@ -542,24 +542,8 @@ export default function CrispHeader() {
             >
               <img
                 loading="eager"
-                src="/images/1.png"
-                alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
-                className="crisp-loader__cover-img"
-              />
-            </div>
-            <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
-              <img
-                loading="eager"
                 src="/images/2.png"
                 alt="Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light."
-                className="crisp-loader__cover-img"
-              />
-            </div>
-            <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
-              <img
-                loading="eager"
-                src="/images/3.png"
-                alt="Close-up of the curved shoulder of a dark amber glass olive oil bottle, reflecting a thin streak of gold light on a black background."
                 className="crisp-loader__cover-img"
               />
             </div>
@@ -574,8 +558,24 @@ export default function CrispHeader() {
             <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
               <img
                 loading="eager"
+                src="/images/3.png"
+                alt="Close-up of the curved shoulder of a dark amber glass olive oil bottle, reflecting a thin streak of gold light on a black background."
+                className="crisp-loader__cover-img"
+              />
+            </div>
+            <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
+              <img
+                loading="eager"
                 src="/images/5.png"
                 alt="Close-up of a silvery-green olive leaf showing its fine veins and matte texture, separated from a black background by warm gold backlight."
+                className="crisp-loader__cover-img"
+              />
+            </div>
+            <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
+              <img
+                loading="eager"
+                src="/images/1.png"
+                alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
                 className="crisp-loader__cover-img"
               />
             </div>
