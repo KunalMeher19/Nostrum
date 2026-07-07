@@ -96,23 +96,30 @@ main:has(.crisp-header.is--loading) {
   position: relative;
 }
 
-/* Both halves share ONE fixed width so the growing box (and the image inside
-   it) stays dead-centre on the viewport. NOS (3 letters) and TRUM (4 letters)
-   have different natural widths — without an equal, explicit width the box
-   sits off-centre and the image drifts right as it zooms to fullscreen.
-   Each half justifies its text toward the box, so the letters hug the image
-   symmetrically and any slack falls to the outer edges. Width is generous
-   enough to fit the wider half (TRUM) without clipping. */
+/* Both halves MUST share ONE equal, fixed width — this is what keeps the
+   growing box (and the image inside it) dead-centre on the viewport.
+   "Nost" (4 letters) and "rum" (3 letters) have different NATURAL widths, so
+   `width: auto` makes the box sit off-centre and the image drifts sideways as
+   it zooms to fullscreen. With equal widths the row is symmetric → the box is
+   centred. Each half justifies its letters toward the box (start → flex-end,
+   end → flex-start), so both words hug the image on the inner side and any
+   slack falls to the outer edges (invisible black background).
+   --willem-half is sized to fit the WIDER half ("Nost") without clipping;
+   if you change the loader word, set this to the wider half's width. */
+.willem__h1 {
+  --willem-half: 2.5em;
+}
+
 .willem__h1-start {
   justify-content: flex-end;
-  width: 3em;
+  width: var(--willem-half);
   display: flex;
   overflow: hidden;
 }
 
 .willem__h1-end {
   justify-content: flex-start;
-  width: 3em;
+  width: var(--willem-half);
   display: flex;
   overflow: hidden;
 }

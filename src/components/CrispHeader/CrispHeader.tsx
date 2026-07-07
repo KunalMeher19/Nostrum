@@ -479,8 +479,9 @@ export default function CrispHeader() {
           <div className="willem__h1">
             <div className="willem__h1-start">
               <span className="willem__letter">N</span>
-              <span className="willem__letter">O</span>
-              <span className="willem__letter">S</span>
+              <span className="willem__letter">o</span>
+              <span className="willem__letter">s</span>
+              <span className="willem__letter">t</span>
             </div>
             <div className="willem-loader__box">
               <div className="willem-loader__box-inner">
@@ -521,10 +522,9 @@ export default function CrispHeader() {
               </div>
             </div>
             <div className="willem__h1-end">
-              <span className="willem__letter">T</span>
-              <span className="willem__letter">R</span>
-              <span className="willem__letter">U</span>
-              <span className="willem__letter">M</span>
+              <span className="willem__letter">r</span>
+              <span className="willem__letter">u</span>
+              <span className="willem__letter">m</span>
             </div>
           </div>
         </div>
