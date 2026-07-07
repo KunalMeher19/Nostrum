@@ -324,13 +324,20 @@ main:has(.crisp-header.is--loading) {
   overflow: hidden;
 }
 
+/* Vertical thumbnail rail, anchored toward the bottom-right of the hero.
+   Pulled out of the bottom-center flow (its sibling caption keeps that slot)
+   and pinned to the right edge as a column. overflow is visible on purpose so
+   the reveal-in slide (translateX from off-screen right) isn't clipped. */
 .crisp-header__slider-nav {
   grid-column-gap: .5em;
   grid-row-gap: .5em;
   padding: 1em;
+  flex-flow: column;
   display: flex;
-  position: relative;
-  overflow: hidden;
+  position: absolute;
+  right: 1.5em;
+  bottom: 8em;
+  z-index: 2;
 }
 
 .crisp-header__slider-nav-btn {

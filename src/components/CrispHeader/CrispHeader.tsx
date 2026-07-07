@@ -161,10 +161,20 @@ export default function CrispHeader() {
           tl.to(box, { width: "110vw", duration: 2 }, "<");
         }
 
+        // Reveal the (now vertical, right-edge) rail: each thumb slides in from
+        // off-screen right with a soft fade + slight scale, staggered top-to-
+        // bottom so the column assembles downward as the hero settles.
         if (sliderNav.length) {
           tl.from(
             sliderNav,
-            { yPercent: 150, stagger: 0.05, ease: "expo.out", duration: 1 },
+            {
+              xPercent: 140,
+              opacity: 0,
+              scale: 0.8,
+              stagger: 0.08,
+              ease: "expo.out",
+              duration: 1.1,
+            },
             "-=0.9"
           );
         }
@@ -220,7 +230,8 @@ export default function CrispHeader() {
         let current = 0;
         const length = ui.slides.length;
         let animating = false;
-        const animationDuration = 1.5;
+        // Vertical slide transition, a touch quicker than the old 1.5s horizontal.
+        const animationDuration = 1.2;
 
         ui.slides.forEach((slide, index) =>
           slide.setAttribute("data-index", String(index))
@@ -266,18 +277,22 @@ export default function CrispHeader() {
                 animating = false;
               },
             })
-            .to(currentSlide, { xPercent: -direction * 100 }, 0)
-            .to(currentInner, { xPercent: direction * 75 }, 0)
+            // Vertical wipe: NEXT (direction 1) sends the current slide down and
+            // out the bottom while the upcoming slide drops in from the top.
+            // PREV reverses it. Signs mirror the old horizontal mapping, axis
+            // swapped X→Y, so the parallax lag on the inner image is preserved.
+            .to(currentSlide, { yPercent: direction * 100 }, 0)
+            .to(currentInner, { yPercent: -direction * 75 }, 0)
             .fromTo(
               upcomingSlide,
-              { xPercent: direction * 100 },
-              { xPercent: 0 },
+              { yPercent: -direction * 100 },
+              { yPercent: 0 },
               0
             )
             .fromTo(
               upcomingInner,
-              { xPercent: -direction * 75 },
-              { xPercent: 0 },
+              { yPercent: direction * 75 },
+              { yPercent: 0 },
               0
             );
         }

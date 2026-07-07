@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "screenshot": "npx tsx tests/screenshot.ts"
   },
   "dependencies": {
     "gsap": "^3.15.0",
@@ -16,6 +20,7 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "22.10.7",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
