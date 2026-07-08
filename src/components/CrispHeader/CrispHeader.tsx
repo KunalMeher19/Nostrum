@@ -81,12 +81,18 @@ export default function CrispHeader() {
         phase = "sta";
         staArmed = false;
         lenisRef?.start();
+        // Slide the fixed top bar (Nostrum wordmark + menu toggle) up and out
+        // as the STA entry animation. CSS on .underlay-nav__header handles the
+        // motion; it stays up for the whole scrub and mirrors back down when we
+        // return to the slideshow (enterSlides).
+        document.body.classList.add("is--sta-active");
       };
       const enterSlides = () => {
         if (phase === "slides") return;
         phase = "slides";
         lenisRef?.scrollTo(0, { immediate: true });
         lenisRef?.stop();
+        document.body.classList.remove("is--sta-active");
       };
 
       // Sync ScrollTrigger to Lenis' interpolated scroll, and hand control back
@@ -577,7 +583,14 @@ export default function CrispHeader() {
             end: () => "+=" + window.innerHeight * STA_SCROLL_VH,
             pin: true,
             pinSpacing: true,
-            scrub: true,
+            // Numeric scrub (vs. `true`) makes ScrollTrigger LERP the timeline
+            // toward the scroll position on its own gsap ticker rather than
+            // snapping 1:1. Two things fall out of this: the frame sequence is
+            // smoothed while you scroll, and — because the ticker keeps easing
+            // even after scroll input stops — the frames glide on for a beat and
+            // ease to a soft stop instead of freezing. 1.2s = the "Balanced"
+            // follow-through the client picked.
+            scrub: 1.2,
             invalidateOnRefresh: true,
             // UnderlayNav applies a transform to [data-main] (the pinned hero's
             // ancestor) to slide the page when the menu opens. A transformed
@@ -702,6 +715,7 @@ export default function CrispHeader() {
       // Reset to the initial loading state in case of dev remount.
       container.classList.add("is--loading", "is--hidden");
       document.body.classList.remove("is--intro-active");
+      document.body.classList.remove("is--sta-active");
     };
   }, []);
 

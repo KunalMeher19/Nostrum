@@ -36,8 +36,19 @@
   /* Only the interactive children (logo, toggle) intercept pointer events so
      the full-width bar doesn't accidentally block hovers on the hero below. */
   pointer-events: none;
-  /* Fade in once the loader finishes */
-  transition: opacity 0.4s ease, visibility 0.4s ease;
+  /* Fade in once the loader finishes.
+     transform is transitioned too so the whole bar (Nostrum wordmark + menu
+     toggle) can glide up as the STA entry animation — see body.is--sta-active. */
+  transition: opacity 0.4s ease, visibility 0.4s ease,
+    transform 0.7s cubic-bezier(0.625, 0.05, 0, 1);
+}
+
+/* While the scroll-through animation is active, slide the fixed top bar up and
+   out of view. Entering the STA adds this class (CrispHeader.enterSta); scrolling
+   back up into the slideshow removes it (enterSlides), so the bar mirrors back
+   down. -120% keeps it fully clear of the viewport including any shadow. */
+body.is--sta-active .underlay-nav__header {
+  transform: translateY(-120%);
 }
 
 /* Hide nav while the crisp loader is active before the text and thumbnail
