@@ -2,6 +2,19 @@
 
 import { useEffect, useRef } from "react";
 import "./crisp-header.css";
+import { onLenis } from "../SmoothScroll/lenisStore";
+
+/* ---- Scroll-through animation (STA) config ------------------------------- */
+// Frames live in /public/frames as ezgif-frame-001.jpg … ezgif-frame-240.jpg.
+const STA_FRAME_COUNT = 240;
+// Frame 001 is the 5th slide's still; the scrub starts one frame later so the
+// hand-off from slide → canvas is seamless.
+const STA_START_FRAME = 2;
+// Scroll length of the pinned scrub, in viewport heights. ~238 frames over 5vh
+// (~20px/frame at 900px tall) keeps the sequence dense enough to feel filmic.
+const STA_SCROLL_VH = 5;
+const staFramePath = (i: number) =>
+  `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
 /**
  * CrispHeader — a faithful 1:1 port of the Osmo "crisp" loading animation.
@@ -14,6 +27,7 @@ import "./crisp-header.css";
  */
 export default function CrispHeader() {
   const rootRef = useRef<HTMLElement>(null);
+  const frameCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const container = rootRef.current;
@@ -24,16 +38,72 @@ export default function CrispHeader() {
     let ctx: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let split: any;
+    // Cleanup handles for the scroll-through (frame preload + ScrollTrigger).
+    let unsubLenis: (() => void) | null = null;
+    let detachLenis: (() => void) | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let staTrigger: any = null;
+    let staCleanup: (() => void) | null = null;
 
     (async () => {
       const gsapMod = await import("gsap");
       const { SplitText } = await import("gsap/SplitText");
       const { CustomEase } = await import("gsap/CustomEase");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       if (cancelled) return;
 
       const gsap = gsapMod.gsap ?? gsapMod.default;
-      gsap.registerPlugin(SplitText, CustomEase);
+      gsap.registerPlugin(SplitText, CustomEase, ScrollTrigger);
       CustomEase.create("slideshow-wipe", "0.625, 0.05, 0, 1");
+
+      // Two scroll regimes share this hero and must not fight:
+      //   phase "slides" — the wheel-jack owns input; Lenis is STOPPED so the
+      //                    page stays locked at scrollY 0 (the STA pin adds
+      //                    ~5vh of height the instant it's created, and a live
+      //                    Lenis would otherwise scroll the page out from under
+      //                    the snap-slideshow after slide 1).
+      //   phase "sta"    — Lenis is STARTED; scrolling scrubs the pinned frame
+      //                    sequence. Entered when the user leaves slide 5 down.
+      // scrollY 0 is the shared seam: STA progress 0 == frame-001 == slide 5.
+      let phase: "slides" | "sta" = "slides";
+      // The reverse-handoff (STA top → slideshow) must not fire the instant we
+      // enter the STA: right after scrubbing up, Lenis' `direction` is still -1
+      // and `scroll` is ~0, which would immediately bounce us back and re-stop
+      // Lenis. So the reverse-handoff is DISARMED on entry and only ARMS once
+      // the scrub has moved past this threshold.
+      const STA_REARM_PX = 60;
+      let staArmed = false;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let lenisRef: any = null;
+
+      const enterSta = () => {
+        if (phase === "sta") return;
+        phase = "sta";
+        staArmed = false;
+        lenisRef?.start();
+      };
+      const enterSlides = () => {
+        if (phase === "slides") return;
+        phase = "slides";
+        lenisRef?.scrollTo(0, { immediate: true });
+        lenisRef?.stop();
+      };
+
+      // Sync ScrollTrigger to Lenis' interpolated scroll, and hand control back
+      // to the slideshow the moment the scrub returns to the very top (frame
+      // 001 == slide 5) while scrolling up — but only once it has armed.
+      const onLenisScroll = (e: { scroll: number; direction: number }) => {
+        ScrollTrigger.update();
+        if (phase !== "sta") return;
+        if (!staArmed && e.scroll > STA_REARM_PX) staArmed = true;
+        if (staArmed && e.scroll <= 0.5) enterSlides();
+      };
+      unsubLenis = onLenis((lenis) => {
+        lenisRef = lenis;
+        lenis.stop(); // start life in slideshow mode — page locked at top
+        lenis.on("scroll", onLenisScroll);
+      });
+      detachLenis = () => lenisRef?.off?.("scroll", onLenisScroll);
 
       // ---- Loading Animation (scoped to `container`) ----------------------
       // Loader phase is the Willem-style wordmark: NOS·[growing image]·TRUM.
@@ -206,6 +276,9 @@ export default function CrispHeader() {
         tl.call(
           function () {
             container.classList.remove("is--loading");
+            // Hero is live — arm the scroll-through (waits on frame preload too).
+            loaderDone = true;
+            maybeInitScrollThrough();
           },
           undefined,
           "+=0.45"
@@ -314,15 +387,31 @@ export default function CrispHeader() {
         let lastWheelTime = 0;
 
         const handleWheel = (e: WheelEvent) => {
-          // If page is scrolled down, let native scroll handle it.
-          if (window.scrollY > 5) return;
+          // Once handed off to the scroll-through, Lenis owns the wheel.
+          if (phase === "sta") return;
+          // Trap (and ignore) all scroll input until the loader has fully
+          // finished revealing the hero. Otherwise an early scroll fires a
+          // slide transition mid-intro and the entrance appears to "skip".
+          if (!loaderDone) {
+            e.preventDefault();
+            return;
+          }
           // Ignore horizontal scrolls
           if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
 
           const direction = e.deltaY > 0 ? 1 : -1;
 
-          // Release user to scroll down the page if on last slide
-          if (current === length - 1 && direction === 1) return;
+          // On the last slide (frame 001), scrolling down hands off to the
+          // scroll-through — but ONLY once the slide-5 rise has fully settled.
+          // navigate() sets `current` synchronously at the START of a
+          // transition, so without the `animating` guard a fast scroll would
+          // hand off while slide 5 is still sliding up, skipping the tail of
+          // that animation. Trap the scroll instead so slide 5 completes first.
+          if (current === length - 1 && direction === 1) {
+            e.preventDefault();
+            if (!animating) enterSta();
+            return;
+          }
           // Release user to scroll up (bounce) if on first slide
           if (current === 0 && direction === -1) return;
 
@@ -344,12 +433,22 @@ export default function CrispHeader() {
         };
 
         const handleTouchMove = (e: TouchEvent) => {
-          if (window.scrollY > 5) return;
+          if (phase === "sta") return;
+          // Trap all touch input until the loader intro has fully finished.
+          if (!loaderDone) {
+            e.preventDefault();
+            return;
+          }
           const touchEndY = e.touches[0].clientY;
           const deltaY = touchStartY - touchEndY;
           const direction = deltaY > 0 ? 1 : -1;
 
-          if (current === length - 1 && direction === 1) return;
+          // Hand off to the scroll-through only once slide 5 has settled.
+          if (current === length - 1 && direction === 1) {
+            e.preventDefault();
+            if (!animating) enterSta();
+            return;
+          }
           if (current === 0 && direction === -1) return;
 
           if (Math.abs(deltaY) > 10) {
@@ -378,6 +477,176 @@ export default function CrispHeader() {
           el.removeEventListener("touchmove", handleTouchMove);
         };
       };
+
+      // ---- Scroll-through animation (frames 2 → 240 on scroll) -------------
+      // Preloads the frame sequence during the loader, then — once BOTH the
+      // loader has finished and every frame is decoded — pins the hero and
+      // scrubs the canvas from frame 2 to 240 while the copy exits.
+      const prefersReducedMotion =
+        typeof window !== "undefined" &&
+        !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+      const frameImages: HTMLImageElement[] = new Array(STA_FRAME_COUNT + 1);
+      let framesReady = false;
+      let loaderDone = false;
+      let staStarted = false;
+
+      const maybeInitScrollThrough = () => {
+        if (staStarted || !framesReady || !loaderDone || prefersReducedMotion) {
+          return;
+        }
+        staStarted = true;
+        initScrollThrough();
+      };
+
+      const preloadFrames = () => {
+        const needed = STA_FRAME_COUNT - STA_START_FRAME + 1;
+        let loaded = 0;
+        const tick = () => {
+          if (++loaded >= needed) {
+            framesReady = true;
+            maybeInitScrollThrough();
+          }
+        };
+        for (let i = STA_START_FRAME; i <= STA_FRAME_COUNT; i++) {
+          const img = new Image();
+          img.decoding = "async";
+          img.src = staFramePath(i);
+          frameImages[i] = img;
+          if (img.complete) {
+            tick();
+          } else {
+            img.onload = tick;
+            img.onerror = tick; // one 404 shouldn't stall the whole sequence
+          }
+        }
+      };
+
+      function initScrollThrough() {
+        const canvas = frameCanvasRef.current;
+        if (!canvas) return;
+        const cctx = canvas.getContext("2d");
+        if (!cctx) return;
+        const host = container; // guarded non-null capture for this closure
+        if (!host) return;
+
+        const sizeCanvas = () => {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.round(window.innerWidth * dpr);
+          canvas.height = Math.round(window.innerHeight * dpr);
+        };
+
+        // Cover-fit draw (object-fit: cover) centred on the canvas.
+        const drawFrame = (index: number) => {
+          const img = frameImages[index];
+          if (!img || !img.complete || !img.naturalWidth) return;
+          const cw = canvas.width;
+          const ch = canvas.height;
+          const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+          const dw = img.naturalWidth * scale;
+          const dh = img.naturalHeight * scale;
+          cctx.clearRect(0, 0, cw, ch);
+          cctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+        };
+
+        const frameState = { i: STA_START_FRAME };
+        let lastDrawn = -1;
+        const renderFrame = () => {
+          const index = Math.round(frameState.i);
+          if (index === lastDrawn) return;
+          lastDrawn = index;
+          drawFrame(index);
+        };
+
+        sizeCanvas();
+        drawFrame(STA_START_FRAME); // prime the bitmap (still hidden at progress 0)
+
+        // Exit targets — the reverse of the post-load entrance.
+        const pEl = host.querySelector(".crisp-header__p");
+        const navChildren = host.querySelectorAll(
+          ".crisp-header__slider-nav > *"
+        );
+        const words =
+          split && split.words && split.words.length ? split.words : null;
+
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: host,
+            start: "top top",
+            end: () => "+=" + window.innerHeight * STA_SCROLL_VH,
+            pin: true,
+            pinSpacing: true,
+            scrub: true,
+            invalidateOnRefresh: true,
+            // UnderlayNav applies a transform to [data-main] (the pinned hero's
+            // ancestor) to slide the page when the menu opens. A transformed
+            // ancestor breaks position:fixed pinning, so pin via transform
+            // instead — this also lets the hero ride the menu's page-slide.
+            pinType: "transform",
+            anticipatePin: 1,
+          },
+        });
+        staTrigger = tl.scrollTrigger;
+
+        // Canvas is hidden at exactly progress 0 (so the wheel-jacked slides
+        // 1-4, which all live at scrollY 0, are never covered) and snaps on the
+        // instant the scrub starts — frame 001 sits identical underneath, so
+        // there is no pop.
+        tl.set(canvas, { autoAlpha: 0 }, 0);
+        tl.set(canvas, { autoAlpha: 1 }, 0.0001);
+
+        // Copy exits over the first ~22% of the scrub, mirroring how it arrived.
+        if (words) {
+          tl.to(
+            words,
+            { yPercent: 110, stagger: 0.03, ease: "power2.in", duration: 0.22 },
+            0
+          );
+        }
+        if (pEl) {
+          tl.to(pEl, { autoAlpha: 0, duration: 0.15 }, 0);
+        }
+        if (navChildren.length) {
+          tl.to(
+            navChildren,
+            {
+              xPercent: 140,
+              autoAlpha: 0,
+              scale: 0.8,
+              stagger: 0.03,
+              ease: "power2.in",
+              duration: 0.22,
+            },
+            0
+          );
+        }
+
+        // The frame scrub spans the entire pinned length.
+        tl.to(
+          frameState,
+          { i: STA_FRAME_COUNT, duration: 1, onUpdate: renderFrame },
+          0
+        );
+
+        const handleResize = () => {
+          sizeCanvas();
+          lastDrawn = -1;
+          renderFrame();
+        };
+        window.addEventListener("resize", handleResize);
+
+        // Frames loaded after layout settled — recalc pin distances.
+        ScrollTrigger.refresh();
+
+        staCleanup = () => {
+          window.removeEventListener("resize", handleResize);
+          tl.scrollTrigger?.kill();
+          tl.kill();
+        };
+      }
+
+      preloadFrames();
 
       ctx = gsap.context(() => {
         const cleanupSlideshow = initSlideShow(container);
@@ -420,6 +689,12 @@ export default function CrispHeader() {
 
     return () => {
       cancelled = true;
+      // Tear down the scroll-through: detach the Lenis listener, kill the
+      // pinned ScrollTrigger + its timeline, and drop any pending waiter.
+      detachLenis?.();
+      unsubLenis?.();
+      staCleanup?.();
+      staTrigger?.kill?.();
       try {
         split?.revert?.();
       } catch { }
@@ -479,15 +754,20 @@ export default function CrispHeader() {
           </div>
           <div data-slideshow="slide" className="crisp-header__slider-slide">
             <img
-              className="crisp-header__slider-slide-inner"
-              src="/images/1.png"
-              alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
+              className="crisp-header__slider-slide-inner is--frame"
+              src="/frames/ezgif-frame-001.jpg"
+              alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black — the opening frame of the scroll-through reveal."
               data-slideshow="parallax"
               draggable="false"
             />
           </div>
         </div>
       </div>
+
+      {/* Scroll-through canvas — frames 002→240 scrub over this as the hero
+          pins and the copy above it fades away. Continues seamlessly from the
+          frame-001 slide behind it. */}
+      <canvas ref={frameCanvasRef} className="crisp-header__frames" aria-hidden="true" />
 
       <div className="crisp-loader">
         <div className="willem-loader">
@@ -589,9 +869,9 @@ export default function CrispHeader() {
             <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
               <img
                 loading="eager"
-                src="/images/1.png"
-                alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
-                className="crisp-loader__cover-img"
+                src="/frames/ezgif-frame-001.jpg"
+                alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black — the opening frame of the scroll-through reveal."
+                className="crisp-loader__cover-img is--frame"
               />
             </div>
           </div>

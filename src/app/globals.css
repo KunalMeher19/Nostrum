@@ -37,6 +37,22 @@ body {
   overflow-x: hidden;
 }
 
+/* Hide the native scrollbar site-wide. Lenis owns the smooth-scroll, so the
+   OS scrollbar is redundant — and, crucially, a reserved scrollbar gutter is
+   what made the loader's fullscreen image (sized in 100vw, which ignores the
+   gutter) jump ~15px narrower when it handed off to the hero slide (sized in
+   100%, which respects it). With no reserved gutter, 100vw === 100%, so the
+   hand-off is pixel-stable and the scroll-through scrubs with no visible bar. */
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+html::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
+  width: 0;
+  height: 0;
+}
+
 body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }

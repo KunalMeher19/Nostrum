@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import "lenis/dist/lenis.css";
+import { setLenis } from "./lenisStore";
 
 /**
  * SmoothScroll — initialises a Lenis instance with autoRaf: true so it
@@ -17,9 +18,13 @@ export default function SmoothScroll() {
     (async () => {
       const { default: Lenis } = await import("lenis");
       lenis = new Lenis({ autoRaf: true });
+      // Publish the instance so ScrollTrigger-driven components (CrispHeader's
+      // scroll-through) can sync to Lenis' interpolated scroll.
+      setLenis(lenis);
     })();
 
     return () => {
+      setLenis(null);
       lenis?.destroy();
     };
   }, []);

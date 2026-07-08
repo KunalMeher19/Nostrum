@@ -219,6 +219,40 @@ main:has(.crisp-header.is--loading) {
     contrast(1.04);
 }
 
+/* The scroll-through frames are already black+gold on-brand cinema stills, and
+   the <canvas> that continues them draws raw (unfiltered) pixels. So the slide
+   and thumbnail that show frame 001 must NOT get the sepia placeholder filter —
+   otherwise there's a visible tint jump the instant the canvas takes over. */
+.crisp-header__slider-slide-inner.is--frame,
+.crisp-loader__cover-img.is--frame {
+  filter: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scroll-through animation (STA) — a pinned frame-sequence canvas.    */
+/* Sits above the slideshow slides but below the hero content so the   */
+/* h1 / caption / thumbnail rail fade out ON TOP of the morphing image.*/
+/* Hidden at scroll progress 0 (GSAP autoAlpha) so slides 1-4 — which  */
+/* live at scrollY 0 under the wheel-jack — are never covered.         */
+/* ------------------------------------------------------------------ */
+.crisp-header__frames {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* Keep the hero copy + thumbnail rail above the frame canvas so their
+   choreographed exit plays over the top of the scrubbing bottle. */
+.crisp-header__content {
+  z-index: 2;
+}
+
 /* Header */
 
 .crisp-header {
