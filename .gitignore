@@ -38,3 +38,5 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache/
 /screenshots/
+.playwright-mcp/
+.playwright-mcp/

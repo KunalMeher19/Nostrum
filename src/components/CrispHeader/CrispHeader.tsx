@@ -750,24 +750,6 @@ export default function CrispHeader() {
           </div>
           <div data-slideshow="slide" className="crisp-header__slider-slide">
             <img
-              className="crisp-header__slider-slide-inner"
-              src="/images/3.png"
-              alt="Close-up of the curved shoulder of a dark amber glass olive oil bottle, reflecting a thin streak of gold light on a black background."
-              data-slideshow="parallax"
-              draggable="false"
-            />
-          </div>
-          <div data-slideshow="slide" className="crisp-header__slider-slide">
-            <img
-              className="crisp-header__slider-slide-inner"
-              src="/images/5.png"
-              alt="Close-up of a silvery-green olive leaf showing its fine veins and matte texture, separated from a black background by warm gold backlight."
-              data-slideshow="parallax"
-              draggable="false"
-            />
-          </div>
-          <div data-slideshow="slide" className="crisp-header__slider-slide">
-            <img
               className="crisp-header__slider-slide-inner is--frame"
               src="/frames/ezgif-frame-001.jpg"
               alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black — the opening frame of the scroll-through reveal."
@@ -861,22 +843,6 @@ export default function CrispHeader() {
                 loading="eager"
                 src="/images/4.png"
                 alt="Close-up of the glossy surface of extra virgin olive oil, its golden-green ripples catching soft amber light."
-                className="crisp-loader__cover-img"
-              />
-            </div>
-            <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
-              <img
-                loading="eager"
-                src="/images/3.png"
-                alt="Close-up of the curved shoulder of a dark amber glass olive oil bottle, reflecting a thin streak of gold light on a black background."
-                className="crisp-loader__cover-img"
-              />
-            </div>
-            <div data-slideshow="thumb" className="crisp-header__slider-nav-btn">
-              <img
-                loading="eager"
-                src="/images/5.png"
-                alt="Close-up of a silvery-green olive leaf showing its fine veins and matte texture, separated from a black background by warm gold backlight."
                 className="crisp-loader__cover-img"
               />
             </div>
