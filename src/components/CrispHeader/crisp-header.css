@@ -309,6 +309,46 @@ main:has(.crisp-header.is--loading) {
   left: 0;
 }
 
+/* Slide-1 CTA pair — anchored to the bottom-right, tucked just beneath the
+   vertical thumbnail rail (which sits at right:1.5em / bottom:8em). Stacked and
+   right-aligned so the buttons and the rail share the same right edge. Only
+   present on the first slide; the slideshow fades/lifts it out on any slide
+   change or STA entry. */
+.crisp-header__cta {
+  display: flex;
+  flex-flow: column;
+  align-items: flex-end;
+  gap: 1.15em;
+  position: absolute;
+  right: 2.5em;
+  bottom: 2.75em;
+  z-index: 2;
+  text-align: right;
+}
+
+/* Right-align each button's internal layout (label row + underline). */
+.crisp-header__cta .lux-btn {
+  align-items: flex-end;
+}
+.crisp-header__cta .lux-btn__line-fill,
+.crisp-header__cta .lux-btn__line-tick {
+  /* Draw the underline from the right so it grows toward the rail edge. */
+  transform-origin: right center;
+}
+.crisp-header__cta .lux-btn__line-tick {
+  left: auto;
+  right: 0;
+}
+
+@media (max-width: 540px) {
+  .crisp-header__cta {
+    right: 1.5em;
+    bottom: 2em;
+    gap: 0.9em;
+    font-size: 0.9em;
+  }
+}
+
 .crisp-header__bottom {
   grid-column-gap: 2em;
   grid-row-gap: 2em;

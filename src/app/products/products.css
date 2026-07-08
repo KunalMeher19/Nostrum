@@ -1,0 +1,85 @@
+/* ------------------------------------------------------------------ */
+/* Products route — dark, editorial, matching the hero system.          */
+/* Empty state for now; the grid styles are stubbed for later.          */
+/* ------------------------------------------------------------------ */
+.products {
+  min-height: 100dvh;
+  background-color: var(--nostrum-black);
+  color: var(--nostrum-white);
+  display: flex;
+  justify-content: center;
+  padding: clamp(6rem, 12vh, 10rem) 1.5rem clamp(4rem, 8vh, 7rem);
+}
+
+.products__inner {
+  width: 100%;
+  max-width: 72rem;
+}
+
+.products__head {
+  margin-bottom: clamp(3rem, 8vh, 6rem);
+}
+
+.products__eyebrow {
+  margin: 0 0 1em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold);
+}
+
+.products__title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+/* Empty state — centred, quiet, on-brand. */
+.products__empty {
+  border-top: 1px solid color-mix(in srgb, var(--nostrum-white) 12%, transparent);
+  padding-top: clamp(3rem, 8vh, 6rem);
+  max-width: 34rem;
+}
+
+.products__empty-line {
+  margin: 0 0 0.75em;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  line-height: 1.15;
+  font-weight: 400;
+}
+
+.products__empty-sub {
+  margin: 0 0 2.5em;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--nostrum-soft-grey);
+}
+
+.products__back {
+  display: inline-block;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  text-transform: uppercase;
+  color: var(--nostrum-white);
+  text-decoration: none;
+  transition: color 0.4s var(--ease-lux);
+}
+
+.products__back:hover {
+  color: var(--nostrum-gold);
+}
+
+/* Grid — stubbed for when products land (§5). */
+.products__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: clamp(1.5rem, 3vw, 3rem);
+}

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import "./crisp-header.css";
 import { onLenis } from "../SmoothScroll/lenisStore";
+import LuxButton from "../LuxButton/LuxButton";
 
 /* ---- Scroll-through animation (STA) config ------------------------------- */
 // Frames live in /public/frames as ezgif-frame-001.jpg … ezgif-frame-240.jpg.
@@ -93,6 +94,12 @@ export default function CrispHeader() {
         phase = "sta";
         staArmed = false;
         lenisRef?.start();
+        // Hard-hide the slide-1 CTA on STA entry. It's normally already hidden
+        // by transitionText on the way to the last slide, but the STA's scrubbed
+        // timeline must not own it (that would flash it back on), so kill it
+        // directly here — instant, and covers the reduced-motion path too.
+        const ctaEl = container.querySelector<HTMLElement>(".crisp-header__cta");
+        if (ctaEl) gsap.set(ctaEl, { autoAlpha: 0, pointerEvents: "none" });
         // Slide the fixed top bar (Nostrum wordmark + menu toggle) up and out
         // as the STA entry animation. CSS on .underlay-nav__header handles the
         // motion; it stays up for the whole scrub and mirrors back down when we
@@ -142,7 +149,7 @@ export default function CrispHeader() {
         );
         // Reveal-phase parts (unchanged)
         const smallElements = container.querySelectorAll(
-          ".crisp-header__top, .crisp-header__p"
+          ".crisp-header__top, .crisp-header__p, .crisp-header__cta"
         );
         const sliderNav = container.querySelectorAll(
           ".crisp-header__slider-nav > *"
@@ -340,11 +347,38 @@ export default function CrispHeader() {
         // reusing the same masked word-rise + fade the loader intro uses.
         const headingEl = el.querySelector<HTMLElement>(".crisp-header__h1");
         const subEl = el.querySelector<HTMLElement>(".crisp-header__p");
+        // Slide-1-only CTA pair. It exits when leaving slide 0 and returns
+        // only when slide 0 is active again. pointer-events are cut while
+        // hidden so the invisible buttons can't be clicked on other slides.
+        const ctaEl = el.querySelector<HTMLElement>(".crisp-header__cta");
 
         function transitionText(index: number, direction: number) {
           if (!headingEl) return;
           const copy = HERO_COPY[index] ?? HERO_COPY[0];
           const tl = gsap.timeline();
+
+          // The CTAs belong to slide 0 only: fade/lift out when leaving it,
+          // fade back in when it becomes current again.
+          if (ctaEl) {
+            if (index === 0) {
+              gsap.to(ctaEl, {
+                autoAlpha: 1,
+                y: 0,
+                ease: "power2.out",
+                duration: 0.6,
+                delay: 0.25,
+                pointerEvents: "auto",
+              });
+            } else {
+              gsap.to(ctaEl, {
+                autoAlpha: 0,
+                y: -direction * 12,
+                ease: "power2.in",
+                duration: 0.4,
+                pointerEvents: "none",
+              });
+            }
+          }
 
           // --- Exit: current words slide out of the mask, sub fades away.
           if (split && split.words && split.words.length) {
@@ -642,7 +676,8 @@ export default function CrispHeader() {
         sizeCanvas();
         drawFrame(STA_START_FRAME); // prime the bitmap (still hidden at progress 0)
 
-        // Exit targets — the reverse of the post-load entrance.
+        // Exit targets — the reverse of the post-load entrance. (The CTA is
+        // handled outside this scrubbed timeline; see the note by navChildren.)
         const pEl = host.querySelector(".crisp-header__p");
         const navChildren = host.querySelectorAll(
           ".crisp-header__slider-nav > *"
@@ -715,6 +750,12 @@ export default function CrispHeader() {
         if (pEl) {
           tl.to(pEl, { autoAlpha: 0, duration: 0.15 }, 0);
         }
+        // NOTE: the CTA is deliberately NOT part of this scrubbed timeline.
+        // The STA is only ever entered from the last slide, where the CTA is
+        // already hidden (autoAlpha:0) by transitionText. Because this timeline
+        // was built at init (slide 0, CTA visible), a scrubbed tween here would
+        // re-assert its baked start value (autoAlpha:1) the instant the scrub
+        // begins — flashing the buttons back on. enterSta() hides it directly.
         if (navChildren.length) {
           tl.to(
             navChildren,
@@ -950,6 +991,13 @@ export default function CrispHeader() {
                 className="crisp-loader__cover-img is--frame"
               />
             </div>
+          </div>
+          {/* Slide-1-only CTAs, anchored just under the thumbnail rail on the
+              bottom-right. Shown by the loader reveal, hidden on any slide
+              change (and on STA entry) alongside the hero copy. */}
+          <div className="crisp-header__cta">
+            <LuxButton label="View our story" />
+            <LuxButton label="Explore products" href="/products" />
           </div>
         </div>
       </div>

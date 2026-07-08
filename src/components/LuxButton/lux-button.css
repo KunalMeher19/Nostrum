@@ -1,0 +1,121 @@
+/* ------------------------------------------------------------------ */
+/* LuxButton — universal editorial CTA (see NOSTRUM-DESIGN §9/§10)      */
+/* Label sits above a gold rule. On hover the label mask-swaps (current  */
+/* slides up, a duplicate rises into place) while the gold underline     */
+/* draws left→right. GSAP drives the motion; CSS defines the resting     */
+/* geometry so it renders correctly before hydration.                    */
+/* ------------------------------------------------------------------ */
+.lux-btn {
+  --lux-gold: var(--nostrum-gold, #e6b45a);
+  --lux-fg: var(--nostrum-white, #f5f5f3);
+
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55em;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--lux-fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.82em;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Row holding the label + trailing arrow. */
+.lux-btn__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9em;
+}
+
+/* Masked label: two stacked copies clipped to one line height. The base
+   copy shows at rest; the duplicate waits one line below and rises in on
+   hover as the base slides up and out. */
+.lux-btn__label {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.15;
+  vertical-align: bottom;
+}
+
+.lux-btn__label-inner {
+  display: block;
+  will-change: transform;
+}
+
+/* The hover copy, stacked exactly over the base and pre-offset down. */
+.lux-btn__label-inner.is--dup {
+  position: absolute;
+  inset: 0;
+  transform: translateY(105%);
+  color: var(--lux-gold);
+}
+
+/* Trailing arrow — nudges right on hover (driven by GSAP). */
+.lux-btn__arrow {
+  display: inline-block;
+  will-change: transform;
+  color: var(--lux-gold);
+  font-size: 0.9em;
+}
+
+/* Gold underline: a full-width track with a scaleX(0) fill that draws in
+   from the left on hover. A short resting "tick" hints the accent. */
+.lux-btn__line {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background: color-mix(in srgb, var(--lux-fg) 22%, transparent);
+  overflow: hidden;
+}
+
+.lux-btn__line-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--lux-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* Resting tick — the "jewelry" hint before hover. Hidden once the full
+   line is drawing (GSAP fades it as the fill takes over). */
+.lux-btn__line-tick {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.6em;
+  height: 100%;
+  background: var(--lux-gold);
+  will-change: opacity;
+}
+
+/* Focus-visible: keyboard users get the drawn line + tick state without a
+   default outline fighting the editorial look. */
+.lux-btn:focus-visible {
+  outline: none;
+}
+.lux-btn:focus-visible .lux-btn__line-fill {
+  transform: scaleX(1);
+}
+
+/* Reduced motion: no transforms — show the final legible state statically. */
+@media (prefers-reduced-motion: reduce) {
+  .lux-btn__line-fill {
+    transform: scaleX(1);
+  }
+  .lux-btn__line-tick {
+    opacity: 0;
+  }
+  .lux-btn__label-inner.is--dup {
+    display: none;
+  }
+}
