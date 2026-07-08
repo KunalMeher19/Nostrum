@@ -402,6 +402,8 @@ main:has(.crisp-header.is--loading) {
 
 .crisp-header__p {
   text-align: center;
+  margin-top: 1.25em;
+  margin-bottom: 0;
   font-size: 0.8em;
   text-transform: uppercase;
   letter-spacing: 0.35em;

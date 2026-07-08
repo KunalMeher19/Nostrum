@@ -16,6 +16,18 @@ const STA_SCROLL_VH = 5;
 const staFramePath = (i: number) =>
   `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
+/* ---- Hero copy per slide -------------------------------------------------- */
+// One {h1, sub} pair per slideshow slide, in slide order (2.png, 4.png,
+// frame-001). The h1 is word-split and rises; the sub cross-fades. On every
+// slide change the outgoing copy exits and the incoming slide's copy enters,
+// mirroring the vertical wipe direction. Slide 0's copy is the static markup
+// in the JSX below (revealed by the loader intro); the array drives the swaps.
+const HERO_COPY = [
+  { h1: "Not simply olive oil", sub: "Extra virgin olive oil" },
+  { h1: "Liquid gold, poured", sub: "Cold-pressed, first harvest" },
+  { h1: "Bottled with intent", sub: "Nostrum estate reserve" },
+] as const;
+
 /**
  * CrispHeader — a faithful 1:1 port of the Osmo "crisp" loading animation.
  * Same DOM, same CSS, same GSAP timeline (roll → scale-down → scale-up to
@@ -322,6 +334,68 @@ export default function CrispHeader() {
         ui.slides[current]?.classList.add("is--current");
         ui.thumbs[current]?.classList.add("is--current");
 
+        // Hero copy that rides along with each slide. The outgoing h1 words +
+        // subheading exit in the wipe direction, the text is swapped and
+        // re-split, then the incoming copy enters from the opposite edge —
+        // reusing the same masked word-rise + fade the loader intro uses.
+        const headingEl = el.querySelector<HTMLElement>(".crisp-header__h1");
+        const subEl = el.querySelector<HTMLElement>(".crisp-header__p");
+
+        function transitionText(index: number, direction: number) {
+          if (!headingEl) return;
+          const copy = HERO_COPY[index] ?? HERO_COPY[0];
+          const tl = gsap.timeline();
+
+          // --- Exit: current words slide out of the mask, sub fades away.
+          if (split && split.words && split.words.length) {
+            tl.to(
+              split.words,
+              {
+                yPercent: -direction * 110,
+                stagger: 0.03,
+                ease: "power2.in",
+                duration: 0.5,
+              },
+              0
+            );
+          }
+          if (subEl) {
+            tl.to(
+              subEl,
+              { opacity: 0, y: -direction * 10, ease: "power2.in", duration: 0.4 },
+              0
+            );
+          }
+
+          // --- Swap text + re-split, primed just below/above the mask.
+          tl.add(() => {
+            if (split) split.revert();
+            headingEl.textContent = copy.h1;
+            if (subEl) subEl.textContent = copy.sub;
+            split = new SplitText(headingEl, { type: "words", mask: "words" });
+            gsap.set(split.words, { yPercent: direction * 110 });
+            if (subEl) gsap.set(subEl, { y: direction * 10 });
+          });
+
+          // --- Enter: incoming words rise into place, sub fades back in.
+          tl.add(() => {
+            gsap.to(split.words, {
+              yPercent: 0,
+              stagger: 0.05,
+              ease: "expo.out",
+              duration: 0.8,
+            });
+            if (subEl) {
+              gsap.to(subEl, {
+                opacity: 1,
+                y: 0,
+                ease: "power2.out",
+                duration: 0.6,
+              });
+            }
+          });
+        }
+
         function navigate(direction: number, targetIndex: number | null = null) {
           if (animating) return;
           animating = true;
@@ -350,6 +424,7 @@ export default function CrispHeader() {
                 upcomingSlide.classList.add("is--current");
                 ui.thumbs[previous].classList.remove("is--current");
                 ui.thumbs[current].classList.add("is--current");
+                transitionText(current, direction);
               },
               onComplete() {
                 currentSlide.classList.remove("is--current");
@@ -572,8 +647,6 @@ export default function CrispHeader() {
         const navChildren = host.querySelectorAll(
           ".crisp-header__slider-nav > *"
         );
-        const words =
-          split && split.words && split.words.length ? split.words : null;
 
         const tl = gsap.timeline({
           defaults: { ease: "none" },
@@ -610,13 +683,35 @@ export default function CrispHeader() {
         tl.set(canvas, { autoAlpha: 1 }, 0.0001);
 
         // Copy exits over the first ~22% of the scrub, mirroring how it arrived.
-        if (words) {
-          tl.to(
-            words,
-            { yPercent: 110, stagger: 0.03, ease: "power2.in", duration: 0.22 },
-            0
-          );
-        }
+        // Drive the heading via a proxy that reads the *current* split.words on
+        // every update: the slideshow rebuilds `split` on each slide change, so
+        // capturing the words once at init would animate stale (reverted) nodes
+        // and leave the live heading (e.g. slide 3's) frozen on screen. A tiny
+        // per-word offset re-creates the staggered rise the entrance used.
+        const wordExit = { p: 0 };
+        tl.to(
+          wordExit,
+          {
+            p: 1,
+            ease: "power2.in",
+            duration: 0.22,
+            onUpdate() {
+              const w = split && split.words ? split.words : null;
+              if (!w || !w.length) return;
+              const n = w.length;
+              const spread = 0.35; // fraction of progress spent staggering
+              for (let k = 0; k < n; k++) {
+                const start = n > 1 ? (k / (n - 1)) * spread : 0;
+                const local = Math.min(
+                  1,
+                  Math.max(0, (wordExit.p - start) / (1 - spread))
+                );
+                gsap.set(w[k], { yPercent: 110 * local });
+              }
+            },
+          },
+          0
+        );
         if (pEl) {
           tl.to(pEl, { autoAlpha: 0, duration: 0.15 }, 0);
         }
@@ -824,6 +919,7 @@ export default function CrispHeader() {
       <div className="crisp-header__content">
         <div className="crisp-header__center">
           <h1 className="crisp-header__h1">Not simply olive oil</h1>
+          <p className="crisp-header__p">Extra virgin olive oil</p>
         </div>
         <div className="crisp-header__bottom">
           <div className="crisp-header__slider-nav">
@@ -855,7 +951,6 @@ export default function CrispHeader() {
               />
             </div>
           </div>
-          <p className="crisp-header__p">Extra virgin olive oil</p>
         </div>
       </div>
     </section>
