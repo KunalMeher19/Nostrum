@@ -244,7 +244,11 @@ main:has(.crisp-header.is--loading) {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  will-change: opacity;
+  /* The closing story-parallax scales this canvas down and lifts it up and out
+     through the top as it fades (see initStoryParallax). Anchor the shrink to
+     the upper area so it reads as pulling toward the top, not the centre. */
+  transform-origin: center 25%;
+  will-change: opacity, transform;
 }
 
 /* Keep the hero copy + thumbnail rail above the frame canvas so their

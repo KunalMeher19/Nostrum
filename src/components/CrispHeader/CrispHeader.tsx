@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 import "./crisp-header.css";
 import { onLenis } from "../SmoothScroll/lenisStore";
 import LuxButton from "../LuxButton/LuxButton";
+import {
+  StoryParallaxOverlay,
+  initStoryParallax,
+} from "../StoryParallax/StoryParallax";
 
 /* ---- Scroll-through animation (STA) config ------------------------------- */
 // Frames live in /public/frames as ezgif-frame-001.jpg … ezgif-frame-240.jpg.
@@ -11,9 +15,11 @@ const STA_FRAME_COUNT = 240;
 // Frame 001 is the 5th slide's still; the scrub starts one frame later so the
 // hand-off from slide → canvas is seamless.
 const STA_START_FRAME = 2;
-// Scroll length of the pinned scrub, in viewport heights. ~238 frames over 5vh
-// (~20px/frame at 900px tall) keeps the sequence dense enough to feel filmic.
-const STA_SCROLL_VH = 5;
+// Scroll length of the pinned scrub, in viewport heights. ~238 frames over
+// ~6.5vh keeps the sequence dense enough to feel filmic, with the extra ~1.5vh
+// over the old 5vh giving the closing story-parallax tail (last ~14% of the
+// scrub) real scroll room to rise and hand off to the Story section.
+const STA_SCROLL_VH = 6.5;
 const staFramePath = (i: number) =>
   `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
@@ -112,6 +118,7 @@ export default function CrispHeader() {
         lenisRef?.scrollTo(0, { immediate: true });
         lenisRef?.stop();
         document.body.classList.remove("is--sta-active");
+        document.body.classList.remove("is--story-revealed");
       };
 
       // Sync ScrollTrigger to Lenis' interpolated scroll, and hand control back
@@ -706,6 +713,17 @@ export default function CrispHeader() {
             // instead — this also lets the hero ride the menu's page-slide.
             pinType: "transform",
             anticipatePin: 1,
+            // Bring the fixed top bar back DOWN once the pinned scrub is fully
+            // scrolled through — i.e. the Our Story parallax has landed and the
+            // page releases into <StorySection/>. onLeave fires when the scroll
+            // passes the pin's end (moving down, past the section); onEnterBack
+            // fires when scrolling back up into the pin, hiding it again. This
+            // toggles a body class the header CSS reads to glide the bar back
+            // into view — is--sta-active stays on (it only clears at the very
+            // top via enterSlides), so the two classes together decide the bar.
+            onLeave: () => document.body.classList.add("is--story-revealed"),
+            onEnterBack: () =>
+              document.body.classList.remove("is--story-revealed"),
           },
         });
         staTrigger = tl.scrollTrigger;
@@ -777,6 +795,12 @@ export default function CrispHeader() {
           { i: STA_FRAME_COUNT, duration: 1, onUpdate: renderFrame },
           0
         );
+
+        // Closing story-parallax: in the last ~14% of the scrub the frames keep
+        // advancing to 240 while the canvas recedes + fades and the brand-colour
+        // layers rise over it, landing on the "Our Story" title. Shares this
+        // pinned timeline (one continuous scroll); releases into <StorySection/>.
+        initStoryParallax({ gsap, tl, host, canvas });
 
         const handleResize = () => {
           sizeCanvas();
@@ -852,6 +876,7 @@ export default function CrispHeader() {
       container.classList.add("is--loading", "is--hidden");
       document.body.classList.remove("is--intro-active");
       document.body.classList.remove("is--sta-active");
+      document.body.classList.remove("is--story-revealed");
     };
   }, []);
 
@@ -900,6 +925,11 @@ export default function CrispHeader() {
           pins and the copy above it fades away. Continues seamlessly from the
           frame-001 slide behind it. */}
       <canvas ref={frameCanvasRef} className="crisp-header__frames" aria-hidden="true" />
+
+      {/* Closing transition — rises over the receding frame canvas in the last
+          ~14% of the scrub and hands off to the Story section (see
+          initStoryParallax, wired into the STA timeline below). */}
+      <StoryParallaxOverlay />
 
       <div className="crisp-loader">
         <div className="willem-loader">

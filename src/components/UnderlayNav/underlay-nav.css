@@ -51,6 +51,16 @@ body.is--sta-active .underlay-nav__header {
   transform: translateY(-120%);
 }
 
+/* Once the whole pinned scroll-through (frame scrub + Our Story parallax) has
+   been scrolled PAST and the page releases into <StorySection/>, glide the top
+   bar back down. Set by the STA ScrollTrigger's onLeave (CrispHeader) and
+   cleared on onEnterBack / when returning to the slideshow. It wins over the
+   is--sta-active rule above via source order + specificity, reusing the same
+   0.7s transform transition so the bar eases back into view. */
+body.is--sta-active.is--story-revealed .underlay-nav__header {
+  transform: translateY(0);
+}
+
 /* Hide nav while the crisp loader is active before the text and thumbnail
    navigation reveal starts.
    

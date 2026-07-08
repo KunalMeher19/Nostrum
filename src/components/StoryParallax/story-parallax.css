@@ -1,0 +1,191 @@
+/* ------------------------------------------------------------------ */
+/* Story parallax — the transition beat that ends the scroll-through.  */
+/* As the STA reaches its final ~15 frames these solid brand-colour    */
+/* layers rise from below with differential parallax, shrinking the    */
+/* receding frame canvas behind them, until the screen is a clean      */
+/* ink-black field carrying the "Our Story" title — the seam into the  */
+/* Story section that follows. On-brand per NOSTRUM-DESIGN.md §3.       */
+/*                                                                      */
+/* This overlay lives INSIDE the pinned hero so it rides the pin's      */
+/* transform. It is inert (hidden, no pointer events) until the STA     */
+/* timeline reveals it via GSAP autoAlpha near the end of the scrub, so */
+/* the wheel-jacked slides 1-4 at scrollY 0 are never covered.          */
+/* ------------------------------------------------------------------ */
+
+.story-parallax {
+  --sp-ink: #14160f;    /* nostrum-ink-black — final backdrop / base   */
+  --sp-olive: #1e2a16;  /* nostrum-deep-olive — depth band             */
+  --sp-bark: #2c2117;   /* nostrum-bark-brown — warmth band            */
+  --sp-fg: #edebe3;     /* nostrum-off-white — title on dark           */
+  --sp-gold: #e6b422;   /* nostrum-gold — the eyebrow's precious light */
+
+  position: absolute;
+  inset: 0;
+  z-index: 6; /* above the frame canvas (1) and hero content (2) */
+  overflow: hidden;
+  pointer-events: none;
+
+  /* Inert until the scrub reveals it (mirrors the canvas's autoAlpha
+     gate). visibility keeps it out of the paint + hit-test at progress 0. */
+  opacity: 0;
+  visibility: hidden;
+  will-change: opacity;
+}
+
+/* Each layer is a full-bleed panel, over-tall so the differential rise
+   never exposes an edge as it parallaxes up and down under the scrub. */
+.story-parallax__layer {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 130%;
+  top: -15%;
+  will-change: transform;
+}
+
+/* Back → front. The ink base rises last and slowest and ends covering
+   the whole field; the olive + bark bands sit above it as offset depth
+   planes; the title rides on top. */
+.story-parallax__layer.is--base {
+  background-color: var(--sp-ink);
+}
+
+.story-parallax__layer.is--olive {
+  height: 78%;
+  top: auto;
+  bottom: -6%;
+  background-color: var(--sp-olive);
+}
+
+.story-parallax__layer.is--bark {
+  height: 58%;
+  top: auto;
+  bottom: -4%;
+  background-color: var(--sp-bark);
+}
+
+/* Title layer — centred, huge editorial display per §4. */
+.story-parallax__layer.is--title {
+  height: 100%;
+  top: 0;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  text-align: center;
+}
+
+.story-parallax__eyebrow {
+  color: var(--sp-gold);
+  font-family: var(--font-body, inherit);
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  font-weight: 500;
+  margin: 0;
+  padding-left: 0.35em; /* optically re-centre the wide tracking */
+}
+
+.story-parallax__title {
+  color: var(--sp-fg);
+  font-family: var(--font-display, serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  font-size: clamp(3rem, 12vw, 12rem);
+  margin: 0;
+}
+
+/* Soft bottom fade so the base plane melts into the Story section seam
+   rather than showing a hard edge on release. */
+.story-parallax__fade {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 22%;
+  z-index: 2;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(20, 22, 15, 0), var(--sp-ink));
+}
+
+/* ------------------------------------------------------------------ */
+/* Story section — the destination revealed once the pin releases.     */
+/* Dark, editorial, sparse (§2, §5): a rich placeholder for real copy   */
+/* + photos to drop in later. Same ink base as the overlay's final      */
+/* frame so the hand-off from the pinned parallax is seamless.          */
+/* ------------------------------------------------------------------ */
+/* Keep the Story section out of the layout for the entire loader phase. While
+   the hero is `is--loading.is--hidden` it collapses to display:none, so without
+   this the Story section rises to the top of the page and flashes on first
+   paint. Crucially this uses display:none (not visibility:hidden) so the
+   section reserves NO height during load — otherwise its full-viewport box
+   makes the page taller than the screen and a scrollbar shows the whole time.
+   Revealed only once the hero is live and the pinned scrub can hand off. */
+main:has(.crisp-header.is--loading) .story-section {
+  display: none;
+}
+
+.story-section {
+  --story-ink: #14160f;
+  --story-fg: #edebe3;
+  --story-gold: #e6b422;
+
+  position: relative;
+  z-index: 1;
+  background-color: var(--story-ink);
+  color: var(--story-fg);
+  min-height: 100dvh;
+  padding: clamp(4rem, 12vh, 10rem) 2.5rem;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+}
+
+/* Inner column holds the max-width; the section stays full-bleed ink so the
+   hand-off from the pinned parallax overlay has no gutter seam. */
+.story-section__inner {
+  width: 100%;
+  max-width: 68rem;
+  margin: 0 auto;
+  display: flex;
+  flex-flow: column;
+  gap: clamp(1.5rem, 4vh, 3rem);
+}
+
+.story-section__eyebrow {
+  color: var(--story-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  font-weight: 500;
+  margin: 0;
+}
+
+.story-section__heading {
+  font-family: var(--font-display, serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-size: clamp(2.25rem, 7vw, 5.5rem);
+  margin: 0;
+  max-width: 14ch;
+}
+
+.story-section__lead {
+  font-family: var(--font-body, inherit);
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+  line-height: 1.6;
+  max-width: 46ch;
+  color: color-mix(in srgb, var(--story-fg) 82%, transparent);
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No scrub to reveal the overlay under reduced motion — keep it fully
+     inert so it can never obscure the hero. */
+  .story-parallax {
+    display: none;
+  }
+}

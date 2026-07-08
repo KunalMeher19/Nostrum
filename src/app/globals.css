@@ -64,6 +64,14 @@ body.is--loading {
   overflow: hidden;
 }
 
+/* The loading state lives as a class on the hero section, not on html/body, so
+   also lock the document (and hide any native scrollbar) for the whole loader
+   phase. Without this the Story section below the hero makes the page taller
+   than the viewport and a scrollbar flashes until the loader finishes. */
+html:has(.crisp-header.is--loading) {
+  overflow: hidden;
+}
+
 ::selection {
   background: var(--nostrum-gold);
   color: var(--nostrum-black);
