@@ -1,0 +1,30 @@
+- generic [active] [ref=e1]:
+  - navigation "Main navigation" [ref=e2]:
+    - list [ref=e4]:
+      - listitem [ref=e5]:
+        - link "Home" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e7]: Home
+      - listitem [ref=e8]:
+        - link "Our Story" [ref=e9] [cursor=pointer]:
+          - /url: /story
+          - generic [ref=e10]: Our Story
+      - listitem [ref=e11]:
+        - link "Products" [ref=e12] [cursor=pointer]:
+          - /url: /products
+          - generic [ref=e13]: Products
+      - listitem [ref=e14]:
+        - link "Origins" [ref=e15] [cursor=pointer]:
+          - /url: /origins
+          - generic [ref=e16]: Origins
+      - listitem [ref=e17]:
+        - link "Journal" [ref=e18] [cursor=pointer]:
+          - /url: /journal
+          - generic [ref=e19]: Journal
+      - listitem [ref=e20]:
+        - link "Contact" [ref=e21] [cursor=pointer]:
+          - /url: /contact
+          - generic [ref=e22]: Contact
+  - main [ref=e23]
+  - button "Open Next.js Dev Tools" [ref=e29] [cursor=pointer]:
+    - img [ref=e30]
