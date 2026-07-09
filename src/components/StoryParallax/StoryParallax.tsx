@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import "./story-parallax.css";
 
 /* ------------------------------------------------------------------ */
@@ -156,12 +157,7 @@ export default function StorySection() {
   return (
     <section className="story-section" aria-label="Our story">
       <div className="story-section__inner">
-        <p className="story-section__eyebrow">From the land</p>
-        <h2 className="story-section__heading">Not simply olive oil.</h2>
-        <p className="story-section__lead">
-          Cold-pressed from the first harvest, bottled with intent. The Nostrum
-          story continues here — real words and photographs, soon.
-        </p>
+        {/* Empty canvas for future content */}
       </div>
     </section>
   );

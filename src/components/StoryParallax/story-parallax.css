@@ -43,25 +43,54 @@
   will-change: transform;
 }
 
-/* Back → front. The ink base rises last and slowest and ends covering
-   the whole field; the olive + bark bands sit above it as offset depth
-   planes; the title rides on top. */
 .story-parallax__layer.is--base {
   background-color: var(--sp-ink);
+  /* Pure, cinematic ink with an ultra-subtle, elegant ambient glow at the top */
+  background-image:
+    radial-gradient(ellipse 150% 100% at 50% 0%, color-mix(in srgb, var(--sp-olive) 15%, transparent) 0%, transparent 100%);
+  
+  /* Create a generous fade at the very top edge so it blends beautifully and 
+     seamlessly over the previous section without a sharp cutoff line. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 25%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 25%);
 }
 
 .story-parallax__layer.is--olive {
   height: 78%;
   top: auto;
   bottom: -6%;
-  background-color: var(--sp-olive);
+  /* A smooth, atmospheric wash of olive, highly transparent so it doesn't get muddy */
+  background-image: radial-gradient(
+    150% 150% at 50% 100%,
+    color-mix(in srgb, var(--sp-olive) 80%, transparent) 0%,
+    color-mix(in srgb, var(--sp-olive) 30%, transparent) 40%,
+    transparent 70%
+  );
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 10%, transparent 100%);
+  mask-image: linear-gradient(to top, rgba(0,0,0,1) 10%, transparent 100%);
 }
 
 .story-parallax__layer.is--bark {
   height: 58%;
   top: auto;
   bottom: -4%;
-  background-color: var(--sp-bark);
+  /* A very soft, warm center glow with a kiss of gold to make it feel expensive */
+  background-image: 
+    radial-gradient(
+      100% 100% at 50% 100%,
+      color-mix(in srgb, var(--sp-gold) 6%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      140% 140% at 50% 100%,
+      color-mix(in srgb, var(--sp-bark) 70%, transparent) 0%,
+      color-mix(in srgb, var(--sp-bark) 25%, transparent) 45%,
+      transparent 75%
+    );
+  /* Feather the bottom edge (transparent 0% to rgba 25%) to blend the brown 
+     smoothly into the olive layer below, removing the harsh visible line. */
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, rgba(0,0,0,1) 25%, transparent 100%);
+  mask-image: linear-gradient(to top, transparent 0%, rgba(0,0,0,1) 25%, transparent 100%);
 }
 
 /* Title layer — centred, huge editorial display per §4. */
@@ -131,55 +160,123 @@ main:has(.crisp-header.is--loading) .story-section {
   --story-ink: #14160f;
   --story-fg: #edebe3;
   --story-gold: #e6b422;
+  --story-olive: #1e2a16;
 
   position: relative;
   z-index: 1;
   background-color: var(--story-ink);
   color: var(--story-fg);
   min-height: 100dvh;
-  padding: clamp(4rem, 12vh, 10rem) 2.5rem;
+  /* Use generous padding for mobile, grid will handle max-width on desktop */
+  padding: clamp(6rem, 15vh, 12rem) 2.5rem;
   display: flex;
-  flex-flow: column;
+  align-items: center;
   justify-content: center;
 }
 
-/* Inner column holds the max-width; the section stays full-bleed ink so the
-   hand-off from the pinned parallax overlay has no gutter seam. */
+/* Inner wrapper controls the max-width and layout grid */
 .story-section__inner {
   width: 100%;
-  max-width: 68rem;
+  max-width: 85rem; /* Wider for the split layout */
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .story-section__inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 8rem;
+  }
+}
+
+.story-section__content {
   display: flex;
   flex-flow: column;
-  gap: clamp(1.5rem, 4vh, 3rem);
+  gap: clamp(1.5rem, 4vh, 2.5rem);
+  max-width: 32rem;
 }
 
 .story-section__eyebrow {
   color: var(--story-gold);
   text-transform: uppercase;
   letter-spacing: 0.35em;
-  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  font-size: clamp(0.75rem, 1vw, 0.85rem);
   font-weight: 500;
   margin: 0;
+  padding-left: 0.35em; /* optically re-centre the wide tracking */
 }
 
 .story-section__heading {
   font-family: var(--font-display, serif);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  font-size: clamp(2.25rem, 7vw, 5.5rem);
+  font-weight: 400; /* Lighter weight for premium editorial feel */
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  font-size: clamp(3rem, 7vw, 6rem);
   margin: 0;
   max-width: 14ch;
 }
 
 .story-section__lead {
   font-family: var(--font-body, inherit);
-  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
-  line-height: 1.6;
-  max-width: 46ch;
-  color: color-mix(in srgb, var(--story-fg) 82%, transparent);
+  font-size: clamp(1.05rem, 1.2vw, 1.25rem);
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--story-fg) 75%, transparent);
   margin: 0;
+  max-width: 40ch;
+}
+
+/* The visual side (image wrapper) */
+.story-section__visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 4px; /* subtle softening */
+  overflow: hidden;
+  background-color: var(--story-olive);
+}
+
+.story-section__visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20, 22, 15, 0.4), transparent);
+  pointer-events: none;
+}
+
+.story-section__image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.story-section__visual:hover .story-section__image {
+  transform: scale(1.05); /* Subtle slow zoom on hover */
+}
+
+/* Call to action */
+.story-section__cta {
+  display: inline-flex;
+  align-items: center;
+  color: var(--story-fg);
+  text-decoration: none;
+  font-family: var(--font-body, inherit);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-top: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--story-fg) 30%, transparent);
+  padding-bottom: 0.5rem;
+  align-self: flex-start;
+  transition: border-color 0.4s ease, color 0.4s ease;
+}
+
+.story-section__cta:hover {
+  border-color: var(--story-gold);
+  color: var(--story-gold);
 }
 
 @media (prefers-reduced-motion: reduce) {
