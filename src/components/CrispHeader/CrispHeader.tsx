@@ -106,6 +106,10 @@ export default function CrispHeader() {
         // directly here — instant, and covers the reduced-motion path too.
         const ctaEl = container.querySelector<HTMLElement>(".crisp-header__cta");
         if (ctaEl) gsap.set(ctaEl, { autoAlpha: 0, pointerEvents: "none" });
+        // Same for the scroll cue — it must not linger over the pinned scrub.
+        const scrollCueEl =
+          container.querySelector<HTMLElement>(".crisp-header__scroll");
+        if (scrollCueEl) gsap.set(scrollCueEl, { autoAlpha: 0 });
         // Slide the fixed top bar (Nostrum wordmark + menu toggle) up and out
         // as the STA entry animation. CSS on .underlay-nav__header handles the
         // motion; it stays up for the whole scrub and mirrors back down when we
@@ -156,7 +160,7 @@ export default function CrispHeader() {
         );
         // Reveal-phase parts (unchanged)
         const smallElements = container.querySelectorAll(
-          ".crisp-header__top, .crisp-header__p, .crisp-header__cta"
+          ".crisp-header__top, .crisp-header__p, .crisp-header__cta, .crisp-header__scroll"
         );
         const sliderNav = container.querySelectorAll(
           ".crisp-header__slider-nav > *"
@@ -358,6 +362,9 @@ export default function CrispHeader() {
         // only when slide 0 is active again. pointer-events are cut while
         // hidden so the invisible buttons can't be clicked on other slides.
         const ctaEl = el.querySelector<HTMLElement>(".crisp-header__cta");
+        // Slide-1-only scroll cue. Rides along with the CTA: lifts + fades out
+        // when leaving slide 0 and eases back in when slide 0 is current again.
+        const scrollCueEl = el.querySelector<HTMLElement>(".crisp-header__scroll");
 
         function transitionText(index: number, direction: number) {
           if (!headingEl) return;
@@ -383,6 +390,27 @@ export default function CrispHeader() {
                 ease: "power2.in",
                 duration: 0.4,
                 pointerEvents: "none",
+              });
+            }
+          }
+
+          // The scroll cue belongs to slide 0 only, same as the CTA: it drops
+          // away in the wipe direction on exit and floats back up on return.
+          if (scrollCueEl) {
+            if (index === 0) {
+              gsap.to(scrollCueEl, {
+                autoAlpha: 1,
+                y: 0,
+                ease: "power2.out",
+                duration: 0.6,
+                delay: 0.3,
+              });
+            } else {
+              gsap.to(scrollCueEl, {
+                autoAlpha: 0,
+                y: -direction * 14,
+                ease: "power2.in",
+                duration: 0.4,
               });
             }
           }
@@ -1029,6 +1057,17 @@ export default function CrispHeader() {
             <LuxButton label="View our story" />
             <LuxButton label="Explore products" href="/products" />
           </div>
+        </div>
+
+        {/* Scroll cue — a thin gold comet travelling a hairline rail, under a
+            wide-tracked "Scroll" label. Slide-0 only: it fades in with the
+            loader reveal (part of the smallElements group) and lifts/fades out
+            on any slide change or STA entry, mirroring the CTA. */}
+        <div className="crisp-header__scroll" aria-hidden="true">
+          <span className="crisp-header__scroll-label">Scroll</span>
+          <span className="crisp-header__scroll-line">
+            <span className="crisp-header__scroll-comet" />
+          </span>
         </div>
       </div>
     </section>

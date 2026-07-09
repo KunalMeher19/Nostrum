@@ -142,7 +142,8 @@ main:has(.crisp-header.is--loading) {
   justify-content: center;
   align-items: center;
   min-width: 1em;
-  height: 95%;
+  /* Increased from 95% to 110% so the image height slightly exceeds the text height */
+  height: 110%;
   display: flex;
   position: relative;
 }
@@ -350,6 +351,120 @@ main:has(.crisp-header.is--loading) {
     bottom: 2em;
     gap: 0.9em;
     font-size: 0.9em;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Scroll cue — the "scroll down" hint on the first slide. A hairline  */
+/* rail with a slow gold comet falling through it, under a wide-       */
+/* tracked label. Deliberately quiet: gold is the light (§3, §6), the  */
+/* motion is a single unhurried fall, never a bouncing arrow.          */
+/* GSAP owns the wrapper's opacity + y (enter/exit); the comet keeps    */
+/* its own perpetual CSS loop underneath.                              */
+/* ------------------------------------------------------------------ */
+.crisp-header__scroll {
+  position: absolute;
+  left: 2.5em;
+  bottom: 2.5em;
+  width: max-content;
+  z-index: 2;
+  display: flex;
+  flex-flow: column;
+  align-items: flex-start;
+  gap: 1em;
+  pointer-events: none;
+}
+
+.crisp-header__scroll-label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em; /* balance the wide tracking against the left edge */
+  font-size: 0.64rem;
+  font-weight: 600;
+  /* Gold IS the light (§6): a warm foil sheen across the letters plus a soft
+     bloom, so the word reads as precious rather than a flat caption. */
+  background-image: linear-gradient(
+    100deg,
+    var(--crisp-accent) 0%,
+    color-mix(in srgb, var(--crisp-amber) 60%, var(--crisp-fg)) 45%,
+    var(--crisp-accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--crisp-accent) 30%, transparent));
+}
+
+/* The rail: a 1px column with a faint gold gradient so it reads as a
+   thread of light even when the comet is off-screen. overflow clips the
+   comet to the rail so it appears to fall through it. */
+.crisp-header__scroll-line {
+  position: relative;
+  width: 1px;
+  height: 3.6em;
+  overflow: hidden;
+  background-image: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--crisp-accent) 22%, transparent) 22%,
+    color-mix(in srgb, var(--crisp-accent) 22%, transparent) 78%,
+    transparent
+  );
+}
+
+/* The comet: a short bright gold segment, brightest at its head, that
+   falls the length of the rail and fades, on a slow unhurried loop. */
+.crisp-header__scroll-comet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 45%;
+  background-image: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--crisp-accent) 55%, transparent) 55%,
+    var(--crisp-accent)
+  );
+  animation: crisp-scroll-comet 2.4s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+}
+
+@keyframes crisp-scroll-comet {
+  0% {
+    transform: translateY(-105%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(240%);
+    opacity: 0;
+  }
+}
+
+/* No perpetual fall under reduced motion — hold a static thread of light
+   so the cue still reads without animating. */
+@media (prefers-reduced-motion: reduce) {
+  .crisp-header__scroll-comet {
+    animation: none;
+    transform: translateY(60%);
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 540px) {
+  .crisp-header__scroll {
+    left: 1.5em;
+    bottom: 1.75em;
+    gap: 0.75em;
+  }
+  .crisp-header__scroll-line {
+    height: 3em;
   }
 }
 
