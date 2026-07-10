@@ -41,7 +41,7 @@ import "./story-process.css";
  * enters/leaves each with a vertical tangent, and between two nodes it bows out
  * hard to alternating sides (with a small mid curl) for the wild look.
  */
-function buildWildPath(nodes: { x: number; y: number }[], W: number): string {
+function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number): string {
   if (nodes.length < 2) return "";
   const a0 = nodes[0];
   const f = (n: number) => n.toFixed(1);
@@ -72,7 +72,9 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number): string {
     d += ` C ${f(p2x + bow * amp * 0.15)} ${f(a.y + dy * 0.74)}, ${f(b.x)} ${f(b.y - dy * 0.22)}, ${f(b.x)} ${f(b.y)}`;
   }
   const last = nodes[nodes.length - 1];
-  d += ` C ${last.x.toFixed(1)} ${(last.y + 40).toFixed(1)}, ${last.x.toFixed(1)} ${(last.y + 90).toFixed(1)}, ${last.x.toFixed(1)} ${(last.y + 150).toFixed(1)}`;
+  const endY = Math.min(last.y + 350, H);
+  const tailDy = endY - last.y;
+  d += ` C ${f(last.x)} ${f(last.y + tailDy * 0.33)}, ${f(last.x)} ${f(last.y + tailDy * 0.66)}, ${f(last.x)} ${f(endY)}`;
   return d;
 }
 
@@ -171,7 +173,7 @@ export default function StoryProcess() {
       const W = track.offsetWidth;
       const H = track.offsetHeight;
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      line.setAttribute("d", buildWildPath(computeNodes(W), W));
+      line.setAttribute("d", buildWildPath(computeNodes(W), W, H));
       total = line.getTotalLength();
       // Sample arc-length → y so we can map a vertical target back to a length.
       const N = 260;
@@ -262,7 +264,7 @@ export default function StoryProcess() {
           scrollTrigger: {
             trigger: root,
             start: "top 80%",
-            end: "bottom bottom",
+            end: "92% bottom",
             scrub: 1,
             invalidateOnRefresh: true,
             // Rebuild the path whenever ScrollTrigger recomputes (resize / the
