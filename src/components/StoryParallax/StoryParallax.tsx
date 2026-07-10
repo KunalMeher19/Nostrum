@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import StoryProcess from "../StoryProcess/StoryProcess";
 import "./story-parallax.css";
 
 /* ------------------------------------------------------------------ */
@@ -156,9 +156,7 @@ export function initStoryParallax({
 export default function StorySection() {
   return (
     <section className="story-section" aria-label="Our story">
-      <div className="story-section__inner">
-        {/* Empty canvas for future content */}
-      </div>
+      <StoryProcess />
     </section>
   );
 }

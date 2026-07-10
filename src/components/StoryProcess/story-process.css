@@ -1,0 +1,259 @@
+/* ------------------------------------------------------------------ */
+/* Story process — the "Our Story" scrollytelling inside the Story      */
+/* section. Five steps of how the oil is made, laid out in an           */
+/* alternating L/R zig-zag. The section scrolls NATURALLY (no pin); an   */
+/* organic SVG spine (lime → gold) threads through every step and draws  */
+/* as you scroll — a glowing head rides the tip and each step's node     */
+/* lights as the tracker reaches it. Images slide in from their side.    */
+/*                                                                      */
+/* All motion is scrubbed to scroll (StoryProcess.tsx) so it rides the   */
+/* app's global Lenis with a little momentum when the scroll stops.      */
+/* On-brand per NOSTRUM-DESIGN.md §3 (ink/olive/bark base, lime+gold as  */
+/* sparing "jewelry") + §4 (huge editorial type, few words, whitespace). */
+/* ------------------------------------------------------------------ */
+
+.story-process {
+  --sp-ink: #14160f;      /* nostrum-ink-black — base                    */
+  --sp-olive: #1e2a16;    /* nostrum-deep-olive — depth                  */
+  --sp-bark: #2c2117;     /* nostrum-bark-brown — warmth                 */
+  --sp-fg: #edebe3;       /* nostrum-off-white — body/heading on dark    */
+  --sp-lime: #a6ce3a;     /* nostrum logo-lime — line top / fruit        */
+  --sp-gold: #e6b422;     /* nostrum-gold — line bottom / oil            */
+
+  position: relative;
+  background-color: var(--sp-ink);
+  color: var(--sp-fg);
+  /* The slide-ins move elements sideways; clip the horizontal overflow so
+     they never spawn a page-wide scrollbar. `clip` (not hidden) avoids
+     turning this into a scroll container. */
+  overflow-x: clip;
+}
+
+/* The tall content column that holds the spine + intro + all steps.
+   Natural height — it simply scrolls; nothing is pinned. */
+.story-process__track {
+  position: relative;
+  width: 100%;
+  padding-bottom: 8vh;
+}
+
+/* Section intro sits above the first step. */
+.story-process__intro {
+  min-height: 62vh;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1.25rem;
+  padding: 8vh 2rem 2vh;
+}
+
+.story-process__intro-eyebrow {
+  color: var(--sp-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  font-size: clamp(0.7rem, 1vw, 0.85rem);
+  font-weight: 500;
+  margin: 0;
+  padding-left: 0.4em;
+}
+
+.story-process__intro-title {
+  font-family: var(--font-display, serif);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  font-size: clamp(2.75rem, 8vw, 7rem);
+  margin: 0;
+  max-width: 16ch;
+}
+
+.story-process__steps {
+  position: relative;
+  z-index: 2; /* above the spine so images can overlap the line cleanly */
+}
+
+/* ---- One step ------------------------------------------------------ */
+.story-process__step {
+  min-height: 86vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(2rem, 6vw, 7rem);
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 6vh clamp(1.5rem, 5vw, 5rem);
+  box-sizing: border-box;
+}
+
+/* Zig-zag: even steps image-left/text-right, odd steps mirrored. */
+.story-process__step[data-side="left"] .story-process__visual {
+  order: 1;
+}
+.story-process__step[data-side="left"] .story-process__text {
+  order: 2;
+  text-align: left;
+}
+.story-process__step[data-side="right"] .story-process__visual {
+  order: 2;
+}
+.story-process__step[data-side="right"] .story-process__text {
+  order: 1;
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* ---- Visual (image placeholder, 4:5) ------------------------------- */
+.story-process__visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 64vh;
+  border-radius: 5px;
+  overflow: hidden;
+  background-color: var(--sp-olive);
+  will-change: transform, opacity;
+}
+
+.story-process__image {
+  object-fit: cover;
+}
+
+.story-process__visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(20, 22, 15, 0.55),
+    rgba(20, 22, 15, 0) 55%
+  );
+  pointer-events: none;
+}
+
+/* Temporary tag — makes clear the imagery is placeholder until real
+   process photography arrives (brief: photos to come). */
+.story-process__placeholder-tag {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  font-family: var(--font-body, inherit);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--sp-fg) 70%, transparent);
+  background: color-mix(in srgb, var(--sp-ink) 55%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 0.35em 0.6em;
+  border-radius: 999px;
+}
+
+/* ---- Text ---------------------------------------------------------- */
+.story-process__text {
+  display: flex;
+  flex-flow: column;
+  gap: clamp(0.75rem, 2vh, 1.4rem);
+  max-width: 30rem;
+  will-change: transform, opacity;
+}
+
+.story-process__num {
+  font-family: var(--font-body, inherit);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  color: var(--sp-gold);
+}
+
+.story-process__step-title {
+  font-family: var(--font-display, serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-size: clamp(2.25rem, 5.5vw, 4.5rem);
+  margin: 0;
+}
+
+.story-process__copy {
+  font-family: var(--font-body, inherit);
+  font-size: clamp(1rem, 1.15vw, 1.2rem);
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--sp-fg) 72%, transparent);
+  margin: 0;
+  max-width: 34ch;
+}
+.story-process__step[data-side="right"] .story-process__copy {
+  margin-left: auto;
+}
+
+/* ---- The SVG spine (spans the full track) -------------------------- */
+.story-process__spine {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* The wild comgio/Skiper19 stroke — stretched down the whole track. The
+   gradient runs lime (fruit) → gold (oil). non-scaling-stroke keeps the line
+   an even weight even though the path is stretched non-uniformly to fit. */
+.story-process__spine-line {
+  stroke: url(#story-line-grad);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  /* Layered glow: a tight bright halo + a wider soft bloom so the line reads
+     clearly against the near-black background without looking neon. */
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--sp-gold) 65%, transparent))
+    drop-shadow(0 0 16px color-mix(in srgb, var(--sp-lime) 35%, transparent));
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile — single column; spine hugs the left; images still slide in.  */
+/* ------------------------------------------------------------------ */
+@media (max-width: 780px) {
+  .story-process__step {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 1.75rem;
+    padding: 8vh 1.5rem 4vh 3.25rem;
+  }
+  .story-process__step[data-side="right"] .story-process__text,
+  .story-process__step[data-side="left"] .story-process__text {
+    order: 2;
+    text-align: left;
+    align-items: flex-start;
+  }
+  .story-process__step[data-side="right"] .story-process__copy {
+    margin-left: 0;
+  }
+  .story-process__step .story-process__visual {
+    order: 1;
+    max-height: 56vh;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion — no scrub, no slide. Everything visible, the stroke   */
+/* fully drawn. Set by JS (.is--static) + honoured here.                 */
+/* ------------------------------------------------------------------ */
+.story-process.is--static .story-process__visual,
+.story-process.is--static .story-process__text {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-process__spine-line {
+    filter: none;
+  }
+}
