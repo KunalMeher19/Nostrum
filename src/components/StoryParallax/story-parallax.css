@@ -105,19 +105,27 @@
   text-align: center;
 }
 
+.story-parallax__title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .story-parallax__eyebrow {
   color: var(--sp-gold);
+  text-align: right;
   font-family: var(--font-body, inherit);
   text-transform: uppercase;
   letter-spacing: 0.35em;
   font-size: clamp(0.7rem, 1vw, 0.9rem);
   font-weight: 500;
   margin: 0;
-  padding-left: 0.35em; /* optically re-centre the wide tracking */
+  margin-top: 1rem;
 }
 
 .story-parallax__title {
   color: var(--sp-fg);
+  text-align: right;
   font-family: var(--font-display, serif);
   font-weight: 600;
   letter-spacing: -0.02em;

@@ -312,6 +312,14 @@ main:has(.crisp-header.is--loading) {
   padding: 1.5em;
   position: absolute;
   left: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.crisp-header__title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 /* Slide-1 CTA pair — anchored to the bottom-right, tucked just beneath the
@@ -560,13 +568,12 @@ main:has(.crisp-header.is--loading) {
 }
 
 .crisp-header__p {
-  text-align: center;
+  text-align: right;
   margin-top: 1.25em;
   margin-bottom: 0;
   font-size: 0.8em;
   text-transform: uppercase;
   letter-spacing: 0.35em;
-  text-indent: 0.35em;
   color: var(--crisp-accent);
 }
 
@@ -614,7 +621,7 @@ main:has(.crisp-header.is--loading) {
 }
 
 .crisp-header__h1 {
-  text-align: center;
+  text-align: right;
   letter-spacing: -.03em;
   margin-top: 0;
   margin-bottom: .125em;

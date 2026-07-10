@@ -1017,8 +1017,10 @@ export default function CrispHeader() {
 
       <div className="crisp-header__content">
         <div className="crisp-header__center">
-          <h1 className="crisp-header__h1">Not simply olive oil</h1>
-          <p className="crisp-header__p">Extra virgin olive oil</p>
+          <div className="crisp-header__title-wrap">
+            <h1 className="crisp-header__h1">Not simply olive oil</h1>
+            <p className="crisp-header__p">Extra virgin olive oil</p>
+          </div>
         </div>
         <div className="crisp-header__bottom">
           <div className="crisp-header__slider-nav">

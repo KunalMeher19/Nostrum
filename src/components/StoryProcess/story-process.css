@@ -49,17 +49,25 @@
   padding: 8vh 2rem 2vh;
 }
 
+.story-process__title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .story-process__intro-eyebrow {
   color: var(--sp-gold);
+  text-align: right;
   text-transform: uppercase;
   letter-spacing: 0.4em;
   font-size: clamp(0.7rem, 1vw, 0.85rem);
   font-weight: 500;
   margin: 0;
-  padding-left: 0.4em;
+  margin-top: 1rem;
 }
 
 .story-process__intro-title {
+  text-align: right;
   font-family: var(--font-display, serif);
   font-weight: 400;
   letter-spacing: -0.03em;

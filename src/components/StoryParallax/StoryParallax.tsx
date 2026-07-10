@@ -27,8 +27,10 @@ export function StoryParallaxOverlay() {
       <div className="story-parallax__layer is--bark" data-parallax-layer="3" />
       <div className="story-parallax__fade" />
       <div className="story-parallax__layer is--title" data-parallax-layer="4">
-        <p className="story-parallax__eyebrow">From the land</p>
-        <h2 className="story-parallax__title">Our Story</h2>
+        <div className="story-parallax__title-wrap">
+          <h2 className="story-parallax__title">Our Story</h2>
+          <p className="story-parallax__eyebrow">From the land</p>
+        </div>
       </div>
     </div>
   );

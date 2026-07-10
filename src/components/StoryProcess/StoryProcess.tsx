@@ -45,7 +45,15 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
   if (nodes.length < 2) return "";
   const a0 = nodes[0];
   const f = (n: number) => n.toFixed(1);
-  let d = `M ${f(a0.x)} ${f(a0.y)}`;
+  
+  // A clean, 2-stroke horizontal scribble functioning purely as an underline,
+  // sitting firmly near the baseline (a0.y) to ensure it never slices the text.
+  let d = `M ${f(a0.x - 160)} ${f(a0.y - 5)}`;
+  // Stroke 1: Left to right (slight wave)
+  d += ` C ${f(a0.x - 80)} ${f(a0.y - 12)}, ${f(a0.x + 80)} ${f(a0.y + 2)}, ${f(a0.x + 160)} ${f(a0.y - 5)}`;
+  // Stroke 2: Right to center (looping back)
+  d += ` C ${f(a0.x + 80)} ${f(a0.y - 2)}, ${f(a0.x + 30)} ${f(a0.y)}, ${f(a0.x)} ${f(a0.y)}`;
+
   for (let i = 1; i < nodes.length; i++) {
     const a = nodes[i - 1];
     const b = nodes[i];
@@ -390,8 +398,10 @@ export default function StoryProcess() {
         </svg>
 
         <div className="story-process__intro">
-          <p className="story-process__intro-eyebrow">From grove to bottle</p>
-          <h2 className="story-process__intro-title">How it is made</h2>
+          <div className="story-process__title-wrap">
+            <h2 className="story-process__intro-title">How it is made</h2>
+            <p className="story-process__intro-eyebrow">From grove to bottle</p>
+          </div>
         </div>
 
         <div className="story-process__steps">
