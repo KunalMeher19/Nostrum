@@ -81,6 +81,20 @@ export default function ProductsSection() {
       root.style.setProperty("--nav-col", "rgb(245, 245, 243)");
     };
 
+    // The hero loader/intro owns the screen and, crucially, only creates its
+    // pinned scroll-through (which inserts ~6.5 viewports of spacer) once it
+    // finishes. Until then the Shop sits deceptively close to the top, so a
+    // ScrollTrigger refresh fired mid-load reads a high `progress` and would
+    // wrongly flip the theme to LIGHT — turning the nav ink-black and, when the
+    // pin lands and progress snaps back to 0, reverse-tweening --page-t 1→0
+    // (the white flash + black→white nav pop seen right after the loader).
+    // While the loader/intro is up we simply refuse to flip: the page is always
+    // the dark hero here, and the post-loader refresh re-evaluates with correct
+    // geometry (progress 0 → stays dark) with nothing to undo.
+    const loaderActive = () =>
+      !!document.querySelector(".crisp-header.is--loading") ||
+      document.body.classList.contains("is--intro-active");
+
     (async () => {
       const gsapMod = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
@@ -193,6 +207,9 @@ export default function ProductsSection() {
         };
 
         const evaluate = (vf: number) => {
+          // Hold the dark hero theme while the loader/intro is still on screen —
+          // any refresh fired before the STA pin exists reads a false-high vf.
+          if (loaderActive()) return;
           if (!light && vf >= ENTER_LIGHT) {
             light = true;
             flipTo(1);
