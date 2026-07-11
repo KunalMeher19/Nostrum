@@ -1,56 +1,360 @@
 /* ------------------------------------------------------------------ */
-/* ProductsSection — in-page placeholder destination for the Products   */
-/* nav link. Dark + editorial, matching the /products route empty state. */
-/* The real collection grid is designed later (NOSTRUM-DESIGN §5).       */
+/* ProductsSection — the Shop with a basicagency-style scroll inversion. */
+/*                                                                     */
+/* Every colour here is derived from ONE global scrubbed variable, --page-t */
+/* (0 = dark, seamless with Our Story · 1 = warm-white Shop), through      */
+/* color-mix(). The SAME variable also drives the Story tail's --sp-*       */
+/* tokens, so the previous + next section invert together (no two-tone      */
+/* seam). ProductsSection.tsx scrubs --page-t across the boundary, crossing */
+/* over at the midpoint. Content stays visible and inverts throughout.      */
 /* ------------------------------------------------------------------ */
-.products-section {
-  min-height: 100dvh;
-  background-color: var(--nostrum-black);
-  color: var(--nostrum-white);
+.shop {
+  /* Derived, continuously-interpolated palette (t: 0 → 1) */
+  --_bg: color-mix(
+    in srgb,
+    var(--shop-dark-bg),
+    var(--shop-light-bg) calc(var(--page-t) * 100%)
+  );
+  --_fg: color-mix(
+    in srgb,
+    var(--shop-dark-fg),
+    var(--shop-light-fg) calc(var(--page-t) * 100%)
+  );
+  --_muted: color-mix(
+    in srgb,
+    var(--shop-dark-muted),
+    var(--shop-light-muted) calc(var(--page-t) * 100%)
+  );
+  --_tile: color-mix(
+    in srgb,
+    var(--shop-dark-tile),
+    var(--shop-light-tile) calc(var(--page-t) * 100%)
+  );
+
+  position: relative;
+  min-height: 100svh;
+  background-color: var(--_bg);
+  color: var(--_fg);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(6rem, 12vh, 10rem) 1.5rem clamp(4rem, 8vh, 7rem);
+  padding: clamp(5rem, 12vh, 9rem) clamp(1.5rem, 5vw, 5rem);
+  isolation: isolate;
 }
 
-.products-section__inner {
+/* ---- Grain veil: always-on noise, pulsing at the crossover --------- */
+.shop__grain {
+  position: fixed;
+  inset: 0;
+  z-index: 40; /* above the shop scene, below the fixed nav (z 100) */
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: overlay; /* reads as texture on BOTH dark and light */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  will-change: opacity;
+}
+
+/* ---- Layout wrapper — no frame, just generous whitespace ----------- */
+.shop__inner {
   width: 100%;
-  max-width: 44rem;
+  max-width: 84rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 6vh, 4.5rem);
 }
 
-.products-section__eyebrow {
-  margin: 0 0 1em;
+/* ---- Head row: title/eyebrow on the left, Explore CTA on the right --- */
+.shop__head-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* ---- Head — left-aligned, title first then eyebrow beneath (mirrors the
+   "How it is made" intro in Our Story). ------------------------------- */
+.shop__head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* ---- Explore CTA — premium golden pill ----------------------------- */
+.shop__cta {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85em;
+  padding: 0.95em 1.6em;
+  border: 1px solid var(--nostrum-gold-metal);
+  border-radius: 999px;
+  overflow: hidden;
+  text-decoration: none;
+  white-space: nowrap;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.35em;
-  text-indent: 0.35em;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
   text-transform: uppercase;
-  color: var(--nostrum-gold);
+  color: var(--_fg);
+  will-change: transform;
+  /* Fallback ease for the non-JS / reduced-motion path */
+  transition: border-color 0.4s var(--ease-lux),
+    box-shadow 0.4s var(--ease-lux);
 }
 
-.products-section__title {
-  margin: 0 0 clamp(2rem, 6vh, 4rem);
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 400;
-  font-size: clamp(2.75rem, 8vw, 6rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
+.shop__cta:hover {
+  border-color: var(--nostrum-gold-metal);
+  box-shadow: 0 10px 30px -14px
+    color-mix(in srgb, var(--nostrum-gold-metal) 75%, transparent);
 }
 
-.products-section__line {
-  margin: 0 0 0.75em;
-  padding-top: clamp(2rem, 6vh, 4rem);
-  border-top: 1px solid color-mix(in srgb, var(--nostrum-white) 12%, transparent);
-  font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
-  line-height: 1.15;
-  font-weight: 400;
+/* Gold sweep — scaled in from the left by GSAP on hover (behind the text) */
+.shop__cta-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    var(--nostrum-gold-metal),
+    #f2c94c 55%,
+    var(--nostrum-gold-metal)
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
 }
 
-.products-section__sub {
+.shop__cta-label {
+  position: relative;
+  transition: color 0.35s var(--ease-lux);
+}
+
+.shop__cta-arrow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.35s var(--ease-lux);
+}
+
+/* Once the gold fill sweeps across, label + arrow read as ink — in BOTH the
+   dark and light phase (the fill is gold either way). Handled in CSS so it can
+   never leave a stale inline colour that fights the theme variable. */
+.shop__cta:hover .shop__cta-label,
+.shop__cta:hover .shop__cta-arrow {
+  color: #16180f;
+}
+
+/* Reduced-motion / no-JS fallback: a clean CSS hover fill */
+@media (prefers-reduced-motion: reduce) {
+  .shop__cta:hover .shop__cta-fill {
+    transform: scaleX(1);
+  }
+}
+
+.shop__eyebrow {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal); /* gold accent holds through both phases */
+}
+
+.shop__title {
   margin: 0;
-  max-width: 34rem;
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--nostrum-soft-grey);
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.25rem, 6vw, 4.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: var(--_fg);
+}
+
+/* ---- Grid ---------------------------------------------------------- */
+.shop__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+
+/* ---- Card ---------------------------------------------------------- */
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 1.6vw, 1.5rem);
+}
+
+/* Big product-first placeholder — tall portrait, no border chaos, just a
+   quiet warm fill that lets photography (dropped in later) do the talking. */
+.shop-card__media {
+  position: relative;
+  aspect-ratio: 3 / 3.8;
+  overflow: hidden;
+  background-color: var(--_tile);
+  /* Golden frame — sits on both phases: soft gold at rest, full gold on hover.
+     The colour is constant (gold reads on dark ink AND warm-white), only the
+     strength shifts, so it stays legible as the section inverts. */
+  border: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 45%, transparent);
+  transition: transform 0.7s var(--ease-lux), filter 0.7s var(--ease-lux),
+    border-color 0.6s var(--ease-lux),
+    box-shadow 0.6s var(--ease-lux);
+}
+
+.shop-card:hover .shop-card__media {
+  transform: scale(1.012);
+  filter: brightness(1.03);
+  border-color: var(--nostrum-gold-metal);
+  box-shadow: 0 18px 46px -30px
+    color-mix(in srgb, var(--nostrum-gold-metal) 70%, transparent);
+}
+
+.shop-card__media::after {
+  /* faint centred monogram so the empty tile still reads as a product slot */
+  content: "N";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(3.5rem, 7vw, 6rem);
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 18%, transparent);
+  pointer-events: none;
+}
+
+/* Stretched link covers the media so the whole tile is clickable */
+.shop-card__link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Quick add-to-cart — hidden until hover, sits above the link (§7).
+   Contrast is self-inverting: button uses the current foreground, text uses
+   the current background, so it stays legible in both phases. */
+.shop-card__add {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  padding: 0.85em 1em;
+  border: 0;
+  border-radius: 2px;
+  background-color: var(--_fg);
+  color: var(--_bg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity 0.5s var(--ease-lux), transform 0.5s var(--ease-lux),
+    background-color 0.3s ease, color 0.3s ease;
+}
+
+.shop-card:hover .shop-card__add,
+.shop-card__add:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.shop-card__add:hover {
+  background-color: var(--nostrum-gold-metal);
+  color: var(--nostrum-shop-ink);
+}
+
+/* ---- Card meta — editorial, left-aligned under the image ----------- */
+.shop-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.shop-card__name {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--_fg);
+}
+
+.shop-card__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.shop-card__detail {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--_muted);
+}
+
+.shop-card__price {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--_fg);
+}
+
+/* ---- Note ---------------------------------------------------------- */
+.shop__note {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--_muted);
+}
+
+/* ---- Responsive ---------------------------------------------------- */
+/* Two-up on tablets keeps the placeholders big instead of shrinking to thirds */
+@media (max-width: 960px) {
+  .shop__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .shop {
+    min-height: auto;
+    padding-block: clamp(4rem, 12vh, 6rem);
+  }
+  .shop__grid {
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 8vw, 3rem);
+  }
+  .shop-card__media {
+    aspect-ratio: 3 / 3.6;
+  }
+  /* Touch: no hover, so keep the add button visible */
+  .shop-card__add {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop__grain {
+    display: none;
+  }
 }

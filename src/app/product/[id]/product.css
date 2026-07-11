@@ -1,0 +1,62 @@
+/* ------------------------------------------------------------------ */
+/* Product route — LIGHT/white placeholder (§7). Matches the Shop.      */
+/* ------------------------------------------------------------------ */
+.product {
+  min-height: 100svh;
+  background-color: var(--nostrum-warm-white);
+  color: var(--nostrum-shop-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(6rem, 12vh, 10rem) 1.5rem clamp(4rem, 8vh, 7rem);
+}
+
+.product__inner {
+  width: 100%;
+  max-width: 44rem;
+  text-align: center;
+}
+
+.product__eyebrow {
+  margin: 0 0 1em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 88%, black);
+}
+
+.product__title {
+  margin: 0 0 0.6em;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-transform: capitalize;
+}
+
+.product__note {
+  margin: 0 auto 2.5em;
+  max-width: 32rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--nostrum-shop-muted);
+}
+
+.product__back {
+  display: inline-block;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  text-transform: uppercase;
+  color: var(--nostrum-shop-ink);
+  text-decoration: none;
+  transition: color 0.4s var(--ease-lux);
+}
+
+.product__back:hover {
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 90%, black);
+}

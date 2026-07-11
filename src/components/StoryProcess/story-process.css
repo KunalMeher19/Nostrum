@@ -13,12 +13,34 @@
 /* ------------------------------------------------------------------ */
 
 .story-process {
-  --sp-ink: #14160f;      /* nostrum-ink-black — base                    */
-  --sp-olive: #1e2a16;    /* nostrum-deep-olive — depth                  */
-  --sp-bark: #2c2117;     /* nostrum-bark-brown — warmth                 */
-  --sp-fg: #edebe3;       /* nostrum-off-white — body/heading on dark    */
-  --sp-lime: #a6ce3a;     /* nostrum logo-lime — line top / fruit        */
-  --sp-gold: #e6b422;     /* nostrum-gold — line bottom / oil            */
+  /* These base tokens are DERIVED from the global --page-t (0 dark → 1 light)
+     so the Story tail inverts in lockstep with the Shop below it as you cross
+     the boundary — the "previous section changes too" uniformity (no two-tone
+     seam). --page-t is 0 for the whole Story until the Shop approaches, so the
+     Story reads fully dark normally and only its visible tail lightens at the
+     crossover. Lime + gold stay constant (accents read on both phases). */
+  --sp-ink: color-mix(
+    in srgb,
+    #14160f,
+    #faf8f2 calc(var(--page-t, 0) * 100%)
+  ); /* ink-black → warm-white */
+  --sp-olive: color-mix(
+    in srgb,
+    #1e2a16,
+    #ece7da calc(var(--page-t, 0) * 100%)
+  ); /* deep-olive → warm-stone */
+  --sp-bark: color-mix(
+    in srgb,
+    #2c2117,
+    #e6ddce calc(var(--page-t, 0) * 100%)
+  ); /* bark-brown → warm-sand */
+  --sp-fg: color-mix(
+    in srgb,
+    #edebe3,
+    #14160f calc(var(--page-t, 0) * 100%)
+  ); /* off-white → ink */
+  --sp-lime: #a6ce3a; /* nostrum logo-lime — line top / fruit        */
+  --sp-gold: #e6b422; /* nostrum-gold — line bottom / oil            */
 
   position: relative;
   background-color: var(--sp-ink);

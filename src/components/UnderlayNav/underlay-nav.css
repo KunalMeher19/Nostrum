@@ -83,6 +83,22 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
   pointer-events: auto;
 }
 
+/* ---- Auto-contrast nav ----------------------------------------------
+   The Story→Shop inversion makes the whole viewport ONE uniform tone at every
+   scroll position, so the nav can track it with a single colour, --nav-col,
+   that ProductsSection computes per-frame: white on the dark phase → brand gold
+   at the mid-grey crossover (a chromatic hop keeps it legible where a grey→grey
+   fade would wash out) → ink on the light Shop. Scoped to the CLOSED menu so
+   the open dark panel keeps its own solid colours; !important beats any inline
+   colour GSAP leaves on the toggle button after an open/close. */
+body:not([data-menu-status="open"]) .underlay-nav__logo,
+body:not([data-menu-status="open"]) .underlay-nav__toggle-label {
+  color: var(--nav-col) !important;
+}
+body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
+  background-color: var(--nav-col) !important;
+}
+
 .underlay-nav__container {
   position: relative;
   display: flex;
