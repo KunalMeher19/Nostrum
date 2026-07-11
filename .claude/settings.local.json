@@ -19,7 +19,8 @@
       "mcp__playwright__browser_run_code_unsafe",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_snapshot",
-      "Bash(node .claude-tmp/v4.mjs)"
+      "Bash(node .claude-tmp/v4.mjs)",
+      "Bash(npx tsc *)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,0 +1,56 @@
+/* ------------------------------------------------------------------ */
+/* ProductsSection — in-page placeholder destination for the Products   */
+/* nav link. Dark + editorial, matching the /products route empty state. */
+/* The real collection grid is designed later (NOSTRUM-DESIGN §5).       */
+/* ------------------------------------------------------------------ */
+.products-section {
+  min-height: 100dvh;
+  background-color: var(--nostrum-black);
+  color: var(--nostrum-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(6rem, 12vh, 10rem) 1.5rem clamp(4rem, 8vh, 7rem);
+}
+
+.products-section__inner {
+  width: 100%;
+  max-width: 44rem;
+}
+
+.products-section__eyebrow {
+  margin: 0 0 1em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold);
+}
+
+.products-section__title {
+  margin: 0 0 clamp(2rem, 6vh, 4rem);
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.products-section__line {
+  margin: 0 0 0.75em;
+  padding-top: clamp(2rem, 6vh, 4rem);
+  border-top: 1px solid color-mix(in srgb, var(--nostrum-white) 12%, transparent);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  line-height: 1.15;
+  font-weight: 400;
+}
+
+.products-section__sub {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--nostrum-soft-grey);
+}

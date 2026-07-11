@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import "./crisp-header.css";
-import { onLenis } from "../SmoothScroll/lenisStore";
+import { onLenis, getLenis } from "../SmoothScroll/lenisStore";
+import { registerStoryScroll } from "../SmoothScroll/storyScroll";
 import LuxButton from "../LuxButton/LuxButton";
 import {
   StoryParallaxOverlay,
@@ -47,6 +48,9 @@ const HERO_COPY = [
 export default function CrispHeader() {
   const rootRef = useRef<HTMLElement>(null);
   const frameCanvasRef = useRef<HTMLCanvasElement>(null);
+  // Populated by the effect once the scroll-through machine is wired. The
+  // slide-0 "View our story" CTA calls this to dive down to the Story section.
+  const scrollToStoryRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const container = rootRef.current;
@@ -94,6 +98,12 @@ export default function CrispHeader() {
       let staArmed = false;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let lenisRef: any = null;
+      // Minimal imperative handle onto the slideshow, published by
+      // initSlideShow. Used by the "scroll to story" action to first bring the
+      // last slide (frame-001 == the STA seam) on screen so the hand-off into
+      // the pinned scrub is seamless rather than a hard image cut.
+      let slideshowApi: { atLast: () => boolean; toLast: () => void } | null =
+        null;
 
       const enterSta = () => {
         if (phase === "sta") return;
@@ -121,6 +131,18 @@ export default function CrispHeader() {
         phase = "slides";
         lenisRef?.scrollTo(0, { immediate: true });
         lenisRef?.stop();
+        // Snap the pinned scrub to its resolved target in THIS frame. The scrub
+        // is numeric (1.2s lerp), so after Lenis stops at the top the frame
+        // canvas keeps easing down for ~1s on ScrollTrigger's own ticker — the
+        // STA's first frame stays stuck on screen over the slideshow until the
+        // lerp finally reaches progress 0 ("later it is fixed"). Completing the
+        // in-flight scrub tween and pinning the timeline to 0 resolves it at
+        // once (tl.set(canvas, autoAlpha:0) lives at progress 0); hard-hide the
+        // canvas too so there's no single-frame flash of the stale bitmap.
+        staTrigger?.getTween?.()?.progress(1);
+        staTrigger?.animation?.progress(0);
+        const canvasEl = frameCanvasRef.current;
+        if (canvasEl) gsap.set(canvasEl, { autoAlpha: 0 });
         document.body.classList.remove("is--sta-active");
         document.body.classList.remove("is--story-revealed");
       };
@@ -621,6 +643,17 @@ export default function CrispHeader() {
         el.addEventListener("touchstart", handleTouchStart, { passive: false });
         el.addEventListener("touchmove", handleTouchMove, { passive: false });
 
+        // Publish the imperative handle the "scroll to story" action uses to
+        // reach the last slide (the STA seam) before diving into the scrub.
+        slideshowApi = {
+          atLast: () => current === length - 1,
+          toLast: () => {
+            if (current !== length - 1 && !animating) {
+              navigate(1, length - 1);
+            }
+          },
+        };
+
         return () => {
           el.removeEventListener("wheel", handleWheel);
           el.removeEventListener("touchstart", handleTouchStart);
@@ -640,6 +673,69 @@ export default function CrispHeader() {
       let framesReady = false;
       let loaderDone = false;
       let staStarted = false;
+      // Set when a section-scroll request arrives before the pinned scrub
+      // exists yet (still loading). initScrollThrough honours it once ready.
+      let pendingSection: string | null = null;
+
+      // ---- Scroll to a landing section ------------------------------------
+      // The hero keeps Lenis stopped during the slideshow, so we can't just
+      // scroll the page. Flip into the STA phase (which starts Lenis), then
+      // Lenis.scrollTo the target section — Lenis animates the whole pinned
+      // scrub + parallax reveal on the way down, so it reads as one cinematic
+      // dive; from a section already past the hero it just eases there.
+      const runSectionScroll = (selector: string) => {
+        if (cancelled) return;
+        const lenis = lenisRef ?? getLenis();
+        const target = document.querySelector<HTMLElement>(selector);
+        if (!lenis || !target) return;
+        enterSta();
+        lenis.scrollTo(target, {
+          // Land a few px PAST each section's top so ScrollTrigger boundaries
+          // (e.g. the hero pin's onLeave) fire reliably and the nav scroll-spy
+          // reads the section as reached.
+          offset: 8,
+          duration: 2.4,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3), // easeOutCubic
+          lock: true, // ignore user scroll input mid-dive so it lands cleanly
+        });
+      };
+      const scrollToSection = (selector: string) => {
+        // Not built yet (loader still running): remember and run once ready.
+        if (!staStarted) {
+          pendingSection = selector;
+          return;
+        }
+        // From the slideshow, first bring the last slide (the STA seam) on
+        // screen so the frame scrub continues it seamlessly, then dive.
+        if (
+          phase === "slides" &&
+          slideshowApi &&
+          !slideshowApi.atLast()
+        ) {
+          slideshowApi.toLast();
+          setTimeout(() => runSectionScroll(selector), 1300); // ~1.2s slide + buffer
+          return;
+        }
+        runSectionScroll(selector);
+      };
+
+      // Smooth-scroll back up to the top hero slideshow. In the STA phase Lenis
+      // is live, so it eases the whole pinned scrub back up; the moment it
+      // reaches the very top, onLenisScroll's enterSlides snaps back into
+      // slideshow mode (page re-locked at 0). A no-op if we're already home.
+      const scrollToTop = () => {
+        if (phase === "slides") return; // already at the top hero
+        const lenis = lenisRef ?? getLenis();
+        if (!lenis) return;
+        lenis.scrollTo(0, {
+          duration: 2.0,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3), // easeOutCubic
+          lock: true,
+        });
+      };
+
+      scrollToStoryRef.current = () => scrollToSection("#story");
+      registerStoryScroll({ toSection: scrollToSection, toTop: scrollToTop });
 
       const maybeInitScrollThrough = () => {
         if (staStarted || !framesReady || !loaderDone || prefersReducedMotion) {
@@ -845,6 +941,14 @@ export default function CrispHeader() {
           tl.scrollTrigger?.kill();
           tl.kill();
         };
+
+        // A section scroll was requested while the scrub was still loading —
+        // the pin distances are now measured, so it's finally safe to dive.
+        if (pendingSection) {
+          const selector = pendingSection;
+          pendingSection = null;
+          runSectionScroll(selector);
+        }
       }
 
       preloadFrames();
@@ -890,6 +994,9 @@ export default function CrispHeader() {
 
     return () => {
       cancelled = true;
+      // Stop advertising the story-scroll action once this hero unmounts.
+      registerStoryScroll(null);
+      scrollToStoryRef.current = null;
       // Tear down the scroll-through: detach the Lenis listener, kill the
       // pinned ScrollTrigger + its timeline, and drop any pending waiter.
       detachLenis?.();
@@ -1056,7 +1163,10 @@ export default function CrispHeader() {
               bottom-right. Shown by the loader reveal, hidden on any slide
               change (and on STA entry) alongside the hero copy. */}
           <div className="crisp-header__cta">
-            <LuxButton label="View our story" />
+            <LuxButton
+              label="View our story"
+              onClick={() => scrollToStoryRef.current?.()}
+            />
             <LuxButton label="Explore products" href="/products" />
           </div>
         </div>

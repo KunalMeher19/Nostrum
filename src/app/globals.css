@@ -20,6 +20,18 @@
 
   /* motion — long, soft luxury curves (§9) */
   --ease-lux: cubic-bezier(0.625, 0.05, 0, 1);
+
+  /* Loading-screen glow — the warm olive/brown radial bloom on black that must
+     be the FIRST thing painted on load (see crisp-header.css). Defined here as
+     a token so the pre-JS loading backdrop and the loader's own ::before bloom
+     share one identical gradient and hand off with no colour pop. */
+  --nostrum-load-glow: radial-gradient(
+    ellipse 72% 52% at 50% 50%,
+    rgba(74, 58, 31, 0.95) 0%,
+    rgba(51, 40, 22, 0.6) 30%,
+    rgba(20, 15, 9, 0.85) 58%,
+    #050505 82%
+  );
 }
 
 * {

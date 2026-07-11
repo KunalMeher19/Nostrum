@@ -1,18 +1,31 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import "./underlay-nav.css";
+import { requestSectionScroll, requestScrollTop } from "../SmoothScroll/storyScroll";
+import { onLenis } from "../SmoothScroll/lenisStore";
 
 /* ---- Navigation data ---------------------------------------- */
+// On the landing page "Home" and "Our Story" are in-page scroll targets, not
+// routes: clicking smooth-scrolls (via Lenis) between the top hero and the
+// Story section and the sidebar lights whichever you're in. "Home" + the
+// NOSTRUM wordmark scroll back up to the hero. The remaining links are ordinary
+// routes. `activeHref` (scroll-spy for landing sections, route match otherwise)
+// drives the gold is--current highlight.
 const NAV_LINKS = [
-  { href: "/", label: "Home", current: true },
-  { href: "/story", label: "Our Story" },
-  { href: "/products", label: "Products" },
+  { href: "/", label: "Home", top: true },
+  { href: "/#story", label: "Our Story", section: "#story" },
+  { href: "/#products", label: "Products", section: "#products" },
   { href: "/origins", label: "Origins" },
   { href: "/journal", label: "Journal" },
   { href: "/contact", label: "Contact" },
 ];
+
+// The section ids the scroll-spy watches, in document order. Home is "active"
+// when none has yet crossed the spy line.
+const SPY_SECTIONS = ["#story", "#products"];
 
 const SOCIAL_LINKS = [
   { label: "Instagram", href: "#" },
@@ -38,6 +51,99 @@ const SOCIAL_LINKS = [
  */
 export default function UnderlayNav() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  // Set by the GSAP context to a routine that snaps the menu to a clean closed
+  // state. The route-change effect below calls it so navigating ALWAYS lands
+  // with the menu shut and the page/overlay reset — the nav stays mounted
+  // across client-side navigations, so without this an open menu (or an
+  // in-flight close animation cut short by the unmount) would carry its
+  // slid-open overlay onto the next route.
+  const closeMenuRef = useRef<(() => void) | null>(null);
+
+  // Which nav link gets the gold is--current highlight. On the landing page a
+  // scroll-spy tracks the section you're actually in: "Home" at the top hero,
+  // flipping through Our Story → Products → … as each crosses the spy line.
+  // On any other route the active link simply matches the URL.
+  const [activeHref, setActiveHref] = useState<string>(pathname);
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      setActiveHref(pathname);
+      return;
+    }
+
+    // The active section is the LAST one (top-to-bottom) whose top has scrolled
+    // above a line ~40% down the viewport. Collapsed sections (the Story
+    // section is display:none during the hero loader → rect all zeros) are
+    // skipped so they don't falsely register as "at the top".
+    const compute = () => {
+      // Bail out entirely while the hero is still in its loading phase. Then the
+      // below-hero sections aren't in their real positions: Story collapses to
+      // display:none (rect zeros, skipped below), but Products is only
+      // visibility:hidden — it KEEPS its box and, with the hero + Story removed
+      // from flow, rises to scrollY 0 where it would latch as active and stick
+      // (Lenis is stopped at the hero, so no scroll event ever recomputes it).
+      // Home is always correct at the top hero, so defer to it; the observer
+      // below recomputes the instant the hero goes live and geometry is real.
+      if (document.querySelector(".crisp-header.is--loading")) {
+        setActiveHref((prev) => (prev === "/" ? prev : "/"));
+        return;
+      }
+      const lineY = window.innerHeight * 0.4;
+      let active = "/";
+      for (const sel of SPY_SECTIONS) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.height === 0) continue; // not laid out yet
+        if (rect.top <= lineY) active = "/" + sel;
+        else break; // sections are ordered; nothing below can qualify
+      }
+      setActiveHref((prev) => (prev === active ? prev : active));
+    };
+
+    compute();
+
+    // Recompute the instant the hero leaves its loading phase. During load
+    // compute() bails to "Home" (see above); Lenis is stopped at the top hero
+    // and fires no scroll event, so without this the highlight would only ever
+    // be corrected on the first user scroll. Watch the hero's class list for
+    // is--loading dropping and recompute once with real geometry. Guarded so it
+    // only runs on the landing page, where the hero exists.
+    let observer: MutationObserver | undefined;
+    const hero = document.querySelector(".crisp-header");
+    if (hero) {
+      observer = new MutationObserver(() => {
+        if (!hero.classList.contains("is--loading")) compute();
+      });
+      observer.observe(hero, { attributes: true, attributeFilter: ["class"] });
+    }
+
+    // Ride Lenis' interpolated scroll so the highlight updates smoothly in
+    // lockstep with the scroll (Lenis emits no events while it's stopped during
+    // the slideshow, which is fine — we're at the top hero then anyway).
+    let detach = () => {};
+    const unsub = onLenis((lenis) => {
+      const onScroll = () => compute();
+      lenis.on("scroll", onScroll);
+      detach = () => lenis.off("scroll", onScroll);
+    });
+    window.addEventListener("resize", compute);
+
+    return () => {
+      observer?.disconnect();
+      unsub();
+      detach();
+      window.removeEventListener("resize", compute);
+    };
+  }, [pathname]);
+
+  // On every route change, snap the menu shut. Runs after the new page has
+  // mounted (so the reset targets the current [data-main]); it's idempotent, so
+  // firing when the menu was already closed is a harmless no-op.
+  useEffect(() => {
+    closeMenuRef.current?.();
+  }, [pathname]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -74,8 +180,13 @@ export default function UnderlayNav() {
         )!;
         const largeItems =
           root.querySelectorAll<HTMLElement>("[data-reveal-l]");
-        // [data-main] lives outside this component (in the page layout).
-        const mainEl = document.querySelector<HTMLElement>("[data-main]")!;
+        // [data-main] lives outside this component (in the page layout) and is
+        // SWAPPED on every client-side navigation while this nav stays mounted.
+        // So it must be read live at each use — a reference captured once here
+        // goes stale after the first route change (the old node detaches), which
+        // left the incoming page unable to slide and the overlay stuck open.
+        const getMain = () =>
+          document.querySelector<HTMLElement>("[data-main]");
         const overlayEl = root.querySelector<HTMLElement>(
           "[data-underlay-nav-overlay]"
         )!;
@@ -88,7 +199,7 @@ export default function UnderlayNav() {
           ".underlay-nav__border-row"
         );
 
-        if (!toggleBtn || !menuEl || !mainEl || !overlayEl) return;
+        if (!toggleBtn || !menuEl || !getMain() || !overlayEl) return;
 
         // Capture the toggle button's colour in both states from the CSS so
         // we never hard-code colours in JS.
@@ -106,7 +217,7 @@ export default function UnderlayNav() {
         /* ---- Initial GSAP state (matches CSS defaults) ------- */
         gsap.set(overlayEl, { visibility: "hidden", pointerEvents: "none" });
         gsap.set(darkEl, { autoAlpha: 0 });
-        gsap.set(mainEl, { x: 0 });
+        gsap.set(getMain(), { x: 0 });
         gsap.set(toggleLabels, { yPercent: 0 });
         gsap.set(toggleBars, { y: 0, rotation: 0 });
         gsap.set(overlayBorders[0], { yPercent: -100 });
@@ -120,7 +231,9 @@ export default function UnderlayNav() {
         // made the page + button feel unresponsive on close.  Driving them
         // directly means they react instantly in BOTH directions.
         function slidePage(open: boolean) {
-          gsap.to([mainEl, overlayEl], {
+          // Read [data-main] live so the CURRENT page slides (see getMain note).
+          const mainEl = getMain();
+          gsap.to([mainEl, overlayEl].filter(Boolean), {
             x: open ? getMenuOffset() : 0,
             duration: open ? 1.15 : 0.9,
             ease: "expo.out", // fast at the start → instant felt response
@@ -235,6 +348,24 @@ export default function UnderlayNav() {
           }
         }
 
+        // Snap the menu to a clean closed state with NO animation. Used on route
+        // changes: the page just swapped, so there's nothing to gracefully
+        // animate — we simply guarantee the incoming route starts with the menu
+        // shut, the page/overlay un-slid, and the toggle showing "Menu". Every
+        // op is idempotent, so calling this while already closed does nothing.
+        function forceClose() {
+          isOpen = false;
+          toggleBtn.setAttribute("aria-expanded", "false");
+          toggleBtn.setAttribute("aria-label", "open menu");
+          document.body.setAttribute("data-menu-status", "");
+          animateToggleButton(false);
+          gsap.set([getMain(), overlayEl].filter(Boolean), { x: 0 });
+          gsap.set(darkEl, { autoAlpha: 0 });
+          gsap.set(overlayEl, { visibility: "hidden", pointerEvents: "none" });
+          tl.pause(0); // rewind the decorative reveal timeline to closed
+        }
+        closeMenuRef.current = forceClose;
+
         buildTimeline();
 
         /* ---- Event Listeners ---------------------------------- */
@@ -251,7 +382,9 @@ export default function UnderlayNav() {
           resizeTimer = setTimeout(() => {
             if (isOpen) {
               // Snap the x position to the updated menu width immediately.
-              gsap.set([mainEl, overlayEl], { x: getMenuOffset() });
+              gsap.set([getMain(), overlayEl].filter(Boolean), {
+                x: getMenuOffset(),
+              });
             } else {
               // Let getMenuOffset re-evaluate on next open.
               tl.invalidate();
@@ -259,8 +392,46 @@ export default function UnderlayNav() {
           }, 150);
         };
 
+        // Landing-page section links. On "/" the hero owns the scroll (Lenis
+        // is stopped during the slideshow), so intercept these clicks and ask
+        // the hero to scroll instead of routing:
+        //   [data-section-link="#id"] → smooth-scroll down/up to that section
+        //   [data-home-link]          → the "Home" link + the NOSTRUM wordmark,
+        //                               scroll back up to the top hero
+        // Each request returns false when no hero is mounted (clicked from
+        // another route); then we let the <Link> navigate to its href and the
+        // queued request runs the moment the hero registers.
+        const sectionLinks = Array.from(
+          root.querySelectorAll<HTMLAnchorElement>("[data-section-link]")
+        );
+        const homeLinks = Array.from(
+          root.querySelectorAll<HTMLAnchorElement>("[data-home-link]")
+        );
+        const handleSectionClick = (e: MouseEvent) => {
+          const selector = (e.currentTarget as HTMLElement).getAttribute(
+            "data-section-link"
+          );
+          if (!selector) return;
+          const handled = requestSectionScroll(selector);
+          if (handled) {
+            e.preventDefault();
+            if (isOpen) toggle(); // close the menu so the scroll is unobstructed
+          }
+        };
+        const handleHomeClick = (e: MouseEvent) => {
+          const handled = requestScrollTop();
+          if (handled) {
+            e.preventDefault();
+            if (isOpen) toggle();
+          }
+        };
+
         toggleBtn.addEventListener("click", toggle);
         overlayEl.addEventListener("click", handleOverlayClick);
+        sectionLinks.forEach((el) =>
+          el.addEventListener("click", handleSectionClick)
+        );
+        homeLinks.forEach((el) => el.addEventListener("click", handleHomeClick));
         document.addEventListener("keydown", handleKeydown);
         window.addEventListener("resize", handleResize);
 
@@ -268,10 +439,19 @@ export default function UnderlayNav() {
         return () => {
           toggleBtn.removeEventListener("click", toggle);
           overlayEl.removeEventListener("click", handleOverlayClick);
+          sectionLinks.forEach((el) =>
+            el.removeEventListener("click", handleSectionClick)
+          );
+          homeLinks.forEach((el) =>
+            el.removeEventListener("click", handleHomeClick)
+          );
           document.removeEventListener("keydown", handleKeydown);
           window.removeEventListener("resize", handleResize);
           clearTimeout(resizeTimer);
           document.body.removeAttribute("data-menu-status");
+          // Drop the reset routine so the route-change effect can't call into a
+          // reverted GSAP context (e.g. StrictMode double-mount).
+          if (closeMenuRef.current === forceClose) closeMenuRef.current = null;
         };
       }, root);
     })();
@@ -293,6 +473,7 @@ export default function UnderlayNav() {
               href="/"
               className="underlay-nav__logo"
               aria-label="Nostrum home"
+              data-home-link=""
             >
               Nostrum
             </Link>
@@ -328,17 +509,22 @@ export default function UnderlayNav() {
 
           {/* Primary links */}
           <ul className="underlay-nav__list">
-            {NAV_LINKS.map(({ href, label, current }) => (
-              <li key={label} data-reveal-l>
-                <Link
-                  href={href}
-                  className={`underlay-nav__link-large${current ? " is--current" : ""}`}
-                  aria-current={current ? "page" : undefined}
-                >
-                  <span className="underlay-nav__link-label">{label}</span>
-                </Link>
-              </li>
-            ))}
+            {NAV_LINKS.map(({ href, label, section, top }) => {
+              const isActive = href === activeHref;
+              return (
+                <li key={label} data-reveal-l>
+                  <Link
+                    href={href}
+                    className={`underlay-nav__link-large${isActive ? " is--current" : ""}`}
+                    aria-current={isActive ? "page" : undefined}
+                    {...(section ? { "data-section-link": section } : {})}
+                    {...(top ? { "data-home-link": "" } : {})}
+                  >
+                    <span className="underlay-nav__link-label">{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
 
         </div>

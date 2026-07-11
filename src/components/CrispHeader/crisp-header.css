@@ -15,6 +15,34 @@ main:has(.crisp-header.is--loading) {
   height: 100dvh;
 }
 
+/* First paint — the loading-screen glow must be the very first thing on screen.
+   The loader (.crisp-header) starts display:none and only reveals once GSAP +
+   the display font have loaded, so painting the glow there would leave a black
+   gap first. Instead paint it here via pure CSS on the server-rendered
+   [data-main]: `:has` resolves on the first style pass from the SSR'd HTML, so
+   the bloom shows in the opening frame — before any JS, font, or GSAP — and
+   nothing can block it. It sits under the (still display:none) loader and hands
+   off seamlessly to the wordmark's own bloom (same --nostrum-load-glow token).
+   Clears the instant the intro removes is--loading, by which point the fully
+   revealed hero already covers [data-main]. */
+html:has(.crisp-header.is--loading) [data-main] {
+  background-image: var(--nostrum-load-glow);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* While the hero is still `is--hidden` (display:none between first paint and the
+   GSAP intro reveal), its below-hero siblings — the Story and Products sections,
+   which have their own opaque dark backgrounds — flow up into the viewport and
+   paint OVER the load glow, so on reload the Products section (not the glow) is
+   what shows. Keep them hidden for the whole loading phase so only the glow is
+   on screen. `visibility:hidden` (not display:none) preserves their layout boxes,
+   so ScrollTrigger still measures real heights when the scroll-through arms.
+   Clears the instant the intro removes is--loading. */
+html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
+  visibility: hidden;
+}
+
 /* Loader */
 
 .crisp-loader {
@@ -48,14 +76,12 @@ main:has(.crisp-header.is--loading) {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(
-      ellipse 80% 60% at 50% 50%,
-      rgba(230, 180, 90, 0.22) 0%,
-      rgba(200, 140, 60, 0.10) 40%,
-      rgba(10, 7, 3, 0.55) 72%,
-      transparent 70%
-    );
+  /* Same warm bloom as the first-paint loading backdrop (--nostrum-load-glow),
+     so when the loader reveals over the backdrop the glow is continuous — no
+     colour pop between the pre-JS frame and the wordmark. */
+  background-image: var(--nostrum-load-glow);
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 /* ------------------------------------------------------------------ */

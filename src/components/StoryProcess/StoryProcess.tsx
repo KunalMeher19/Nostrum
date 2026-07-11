@@ -44,17 +44,20 @@ import "./story-process.css";
 function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number): string {
   if (nodes.length < 2) return "";
   const a0 = nodes[0];
+  const a1 = nodes[1];
   const f = (n: number) => n.toFixed(1);
   
   // A clean, 2-stroke horizontal scribble functioning purely as an underline,
   // sitting firmly near the baseline (a0.y) to ensure it never slices the text.
-  let d = `M ${f(a0.x - 160)} ${f(a0.y - 5)}`;
+  let d = `M ${f(a0.x - 90)} ${f(a0.y - 2)}`;
   // Stroke 1: Left to right (slight wave)
-  d += ` C ${f(a0.x - 80)} ${f(a0.y - 12)}, ${f(a0.x + 80)} ${f(a0.y + 2)}, ${f(a0.x + 160)} ${f(a0.y - 5)}`;
-  // Stroke 2: Right to center (looping back)
-  d += ` C ${f(a0.x + 80)} ${f(a0.y - 2)}, ${f(a0.x + 30)} ${f(a0.y)}, ${f(a0.x)} ${f(a0.y)}`;
+  d += ` C ${f(a0.x - 30)} ${f(a0.y - 5)}, ${f(a0.x + 40)} ${f(a0.y - 1)}, ${f(a0.x + 90)} ${f(a0.y - 2)}`;
+  // Stroke 2: Loop back left, dipping slightly lower
+  d += ` C ${f(a0.x + 110)} ${f(a0.y - 5)}, ${f(a0.x + 10)} ${f(a0.y + 3)}, ${f(a0.x - 50)} ${f(a0.y + 2)}`;
+  // Final exit: plunge downwards into the first step
+  d += ` C ${f(a0.x - 80)} ${f(a0.y)}, ${f(a0.x)} ${f(a0.y + 100)}, ${f(a1.x)} ${f(a1.y)}`;
 
-  for (let i = 1; i < nodes.length; i++) {
+  for (let i = 2; i < nodes.length; i++) {
     const a = nodes[i - 1];
     const b = nodes[i];
     const dy = b.y - a.y;
@@ -159,7 +162,16 @@ export default function StoryProcess() {
     const computeNodes = (W: number): { x: number; y: number }[] => {
       const nodes: { x: number; y: number }[] = [];
       if (intro) {
-        nodes.push({ x: W * 0.5, y: intro.offsetTop + intro.offsetHeight * 0.72 });
+        let startX = W * 0.5;
+        let startY = intro.offsetTop + intro.offsetHeight * 0.72;
+        const titleWrap = intro.querySelector<HTMLElement>(".story-process__title-wrap");
+        if (titleWrap && track) {
+          const trackRect = track.getBoundingClientRect();
+          const titleRect = titleWrap.getBoundingClientRect();
+          startX = (titleRect.left - trackRect.left) + titleRect.width / 2;
+          startY = (titleRect.bottom - trackRect.top) + 20; // 20px precisely below the text wrap
+        }
+        nodes.push({ x: startX, y: startY });
       }
       steps.forEach((step) => {
         const side = step.dataset.side === "right" ? 0.6 : 0.4;
@@ -271,7 +283,7 @@ export default function StoryProcess() {
           ease: "none",
           scrollTrigger: {
             trigger: root,
-            start: "top 80%",
+            start: "top 55%",
             end: "92% bottom",
             scrub: 1,
             invalidateOnRefresh: true,

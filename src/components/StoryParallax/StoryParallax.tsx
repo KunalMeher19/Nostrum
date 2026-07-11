@@ -157,7 +157,7 @@ export function initStoryParallax({
  */
 export default function StorySection() {
   return (
-    <section className="story-section" aria-label="Our story">
+    <section id="story" className="story-section" aria-label="Our story">
       <StoryProcess />
     </section>
   );
