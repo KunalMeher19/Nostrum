@@ -24,8 +24,8 @@ const STA_START_FRAME = 2;
 // mouse-wheel), and the 16:9 frames are heavily cropped in portrait anyway —
 // so the sequence earns less screen time. staScrollVh() shortens it on narrow
 // viewports so the scrub feels tight and filmic rather than a slog.
-const STA_SCROLL_VH = 6.5;
-const STA_SCROLL_VH_MOBILE = 4;
+const STA_SCROLL_VH = 3;
+const STA_SCROLL_VH_MOBILE = 2;
 const staScrollVh = () =>
   typeof window !== "undefined" && window.innerWidth <= 540
     ? STA_SCROLL_VH_MOBILE
@@ -44,7 +44,7 @@ const staScrollVh = () =>
 // 1.2s while the phase-locked ticker still glides the frames to a soft stop
 // that feels the same as active scrolling. Nudge up for more drift, down for a
 // tighter, more 1:1 chase.
-const STA_SCRUB = 0.4;
+const STA_SCRUB = 0.2;
 const staFramePath = (i: number) =>
   `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
@@ -847,18 +847,16 @@ export default function CrispHeader() {
           let pos = frameState.i;
           if (pos < STA_START_FRAME) pos = STA_START_FRAME;
           else if (pos > STA_FRAME_COUNT) pos = STA_FRAME_COUNT;
-          // Skip only when the position is essentially unchanged. The threshold
-          // is a tiny fraction of ONE frame (~0.25%), so even the slowest crawl
-          // still repaints a fresh crossfade every tick — nothing is held.
-          if (Math.abs(pos - lastRendered) < 0.0025) return;
-          lastRendered = pos;
-          const lo = Math.floor(pos);
-          const hi = lo + 1 <= STA_FRAME_COUNT ? lo + 1 : lo;
-          const frac = pos - lo;
+          
+          // Snap to the nearest integer frame. Drawing only one opaque frame per tick
+          // eliminates the massive GPU cost of cross-fading two full-screen JPEGs
+          // (which caused severe lag during slow scrolls and momentum tails).
+          const frameIndex = Math.round(pos);
+          if (frameIndex === lastRendered) return;
+          lastRendered = frameIndex;
+          
           cctx.clearRect(0, 0, canvas.width, canvas.height);
-          blitFrame(lo, 1); // base frame, opaque
-          if (hi !== lo && frac > 0) blitFrame(hi, frac); // crossfade toward next
-          cctx.globalAlpha = 1;
+          blitFrame(frameIndex, 1);
         };
 
         sizeCanvas();

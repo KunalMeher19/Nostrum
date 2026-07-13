@@ -80,6 +80,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${display.variable}`}>
       <head>
+      </head>
+      <body>
         {/* Critical loading styles — must be in the initial HTML so the load
             glow + scroll lock apply at first paint, before the async
             stylesheets. See CRITICAL_LOADING_CSS above. */}
@@ -87,8 +89,6 @@ export default function RootLayout({
           id="critical-loading"
           dangerouslySetInnerHTML={{ __html: CRITICAL_LOADING_CSS }}
         />
-      </head>
-      <body>
         {/* Global smooth scroll — no visual output */}
         <SmoothScroll />
         {/* Global navigation — fixed, always on top */}
