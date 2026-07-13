@@ -44,15 +44,18 @@
 }
 
 .story-parallax__layer.is--base {
-  background-color: var(--sp-ink);
-  /* Pure, cinematic ink with an ultra-subtle, elegant ambient glow at the top */
+  /* Pure, cinematic ink with an ultra-subtle ambient glow at the top, AND a
+     generous top fade so it blends seamlessly over the previous section.
+     Both are baked straight into the background stack (glow on top, then the
+     transparent→ink vertical ramp) rather than applied with `mask-image`.
+     A mask forces the browser to re-composite this full-bleed layer on the
+     main thread every frame it's transformed — the exact cause of the hitch as
+     the tail scales + rises. A plain multi-stop gradient rasterises once and
+     rides the GPU transform, so the exit stays at 60fps. Visually identical. */
+  background-color: transparent;
   background-image:
-    radial-gradient(ellipse 150% 100% at 50% 0%, color-mix(in srgb, var(--sp-olive) 15%, transparent) 0%, transparent 100%);
-  
-  /* Create a generous fade at the very top edge so it blends beautifully and 
-     seamlessly over the previous section without a sharp cutoff line. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 25%);
-  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 25%);
+    radial-gradient(ellipse 150% 100% at 50% 0%, color-mix(in srgb, var(--sp-olive) 15%, transparent) 0%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, var(--sp-ink) 25%);
 }
 
 .story-parallax__layer.is--olive {

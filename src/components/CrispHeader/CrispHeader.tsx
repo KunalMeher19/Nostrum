@@ -30,6 +30,21 @@ const staScrollVh = () =>
   typeof window !== "undefined" && window.innerWidth <= 540
     ? STA_SCROLL_VH_MOBILE
     : STA_SCROLL_VH;
+
+// ---- STA momentum -----------------------------------------------------------
+// The numeric `scrub` is how many seconds ScrollTrigger takes to ease the
+// pinned timeline toward the scroll position — the RESPONSIVENESS knob. A
+// smaller value makes the frames chase the scroll faster: even a tiny nudge
+// snaps the sequence forward quickly instead of crawling in over a long,
+// laggy tail. It's time-based, so it behaves IDENTICALLY at any scroll speed.
+// Crucially, smoothness no longer rides on this — the per-frame crossfade
+// renderer and the shared gsap/Lenis ticker keep every sub-position AND the
+// whole release tail liquid on their own — so scrub is purely "how fast do the
+// frames react," not "how smooth." 0.4s reacts ~3x quicker than the previous
+// 1.2s while the phase-locked ticker still glides the frames to a soft stop
+// that feels the same as active scrolling. Nudge up for more drift, down for a
+// tighter, more 1:1 chase.
+const STA_SCRUB = 0.4;
 const staFramePath = (i: number) =>
   `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
@@ -786,13 +801,20 @@ export default function CrispHeader() {
         if (!host) return;
 
         const sizeCanvas = () => {
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          // Cap DPR at 1.5, not 2. The crossfade blits TWO full-screen JPEGs per
+          // frame; at 2× DPR on a retina/high-DPI display that's ~4× the pixels
+          // and a paint can overrun 16ms, dropping a frame — invisible during a
+          // fast drag but a visible hitch during the slow momentum tail. These
+          // are soft photographic frames, so 1.5× is indistinguishable in look
+          // while cutting fill cost ~45% and keeping the tail at a locked rate.
+          const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           canvas.width = Math.round(window.innerWidth * dpr);
           canvas.height = Math.round(window.innerHeight * dpr);
         };
 
-        // Cover-fit draw (object-fit: cover) centred on the canvas.
-        const drawFrame = (index: number) => {
+        // Cover-fit blit (object-fit: cover) centred on the canvas, at `alpha`.
+        // Does NOT clear — callers composite one or two frames per paint.
+        const blitFrame = (index: number, alpha: number) => {
           const img = frameImages[index];
           if (!img || !img.complete || !img.naturalWidth) return;
           const cw = canvas.width;
@@ -800,17 +822,43 @@ export default function CrispHeader() {
           const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
           const dw = img.naturalWidth * scale;
           const dh = img.naturalHeight * scale;
-          cctx.clearRect(0, 0, cw, ch);
+          cctx.globalAlpha = alpha;
           cctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
         };
 
+        // Opaque single-frame draw — used to prime the bitmap and on resize.
+        const drawFrame = (index: number) => {
+          cctx.clearRect(0, 0, canvas.width, canvas.height);
+          blitFrame(index, 1);
+          cctx.globalAlpha = 1;
+        };
+
+        // frameState.i is a CONTINUOUS position (e.g. 87.4), not a snapped
+        // integer. renderFrame paints the sub-frame position by crossfading the
+        // two bracketing frames: base frame fully opaque, the next frame layered
+        // on top at alpha = fractional part. So position 87.4 = 60% frame 87 +
+        // 40% frame 88 — a real in-between image. This is what makes a SLOW or
+        // tiny scroll look smooth instead of snapping one whole frame at a time,
+        // and it repaints every ticker frame (no integer gate), so the scrub's
+        // post-scroll follow-through glides continuously to rest.
         const frameState = { i: STA_START_FRAME };
-        let lastDrawn = -1;
+        let lastRendered = -1;
         const renderFrame = () => {
-          const index = Math.round(frameState.i);
-          if (index === lastDrawn) return;
-          lastDrawn = index;
-          drawFrame(index);
+          let pos = frameState.i;
+          if (pos < STA_START_FRAME) pos = STA_START_FRAME;
+          else if (pos > STA_FRAME_COUNT) pos = STA_FRAME_COUNT;
+          // Skip only when the position is essentially unchanged. The threshold
+          // is a tiny fraction of ONE frame (~0.25%), so even the slowest crawl
+          // still repaints a fresh crossfade every tick — nothing is held.
+          if (Math.abs(pos - lastRendered) < 0.0025) return;
+          lastRendered = pos;
+          const lo = Math.floor(pos);
+          const hi = lo + 1 <= STA_FRAME_COUNT ? lo + 1 : lo;
+          const frac = pos - lo;
+          cctx.clearRect(0, 0, canvas.width, canvas.height);
+          blitFrame(lo, 1); // base frame, opaque
+          if (hi !== lo && frac > 0) blitFrame(hi, frac); // crossfade toward next
+          cctx.globalAlpha = 1;
         };
 
         sizeCanvas();
@@ -836,9 +884,9 @@ export default function CrispHeader() {
             // snapping 1:1. Two things fall out of this: the frame sequence is
             // smoothed while you scroll, and — because the ticker keeps easing
             // even after scroll input stops — the frames glide on for a beat and
-            // ease to a soft stop instead of freezing. 1.2s = the "Balanced"
-            // follow-through the client picked.
-            scrub: 1.2,
+            // ease to a soft stop instead of freezing. See STA_SCRUB for the
+            // extended-momentum tuning.
+            scrub: STA_SCRUB,
             invalidateOnRefresh: true,
             // UnderlayNav applies a transform to [data-main] (the pinned hero's
             // ancestor) to slide the page when the menu opens. A transformed
@@ -922,12 +970,22 @@ export default function CrispHeader() {
           );
         }
 
-        // The frame scrub spans the entire pinned length.
+        // The frame scrub spans the entire pinned length. It only animates the
+        // continuous position value; PAINTING is driven off gsap.ticker below
+        // (renderFrame) so the canvas repaints every rAF, phase-locked with
+        // Lenis and the scrub — identical smoothness while scrolling and during
+        // the momentum tail after release.
         tl.to(
           frameState,
-          { i: STA_FRAME_COUNT, duration: 1, onUpdate: renderFrame },
+          { i: STA_FRAME_COUNT, duration: 1 },
           0
         );
+
+        // Repaint on every ticker frame. renderFrame no-ops when the position
+        // hasn't moved, so this is a cheap comparison while idle but guarantees
+        // the canvas never falls a frame behind the scrubbed value — the tail
+        // glides as smoothly as the drag instead of rendering unevenly.
+        gsap.ticker.add(renderFrame);
 
         // Closing story-parallax: in the last ~14% of the scrub the frames keep
         // advancing to 240 while the canvas recedes + fades and the brand-colour
@@ -937,7 +995,7 @@ export default function CrispHeader() {
 
         const handleResize = () => {
           sizeCanvas();
-          lastDrawn = -1;
+          lastRendered = -1;
           renderFrame();
         };
         window.addEventListener("resize", handleResize);
@@ -947,6 +1005,7 @@ export default function CrispHeader() {
 
         staCleanup = () => {
           window.removeEventListener("resize", handleResize);
+          gsap.ticker.remove(renderFrame);
           tl.scrollTrigger?.kill();
           tl.kill();
         };

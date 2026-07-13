@@ -1,0 +1,23 @@
+
+> nostrum@0.1.0 dev
+> next dev --turbopack
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.6:3000
+✓ Ready in 7.8s
+⚠ Slow filesystem detected. The benchmark took 216ms. If D:\UpWork\Nostrum\.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+
+○ Compiling / ...
+ GET / 200 in 20.1s (next.js: 19.8s, application-code: 282ms)
+ GET / 200 in 123ms (next.js: 10ms, application-code: 113ms)
+ GET / 200 in 342ms (next.js: 137ms, application-code: 204ms)
+ GET / 200 in 306ms (next.js: 120ms, application-code: 185ms)
+ GET / 200 in 350ms (next.js: 119ms, application-code: 231ms)
+ GET / 200 in 1183ms (next.js: 594ms, application-code: 588ms)
+ GET / 200 in 178ms (next.js: 135ms, application-code: 43ms)
+✓ Compiled in 1741ms
+ GET / 200 in 298ms (next.js: 109ms, application-code: 189ms)
+✓ Compiled in 272ms
+ GET / 200 in 97ms (next.js: 6ms, application-code: 91ms)
