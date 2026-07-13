@@ -20,7 +20,16 @@ const STA_START_FRAME = 2;
 // ~6.5vh keeps the sequence dense enough to feel filmic, with the extra ~1.5vh
 // over the old 5vh giving the closing story-parallax tail (last ~14% of the
 // scrub) real scroll room to rise and hand off to the Story section.
+// On phones that same 6.5vh reads as an endless scroll (short viewport, no
+// mouse-wheel), and the 16:9 frames are heavily cropped in portrait anyway —
+// so the sequence earns less screen time. staScrollVh() shortens it on narrow
+// viewports so the scrub feels tight and filmic rather than a slog.
 const STA_SCROLL_VH = 6.5;
+const STA_SCROLL_VH_MOBILE = 4;
+const staScrollVh = () =>
+  typeof window !== "undefined" && window.innerWidth <= 540
+    ? STA_SCROLL_VH_MOBILE
+    : STA_SCROLL_VH;
 const staFramePath = (i: number) =>
   `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
@@ -819,7 +828,7 @@ export default function CrispHeader() {
           scrollTrigger: {
             trigger: host,
             start: "top top",
-            end: () => "+=" + window.innerHeight * STA_SCROLL_VH,
+            end: () => "+=" + window.innerHeight * staScrollVh(),
             pin: true,
             pinSpacing: true,
             // Numeric scrub (vs. `true`) makes ScrollTrigger LERP the timeline

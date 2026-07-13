@@ -661,3 +661,69 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   margin: -0.1em -0.05em;
   padding: 0.1em 0.05em;
 }
+
+/* ------------------------------------------------------------------ */
+/* Mobile hero fit (≤540px)                                            */
+/* On desktop the title is right-aligned and the thumbnail rail is a    */
+/* tall vertical column also hugging the right edge — on a narrow phone  */
+/* those two collide and the rail floats mid-screen. For mobile we:      */
+/*   • shrink the display title so it wraps to a clean 2 lines and keeps */
+/*     clear of the rail,                                                */
+/*   • lay the 3-thumb rail out HORIZONTALLY and anchor it just above    */
+/*     the "View our story" CTA (compact, predictable height),          */
+/* so everything fits inside the (URL-bar-reduced) visible viewport.     */
+/* ------------------------------------------------------------------ */
+@media (max-width: 540px) {
+  .crisp-header__content {
+    padding: 1.5em;
+  }
+
+  .crisp-header__center {
+    /* Lift the title above dead-centre so the lower-right cluster (rail +
+       CTA) has uninterrupted room; keeps the composition breathing on
+       short viewports. */
+    top: 30%;
+    transform: translateY(-50%);
+    padding: 1.25em;
+  }
+
+  .crisp-header__h1 {
+    /* Cap the fluid size so "Not simply olive oil" reads as a tidy two
+       lines instead of a wrapping block that reaches the rail. */
+    font-size: clamp(2rem, 9.5vw, 2.6rem);
+  }
+
+  .crisp-header__p {
+    font-size: 0.7em;
+    letter-spacing: 0.3em;
+    margin-top: 0.9em;
+  }
+
+  /* Rail → horizontal row, pinned to the bottom-right just over the CTA. */
+  .crisp-header__slider-nav {
+    flex-flow: row;
+    align-items: flex-end;
+    padding: 0;
+    right: 1.5em;
+    bottom: 7.25em;
+    grid-column-gap: 0.55em;
+    grid-row-gap: 0.55em;
+  }
+
+  .crisp-header__slider-nav-btn {
+    width: 2.9em;
+    height: 2.9em;
+  }
+}
+
+/* Extra-short / very narrow phones — tighten one more step so the rail,
+   CTA and scroll cue never stack into each other. */
+@media (max-width: 400px), (max-height: 640px) {
+  .crisp-header__slider-nav {
+    bottom: 6.75em;
+  }
+  .crisp-header__slider-nav-btn {
+    width: 2.6em;
+    height: 2.6em;
+  }
+}

@@ -275,6 +275,42 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Phone (≤540px) — trim the imagery a touch and lighten the motion.    */
+/* The 4:5 image at full column width sat a little large; cap it so it   */
+/* reads as a framed plate with breathing room. The spine's heavy twin   */
+/* drop-shadow glow is the scroll-jank culprit (it repaints the whole    */
+/* stroke every frame as it draws) — swap it for a single, cheaper halo. */
+/* ------------------------------------------------------------------ */
+@media (max-width: 540px) {
+  .story-process__step {
+    /* Less left inset now the spine hugs closer; tighter vertical rhythm. */
+    padding: 6vh 1.5rem 3vh 2.5rem;
+    gap: 1.4rem;
+  }
+  .story-process__visual {
+    /* "Reduced just by a bit": ~84% of the column, centred, and shorter. */
+    width: 84%;
+    max-width: 300px;
+    max-height: 48vh;
+    margin-inline: 0;
+  }
+  .story-process__step-title {
+    font-size: clamp(2rem, 8vw, 2.75rem);
+  }
+  .story-process__copy {
+    font-size: 1rem;
+  }
+  /* Cheaper glow — one tight halo instead of two stacked blooms, so the
+     per-frame repaint while the stroke draws is far lighter. */
+  .story-process__spine-line {
+    stroke-width: 5;
+    filter: drop-shadow(
+      0 0 5px color-mix(in srgb, var(--sp-gold) 55%, transparent)
+    );
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* Reduced motion — no scrub, no slide. Everything visible, the stroke   */
 /* fully drawn. Set by JS (.is--static) + honoured here.                 */
 /* ------------------------------------------------------------------ */

@@ -46,7 +46,15 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
   const a0 = nodes[0];
   const a1 = nodes[1];
   const f = (n: number) => n.toFixed(1);
-  
+  // On phones the full-width swings (amp up to W*0.5) throw the line right
+  // across the reading column and read as chaotic noise rather than an
+  // organic thread. Narrow the horizontal excursion on small viewports so it
+  // stays a graceful ribbon down the side of the steps.
+  const mobile = W <= 540;
+  const ampMin = mobile ? 0.12 : 0.3;
+  const ampMax = mobile ? 0.22 : 0.5;
+  const ampK = mobile ? 0.4 : 0.62;
+
   // A clean, 2-stroke horizontal scribble functioning purely as an underline,
   // sitting firmly near the baseline (a0.y) to ensure it never slices the text.
   let d = `M ${f(a0.x - 90)} ${f(a0.y - 2)}`;
@@ -66,7 +74,7 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
     // wild, doubling-back comgio character while y stays monotonic so the
     // scroll-draw still grows cleanly downward.
     const bow = (a.x + b.x) / 2 > W / 2 ? 1 : -1;
-    const amp = Math.min(W * 0.5, Math.max(W * 0.3, Math.abs(dy) * 0.62));
+    const amp = Math.min(W * ampMax, Math.max(W * ampMin, Math.abs(dy) * ampK));
 
     // Seg 1 — leave the node vertically, then swing out fast to the bow side.
     const p1x = a.x + bow * amp;
@@ -256,6 +264,11 @@ export default function StoryProcess() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let scrollTriggerRef: any = null;
 
+    // On phones the section is a single centred column, so a big sideways
+    // slide-in fights the layout and feels heavy. Use a lighter, quicker
+    // rise-and-fade there; keep the cinematic sideways travel on wider screens.
+    const isMobile = window.matchMedia("(max-width: 540px)").matches;
+
     (async () => {
       const gsapMod = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
@@ -317,9 +330,16 @@ export default function StoryProcess() {
           );
           const dir = step.dataset.side === "right" ? 1 : -1;
 
-          // Resting (pre-reveal) state.
-          if (visual) gsap.set(visual, { xPercent: dir * 85, autoAlpha: 0 });
-          if (text.length) gsap.set(text, { y: 40, autoAlpha: 0 });
+          // Resting (pre-reveal) state. Mobile: a small sideways nudge + rise
+          // (cheap, no full-width travel); desktop: the full cinematic slide.
+          if (visual)
+            gsap.set(visual, {
+              xPercent: isMobile ? dir * 14 : dir * 85,
+              y: isMobile ? 28 : 0,
+              autoAlpha: 0,
+            });
+          if (text.length)
+            gsap.set(text, { y: isMobile ? 24 : 40, autoAlpha: 0 });
 
           const tl = gsap.timeline({
             defaults: { ease: "power3.out" },
@@ -345,13 +365,27 @@ export default function StoryProcess() {
           });
 
           if (visual) {
-            tl.to(visual, { xPercent: 0, autoAlpha: 1, duration: 1.1 }, 0);
+            tl.to(
+              visual,
+              {
+                xPercent: 0,
+                y: 0,
+                autoAlpha: 1,
+                duration: isMobile ? 0.7 : 1.1,
+              },
+              0
+            );
           }
           if (text.length) {
             tl.to(
               text,
-              { y: 0, autoAlpha: 1, duration: 0.9, stagger: 0.12 },
-              0.15
+              {
+                y: 0,
+                autoAlpha: 1,
+                duration: isMobile ? 0.6 : 0.9,
+                stagger: isMobile ? 0.08 : 0.12,
+              },
+              isMobile ? 0.1 : 0.15
             );
           }
         });
