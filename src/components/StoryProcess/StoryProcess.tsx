@@ -51,9 +51,13 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
   // organic thread. Narrow the horizontal excursion on small viewports so it
   // stays a graceful ribbon down the side of the steps.
   const mobile = W <= 540;
-  const ampMin = mobile ? 0.12 : 0.3;
-  const ampMax = mobile ? 0.22 : 0.5;
-  const ampK = mobile ? 0.4 : 0.62;
+  // Desktop swing was up to HALF the viewport width (ampMax 0.5), which threw
+  // the line into the screen edges and read as chaotic. Pull it back to a
+  // "mildly wild" range so it sways beside the steps instead of slamming the
+  // margins. Mobile was already gentle — left as-is.
+  const ampMin = mobile ? 0.12 : 0.16;
+  const ampMax = mobile ? 0.22 : 0.3;
+  const ampK = mobile ? 0.4 : 0.4;
 
   // A clean, 2-stroke horizontal scribble functioning purely as an underline,
   // sitting firmly near the baseline (a0.y) to ensure it never slices the text.
@@ -76,19 +80,25 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
     const bow = (a.x + b.x) / 2 > W / 2 ? 1 : -1;
     const amp = Math.min(W * ampMax, Math.max(W * ampMin, Math.abs(dy) * ampK));
 
-    // Seg 1 — leave the node vertically, then swing out fast to the bow side.
+    // Seg 1 — leave the node vertically, then EASE out to the bow side. The
+    // swing is now spread over more vertical travel (control at dy*0.20, not
+    // dy*0.08) so the line curves out gracefully instead of kicking almost
+    // horizontally off the node — that near-horizontal shoot-out was the main
+    // "turns badly" moment the client flagged.
     const p1x = a.x + bow * amp;
-    const p1y = a.y + dy * 0.28;
-    d += ` C ${f(a.x)} ${f(a.y + dy * 0.1)}, ${f(a.x + bow * amp * 0.9)} ${f(a.y + dy * 0.08)}, ${f(p1x)} ${f(p1y)}`;
+    const p1y = a.y + dy * 0.30;
+    d += ` C ${f(a.x)} ${f(a.y + dy * 0.12)}, ${f(a.x + bow * amp * 0.55)} ${f(a.y + dy * 0.20)}, ${f(p1x)} ${f(p1y)}`;
 
-    // Seg 2 — the curl: cross back OVER to the opposite side (the loop-ish
-    // doubling-back), passing near the horizontal centre.
-    const p2x = b.x - bow * amp * 0.75;
-    const p2y = a.y + dy * 0.6;
-    d += ` C ${f(p1x + bow * amp * 0.25)} ${f(a.y + dy * 0.42)}, ${f(p2x - bow * amp * 0.15)} ${f(a.y + dy * 0.5)}, ${f(p2x)} ${f(p2y)}`;
+    // Seg 2 — a gentle counter-curve back toward the centre. It no longer crosses
+    // hard OVER to the far side (0.35 reach, was 0.75) and its control handles
+    // barely overshoot, so the reversal reads as a soft wave rather than the
+    // cusped, doubling-back loop that created the small imperfections.
+    const p2x = b.x - bow * amp * 0.35;
+    const p2y = a.y + dy * 0.62;
+    d += ` C ${f(p1x + bow * amp * 0.10)} ${f(a.y + dy * 0.44)}, ${f(p2x - bow * amp * 0.05)} ${f(a.y + dy * 0.52)}, ${f(p2x)} ${f(p2y)}`;
 
     // Seg 3 — settle down into the next node with a vertical tangent.
-    d += ` C ${f(p2x + bow * amp * 0.15)} ${f(a.y + dy * 0.74)}, ${f(b.x)} ${f(b.y - dy * 0.22)}, ${f(b.x)} ${f(b.y)}`;
+    d += ` C ${f(p2x + bow * amp * 0.10)} ${f(a.y + dy * 0.80)}, ${f(b.x)} ${f(b.y - dy * 0.20)}, ${f(b.x)} ${f(b.y)}`;
   }
   const last = nodes[nodes.length - 1];
   const endY = Math.min(last.y + 350, H);

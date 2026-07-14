@@ -385,7 +385,7 @@ export default function CrispHeader() {
         let current = 0;
         const length = ui.slides.length;
         let animating = false;
-        // Vertical slide transition, a touch quicker than the old 1.5s horizontal.
+        // Horizontal (side-to-side) slide transition duration.
         const animationDuration = 1.2;
 
         ui.slides.forEach((slide, index) =>
@@ -546,22 +546,24 @@ export default function CrispHeader() {
                 animating = false;
               },
             })
-            // Vertical wipe: NEXT (direction 1, scroll down) sends the current
-            // slide up and out the top while the upcoming slide rises in from
-            // the bottom. PREV reverses it. Parallax lag on the inner image is
-            // preserved via the opposing 75% offset.
-            .to(currentSlide, { yPercent: -direction * 100 }, 0)
-            .to(currentInner, { yPercent: direction * 75 }, 0)
+            // Horizontal wipe: NEXT (direction 1, scroll down) sends the current
+            // slide out to the LEFT while the upcoming slide enters from the
+            // RIGHT; PREV reverses it (new enters from the left). Only the AXIS
+            // changed from the old vertical wipe — the signs and 100/75
+            // magnitudes are identical, so the parallax lag, timing and the
+            // reduced-motion path all behave exactly as before, just side-to-side.
+            .to(currentSlide, { xPercent: -direction * 100 }, 0)
+            .to(currentInner, { xPercent: direction * 75 }, 0)
             .fromTo(
               upcomingSlide,
-              { yPercent: direction * 100 },
-              { yPercent: 0 },
+              { xPercent: direction * 100 },
+              { xPercent: 0 },
               0
             )
             .fromTo(
               upcomingInner,
-              { yPercent: -direction * 75 },
-              { yPercent: 0 },
+              { xPercent: -direction * 75 },
+              { xPercent: 0 },
               0
             );
         }
