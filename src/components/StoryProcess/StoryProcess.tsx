@@ -39,7 +39,9 @@ import "./story-process.css";
  *
  * `nodes` are the points the line must pass through (intro + each step); it
  * enters/leaves each with a vertical tangent, and between two nodes it bows out
- * hard to alternating sides (with a small mid curl) for the wild look.
+ * to alternating sides in ONE smooth arc. Every join (node → peak → node) shares
+ * a vertical tangent, so the stroke is guaranteed kink-/cusp-free — "mildly
+ * wild": organic and swaying, but with no bad turns.
  */
 function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number): string {
   if (nodes.length < 2) return "";
@@ -73,32 +75,28 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
     const a = nodes[i - 1];
     const b = nodes[i];
     const dy = b.y - a.y;
-    // Swing HARD to whichever side is "outside" this leg, then overshoot the
-    // OPPOSITE way before curling into the node — three cubics per leg give the
-    // wild, doubling-back comgio character while y stays monotonic so the
-    // scroll-draw still grows cleanly downward.
-    const bow = (a.x + b.x) / 2 > W / 2 ? 1 : -1;
-    const amp = Math.min(W * ampMax, Math.max(W * ampMin, Math.abs(dy) * ampK));
+    // ONE clean bow per leg, alternating L/R for a balanced weave. The bow's
+    // widest point (the "peak") sits mid-leg, offset sideways by `amp`. Every
+    // anchor of the leg — node a, the peak, node b — is entered AND left with a
+    // VERTICAL tangent, so all three joins (and the join to the next leg, also
+    // vertical) are automatically smooth: no cusps, no flat shelves, none of the
+    // "small imperfections" the client saw. y stays monotonic so the scroll-draw
+    // still grows cleanly downward.
+    const bow = i % 2 === 0 ? -1 : 1;
+    // Gentle per-leg variation (deterministic — must be stable across the many
+    // path rebuilds) keeps it "mildly wild" rather than a mechanical sine: the
+    // amplitude wobbles and the peak sits a touch high/low on alternating legs.
+    const wob = [1, 0.82, 1.14, 0.9, 1.06][(i - 2) % 5];
+    const amp = wob * Math.min(W * ampMax, Math.max(W * ampMin, Math.abs(dy) * ampK));
+    const peakX = (a.x + b.x) / 2 + bow * amp;
+    const peakY = a.y + dy * (i % 2 === 0 ? 0.54 : 0.46);
+    const spanA = peakY - a.y;
+    const spanB = b.y - peakY;
 
-    // Seg 1 — leave the node vertically, then EASE out to the bow side. The
-    // swing is now spread over more vertical travel (control at dy*0.20, not
-    // dy*0.08) so the line curves out gracefully instead of kicking almost
-    // horizontally off the node — that near-horizontal shoot-out was the main
-    // "turns badly" moment the client flagged.
-    const p1x = a.x + bow * amp;
-    const p1y = a.y + dy * 0.30;
-    d += ` C ${f(a.x)} ${f(a.y + dy * 0.12)}, ${f(a.x + bow * amp * 0.55)} ${f(a.y + dy * 0.20)}, ${f(p1x)} ${f(p1y)}`;
-
-    // Seg 2 — a gentle counter-curve back toward the centre. It no longer crosses
-    // hard OVER to the far side (0.35 reach, was 0.75) and its control handles
-    // barely overshoot, so the reversal reads as a soft wave rather than the
-    // cusped, doubling-back loop that created the small imperfections.
-    const p2x = b.x - bow * amp * 0.35;
-    const p2y = a.y + dy * 0.62;
-    d += ` C ${f(p1x + bow * amp * 0.10)} ${f(a.y + dy * 0.44)}, ${f(p2x - bow * amp * 0.05)} ${f(a.y + dy * 0.52)}, ${f(p2x)} ${f(p2y)}`;
-
-    // Seg 3 — settle down into the next node with a vertical tangent.
-    d += ` C ${f(p2x + bow * amp * 0.10)} ${f(a.y + dy * 0.80)}, ${f(b.x)} ${f(b.y - dy * 0.20)}, ${f(b.x)} ${f(b.y)}`;
+    // Seg A — node a → bow peak (vertical tangent at both ends).
+    d += ` C ${f(a.x)} ${f(a.y + spanA * 0.5)}, ${f(peakX)} ${f(peakY - spanA * 0.5)}, ${f(peakX)} ${f(peakY)}`;
+    // Seg B — bow peak → node b (vertical tangent at both ends).
+    d += ` C ${f(peakX)} ${f(peakY + spanB * 0.5)}, ${f(b.x)} ${f(b.y - spanB * 0.5)}, ${f(b.x)} ${f(b.y)}`;
   }
   const last = nodes[nodes.length - 1];
   const endY = Math.min(last.y + 350, H);
