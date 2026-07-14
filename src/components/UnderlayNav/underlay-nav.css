@@ -1,19 +1,18 @@
 /* ============================================================
    UnderlayNav — Nostrum dark theme
-   Adapted from Osmo "underlay nav" pattern.
+   Rolls-Royce style full-screen takeover: on open, a fixed layer fades over
+   the viewport carrying a live blurred pass-through of the page (blurred left,
+   clear right) with the primary links pinned to the left, sliding in from the
+   left with a stagger. The page beneath is not moved.
 
-   --nav-bg     : warm-dark panel that slides in from the right
+   --nav-bg     : warm-dark reference (menu text / accents on the panel)
    --nav-fg     : primary text (nostrum-white)
    --nav-accent : gold accent for active/hover states
-   --nav-page-bg: matches the site's page background — used by the
-                  corner cut-out trick so the corner "blends" into the
-                  menu panel correctly.
    ============================================================ */
 
 :root {
-  --menu-width: 30em;
   --nav-bg: #0f0d0a;
-  /* warm dark panel                */
+  /* warm dark (menu text colour ref) */
   --nav-fg: #f5f5f3;
   /* nostrum-white                  */
   --nav-accent: #e6b45a;
@@ -173,41 +172,86 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   flex: none;
 }
 
-/* ---- Menu Panel (fixed right edge, always in DOM) ---- */
-.underlay-nav__menu {
+/* ---- Full-screen takeover (Rolls-Royce style) ----
+   A fixed layer over the whole viewport. GSAP fades it (autoAlpha) on open /
+   close, so it starts hidden + click-through. The page beneath is NOT moved. */
+.underlay-nav__screen {
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  width: var(--menu-width);
-  background-color: var(--nav-bg);
+  inset: 0;
+  z-index: 90; /* above page, below the fixed header bar (100) + ring (6000) */
   color: var(--nav-fg);
+  visibility: hidden; /* GSAP autoAlpha toggles this with opacity */
+  opacity: 0;
+  cursor: pointer; /* background is a dismiss target */
 }
 
-.underlay-nav__inner {
+/* Live blurred pass-through of the page behind. backdrop-filter samples
+   whatever is painted beneath the fixed layer — so it tracks the hero /
+   Story / Shop background automatically, "matching the changing background but
+   a bit blurred". GSAP wipes it in with a clip-path inset (left → right), like
+   RR's pane slide — clip-path (unlike transform) keeps the backdrop-filter
+   live. The closed clip below matches GSAP's from-state so there is no flash
+   before JS initialises. A horizontal mask fades the blur out toward the
+   right, so the right side of the hero shows through crisp. */
+.underlay-nav__blur {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 100% 0 0); /* closed — GSAP animates to inset(0 0% 0 0) */
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+  backdrop-filter: blur(22px) saturate(1.35);
+  /* Strong blur on the left → clear on the right. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.55) 60%,
+    transparent 80%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.55) 60%,
+    transparent 80%
+  );
+}
+
+/* A gentle darkening under the links so they stay legible even when the page
+   behind is bright (the light Shop). Also weighted to the left, wiped in with
+   the same clip as the blur. */
+.underlay-nav__scrim {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 100% 0 0); /* closed — wiped open by GSAP */
+  background: linear-gradient(
+    to right,
+    rgba(10, 8, 6, 0.72) 0%,
+    rgba(10, 8, 6, 0.55) 38%,
+    rgba(10, 8, 6, 0.2) 62%,
+    rgba(10, 8, 6, 0) 82%
+  );
+}
+
+/* ---- Left-pinned menu (links column) ---- */
+.underlay-nav__menu {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above blur + scrim */
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
-  gap: 2em;
-  width: 100%;
-  height: 100%;
-  padding: 7.5em 2.5em 2em 2em;
-  overflow-y: auto;
-
-  /* Hide scrollbar for a cleaner look */
-  scrollbar-width: none;
-  /* Firefox */
-  -ms-overflow-style: none;
-  /* IE and Edge */
+  /* The column sits inside the blurred pane; its RIGHT edge (the list is
+     right-aligned) lands just past a third of the viewport, as on RR. */
+  align-items: flex-start;
+  padding: 6em 0 6em clamp(5em, 27vw, 27em);
+  pointer-events: none; /* the column is transparent; links re-enable below */
 }
 
-.underlay-nav__inner::-webkit-scrollbar {
-  display: none;
-}
-
-/* ---- Nav Lists ---- */
+/* ---- Nav List ---- */
+/* RR reference: a compact column of small, widely-tracked uppercase labels,
+   RIGHT-ALIGNED to a common edge (ragged left), with generous air between
+   items. align-items:flex-end lines every item's right edge up against the
+   widest one — no fixed width needed. */
 .underlay-nav__list {
   list-style: none;
   margin: 0;
@@ -215,19 +259,15 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.35em;
+  gap: clamp(2.2em, 5.5vh, 3.6em);
+  pointer-events: auto; /* links are clickable; the rest dismisses */
 }
 
-.underlay-nav__list.is--small {
-  gap: 0.75em;
-}
-
-/* ---- Large Primary Links ---- */
+/* ---- Primary Links ---- */
 .underlay-nav__link-large {
   display: block;
   width: auto;
-  padding: 0.45em 0.5em;
-  border-radius: 0.25em;
+  padding: 0.15em 0;
   transition: color 0.25s ease;
   text-align: right;
 }
@@ -240,129 +280,21 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   color: var(--nav-accent);
 }
 
+/* Small, luxury-tracked uppercase — matches the RR menu type, not display
+   headlines. The tracking carries the luxury, not the size. */
 .underlay-nav__link-label {
   display: block;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: 3.25em;
-  font-weight: 300;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  transition: color 0.25s ease;
-}
-
-/* ---- Bottom Section ---- */
-.underlay-nav__bottom {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  padding-top: 1.5em;
-  position: relative;
-}
-
-.underlay-nav__bottom-col {
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
-  flex: 1;
-}
-
-.underlay-nav__link-small {
-  font-size: 0.875em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.85rem, 1.05vw, 1rem);
+  font-weight: 500;
   line-height: 1.2;
-  letter-spacing: 0.02em;
-  transition: color 0.2s ease;
-}
-
-.underlay-nav__link-small:hover {
-  color: var(--nav-accent);
-}
-
-.underlay-nav__link-small.is--faded {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.underlay-nav__bottom-border {
-  position: absolute;
-  inset: 0 0 auto;
-  width: 100%;
-  height: 1px;
-  background-color: currentColor;
-  opacity: 0.12;
-  transform-origin: left center;
-}
-
-/* ---- Overlay (slides with [data-main] content) ---- */
-.underlay-nav__overlay {
-  position: fixed;
-  inset: 0 0 0 -1px;
-  /* -1px on left closes a subpixel gap */
-  z-index: 100;
-  pointer-events: none;
-  cursor: pointer;
-  visibility: hidden;
-  overflow: clip;
-}
-
-.underlay-nav__dark {
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.65);
-  opacity: 0;
-}
-
-/* ---- Decorative borders that appear at top & bottom of the overlay ---- */
-.underlay-nav__borders {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.underlay-nav__border-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-/* 1em coloured bar that peeks above/below the overlay edge */
-.underlay-nav__border {
-  width: 100%;
-  height: 1em;
-  background-color: var(--nav-bg);
-}
-
-/* Quarter-circle "rounded corner" trick:
-   The corner element fills with a radial-gradient that is TRANSPARENT in
-   the arc region and matches --nav-bg outside it.  When the overlay slides
-   left to reveal the menu panel, this makes the menu panel's top-right and
-   bottom-right edges appear rounded.  The colour must match --nav-bg exactly. */
-.underlay-nav__corner {
-  width: 2em;
-  height: 2em;
-  transform-origin: 0% 0%;
-  /* Top-right corner: arc sweeps from bottom-right of the element */
-  background-image: radial-gradient(circle farthest-side at 100% 100%,
-      transparent 99%,
-      var(--nav-bg));
-}
-
-.underlay-nav__corner.is--bottom {
-  transform-origin: 0% 100%;
-  /* Bottom-right corner: arc sweeps from top-right of the element */
-  background-image: radial-gradient(circle farthest-side at 100% 0%,
-      transparent 99%,
-      var(--nav-bg));
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: color 0.25s ease;
 }
 
 /* ---- Mobile ---- */
 @media screen and (max-width: 767px) {
-  :root {
-    --menu-width: 85vw;
-  }
-
   .underlay-nav__container {
     padding: 1.25em;
   }
@@ -375,18 +307,33 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
     font-size: 0.875em;
   }
 
-  .underlay-nav__inner {
-    padding: 5em 1.25em 1.25em;
+  .underlay-nav__menu {
+    padding: 5em 1.75em;
+    align-items: flex-end; /* keep the right-aligned column on-screen */
   }
 
   .underlay-nav__link-label {
-    font-size: 2.25em;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
   }
 
-  .underlay-nav__bottom {
-    flex-direction: column;
+  .underlay-nav__list {
     gap: 1.5em;
-    padding-left: 0.5em;
-    padding-right: 0.5em;
+  }
+
+  /* On a narrow screen there's no room for a "clear right edge" — let the blur
+     cover the full width so the links stay legible. */
+  .underlay-nav__blur {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .underlay-nav__scrim {
+    background: linear-gradient(
+      to right,
+      rgba(10, 8, 6, 0.78) 0%,
+      rgba(10, 8, 6, 0.6) 70%,
+      rgba(10, 8, 6, 0.45) 100%
+    );
   }
 }

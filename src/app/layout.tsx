@@ -3,6 +3,7 @@ import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
 import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
+import RingCursor from "@/components/RingCursor/RingCursor";
 
 // Refined grotesk for UI/body (§4 — free stand-in until client confirms licensed faces)
 const sans = Inter({
@@ -93,6 +94,8 @@ export default function RootLayout({
         <SmoothScroll />
         {/* Global navigation — fixed, always on top */}
         <UnderlayNav />
+        {/* White ring pointer follower (RR-style). Self-disables on touch. */}
+        <RingCursor />
         {/* Page content — receives [data-main] in each page component */}
         {children}
       </body>

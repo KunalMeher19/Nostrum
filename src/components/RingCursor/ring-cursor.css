@@ -1,0 +1,86 @@
+/* ============================================================
+   RingCursor — white ring pointer follower (RR-style)
+
+   - wrapper carries the position (transform written per-frame in JS) and
+     mix-blend-mode:difference, so the ring inverts against whatever is behind
+     it and stays visible on both the dark hero and the light Shop.
+   - the inner .ring-cursor__ring is the visible circle; scaling it (not the
+     wrapper) keeps the blend/position math independent of the hover grow.
+   ============================================================ */
+
+.ring-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 6000; /* above the nav overlay + everything else */
+  width: 1.125rem; /* 18px — small, unobtrusive ring */
+  height: 1.125rem;
+  pointer-events: none; /* never intercepts clicks/hover */
+  mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  /* transform is set imperatively each frame; will-change hints the compositor */
+  will-change: transform;
+}
+
+.ring-cursor.is--visible {
+  opacity: 1;
+}
+
+.ring-cursor__ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #fff; /* difference-blended → reads as a crisp light ring */
+  border-radius: 50%;
+  /* Grow/press are driven by scaling the ring only. Snappy but soft curve. */
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.28s ease, border-color 0.28s ease;
+  transform: scale(1);
+}
+
+/* Hover over an interactive target — the ring swells and picks up a faint fill,
+   echoing RR's cursor grow. */
+.ring-cursor.is--grow .ring-cursor__ring {
+  transform: scale(1.55);
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Quick press cue on mouse-down. */
+.ring-cursor.is--down .ring-cursor__ring {
+  transform: scale(0.82);
+}
+.ring-cursor.is--grow.is--down .ring-cursor__ring {
+  transform: scale(1.3);
+}
+
+/* Hide the native cursor site-wide ONLY once the ring is live (class added by
+   the component after it confirms a fine pointer). Applied to the root so it
+   cascades; interactive elements keep pointer:none-free hit-testing since the
+   ring itself is pointer-events:none. */
+html.has-ring-cursor,
+html.has-ring-cursor * {
+  cursor: none !important;
+}
+
+/* Coarse-pointer / touch safety net: never show the ring or kill the native
+   cursor even if the element is in the DOM. */
+@media (hover: none), (pointer: coarse) {
+  .ring-cursor {
+    display: none;
+  }
+  html.has-ring-cursor,
+  html.has-ring-cursor * {
+    cursor: auto !important;
+  }
+}
+
+/* Reduced motion: keep the ring (it's a positional aid, not decoration) but
+   drop the springy grow easing to a plain quick fade. */
+@media (prefers-reduced-motion: reduce) {
+  .ring-cursor__ring {
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+  .ring-cursor.is--grow .ring-cursor__ring {
+    transform: scale(1.35);
+  }
+}

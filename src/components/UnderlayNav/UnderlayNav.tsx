@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./underlay-nav.css";
 import { requestSectionScroll, requestScrollTop } from "../SmoothScroll/storyScroll";
-import { onLenis } from "../SmoothScroll/lenisStore";
+import { onLenis, getLenis } from "../SmoothScroll/lenisStore";
 
 /* ---- Navigation data ---------------------------------------- */
 // On the landing page "Home" and "Our Story" are in-page scroll targets, not
@@ -34,16 +34,22 @@ const SOCIAL_LINKS = [
 ];
 
 /**
- * UnderlayNav — faithful port of the Osmo "underlay navigation" pattern.
+ * UnderlayNav — Rolls-Royce style full-screen menu takeover.
  *
- * Structure (all children are position:fixed):
- *   header   – top bar with Nostrum wordmark + toggle button
- *   nav      – slide-in menu panel (right edge)
- *   overlay  – translucent overlay that slides LEFT with [data-main] and
- *              dims the exposed page content when the menu is open
+ * Structure (all fixed / absolute):
+ *   header  – top bar with Nostrum wordmark + toggle button
+ *   screen  – full-viewport takeover, fades in on open (GSAP autoAlpha):
+ *               blur  – live blurred pass-through of the page (backdrop-filter),
+ *                       masked to fade out toward the right so the hero stays
+ *                       crisp there — "matches the changing background but a bit
+ *                       blurred"
+ *               scrim – gentle left-weighted darkening for link legibility
+ *               menu  – primary links pinned LEFT; they slide in from the left
+ *                       with a stagger on open, and mirror back out on close
  *
- * The page content element that should "push" left is identified by the
- * [data-main] attribute.  Add it to the <main> tag in the page component.
+ * The page beneath is NOT moved (unlike the old right-panel + page-push
+ * pattern), so CrispHeader's transform-pinned STA is unaffected. Background
+ * scroll is locked via Lenis while open (see lockScroll).
  *
  * GSAP is loaded dynamically (avoids SSR window errors).  The same
  * `cancelled` / `gsap.context()` pattern used in CrispHeader is used here
@@ -180,26 +186,24 @@ export default function UnderlayNav() {
         )!;
         const largeItems =
           root.querySelectorAll<HTMLElement>("[data-reveal-l]");
-        // [data-main] lives outside this component (in the page layout) and is
-        // SWAPPED on every client-side navigation while this nav stays mounted.
-        // So it must be read live at each use — a reference captured once here
-        // goes stale after the first route change (the old node detaches), which
-        // left the incoming page unable to slide and the overlay stuck open.
-        const getMain = () =>
-          document.querySelector<HTMLElement>("[data-main]");
-        const overlayEl = root.querySelector<HTMLElement>(
-          "[data-underlay-nav-overlay]"
+        // The full-screen takeover: a fixed layer that covers the viewport and
+        // carries the blurred live-page backdrop + the left-pinned links. This
+        // replaces the old right-side panel + page-push pattern with the
+        // Rolls-Royce style overlay (blur on the left, page stays put beneath).
+        const screenEl = root.querySelector<HTMLElement>(
+          "[data-underlay-nav-screen]"
         )!;
-        const darkEl = root.querySelector<HTMLElement>(
-          ".underlay-nav__dark"
-        );
-        const corners =
-          root.querySelectorAll<HTMLElement>(".underlay-nav__corner");
-        const overlayBorders = root.querySelectorAll<HTMLElement>(
-          ".underlay-nav__border-row"
+        // The blurred backdrop + scrim. Wiped in via clip-path (left→right
+        // reveal front, like RR's pane slide) rather than translateX — a
+        // transformed ancestor/element would become the backdrop root and
+        // disable the live backdrop-filter blur.
+        const paneEls = Array.from(
+          root.querySelectorAll<HTMLElement>(
+            ".underlay-nav__blur, .underlay-nav__scrim"
+          )
         );
 
-        if (!toggleBtn || !menuEl || !getMain() || !overlayEl) return;
+        if (!toggleBtn || !menuEl || !screenEl) return;
 
         // Capture the toggle button's colour in both states from the CSS so
         // we never hard-code colours in JS.
@@ -210,41 +214,40 @@ export default function UnderlayNav() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let tl: any;
 
-        // Dynamically read menu width each time the timeline is invalidated so
-        // the offset stays correct after viewport resize.
-        const getMenuOffset = () => menuEl.offsetWidth;
-
         /* ---- Initial GSAP state (matches CSS defaults) ------- */
-        gsap.set(overlayEl, { visibility: "hidden", pointerEvents: "none" });
-        gsap.set(darkEl, { autoAlpha: 0 });
-        gsap.set(getMain(), { x: 0 });
+        // The screen starts hidden + click-through. It does NOT fade: on open
+        // it snaps visible and the pane wipe IS the reveal (as on RR). The pane
+        // starts off-screen via CSS transform; the timeline owns it after that.
+        gsap.set(screenEl, { autoAlpha: 0, pointerEvents: "none" });
         gsap.set(toggleLabels, { yPercent: 0 });
         gsap.set(toggleBars, { y: 0, rotation: 0 });
-        gsap.set(overlayBorders[0], { yPercent: -100 });
-        gsap.set(overlayBorders[1], { yPercent: 100 });
-        gsap.set(corners, { scale: 0 });
 
-        /* ---- Direct (non-timeline) motions -------------------- */
-        // The page-slide, dim, and toggle button are driven DIRECTLY on every
-        // click — never through the reversible timeline.  A full-timeline
-        // reverse back-loads whatever sits at position 0 (it plays last), which
-        // made the page + button feel unresponsive on close.  Driving them
-        // directly means they react instantly in BOTH directions.
-        function slidePage(open: boolean) {
-          // Read [data-main] live so the CURRENT page slides (see getMain note).
-          const mainEl = getMain();
-          gsap.to([mainEl, overlayEl].filter(Boolean), {
-            x: open ? getMenuOffset() : 0,
-            duration: open ? 1.15 : 0.9,
-            ease: "expo.out", // fast at the start → instant felt response
-            overwrite: "auto",
-          });
-          gsap.to(darkEl, {
-            autoAlpha: open ? 1 : 0,
-            duration: open ? 0.8 : 0.5,
-            overwrite: "auto",
-          });
+        // Background scroll lock. The full-screen takeover shouldn't let the
+        // page scroll behind it. Lenis is a shared singleton the hero also
+        // drives (it stops Lenis during the slideshow / loader), so we must not
+        // blindly start() it on close — that would unlock the hero mid-loader.
+        // Snapshot whether Lenis was already stopped when we opened, and only
+        // restore that exact state on close.
+        let lenisWasStopped = false;
+        function lockScroll(lock: boolean) {
+          const lenis = getLenis();
+          if (!lenis) return;
+          if (lock) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            lenisWasStopped = (lenis as any).isStopped === true;
+            lenis.stop();
+          } else if (!lenisWasStopped) {
+            // Only resume if WE were the ones who stopped it.
+            lenis.start();
+          }
         }
+
+        // How far off-screen-left the links start/end their sweep. RR uses a
+        // fixed -544px at 1440w (≈ 0.38 viewport widths) regardless of link
+        // length — every item travels the same long distance, which is what
+        // gives the cascade its uniform "sweep" read. Function-based so resize
+        // re-evaluates on the next open/close.
+        const offX = () => -Math.max(window.innerWidth * 0.38, 300);
 
         function animateToggleButton(open: boolean) {
           gsap.to(toggleLabels, {
@@ -275,44 +278,54 @@ export default function UnderlayNav() {
         }
 
         /* ---- Build timeline ----------------------------------- */
-        // This timeline holds only the decorative / staggered reveals (corners,
-        // borders, nav links).  Opening plays it forward; closing REVERSES it,
-        // so those elements unfurl and fold away as an exact mirror.
+        // Measured off the live RR menu (rAF-sampled transforms):
+        //   pane  : translateX(-100% → 0), ~0.75s, strong ease-out, no fade —
+        //           the wipe IS the reveal.
+        //   links : each sweeps in from a fixed ~0.38·viewport off-screen-left
+        //           (-544px @1440w) + fades, ~0.85s ease-out, staggered ~90ms
+        //           BOTTOM-UP (the lowest link leads, the top arrives last),
+        //           starting while the pane is still wiping.
+        //   close : the exact mirror — reverse() gives it for free: top link
+        //           accelerates out first (reversed ease-out = ease-in), bottom
+        //           last, pane wipes away underneath them. ~1.5s total.
         function buildTimeline() {
           tl = gsap.timeline({
             paused: true,
-            defaults: { ease: "energy" },
-            // Once fully reversed (closed), hide + disable the overlay so it
+            // Once fully reversed (closed), hide + disable the screen so it
             // stops intercepting clicks on the page beneath it.
             onReverseComplete: () => {
-              gsap.set(overlayEl, {
-                visibility: "hidden",
-                pointerEvents: "none",
-              });
+              gsap.set(screenEl, { autoAlpha: 0, pointerEvents: "none" });
             },
           });
 
-          // Decorative border corners scale in
-          tl.to(corners, { scale: 1, duration: 0.8 }, 0)
-
-            // Border rows slide in from top/bottom
-            .to(overlayBorders, { yPercent: 0, duration: 0.8 }, 0)
-
-            // Large nav items slide in from the right
-            // (much slower + longer stagger + soft expo curve — the links
-            //  should unfurl gently, one after another)
-            .fromTo(
-              largeItems,
-              { autoAlpha: 0, xPercent: -25 },
-              {
-                autoAlpha: 1,
-                xPercent: 0,
-                duration: 1.25,
-                stagger: 0.11,
-                ease: "expo.out",
-              },
-              0.15
+          // 1) Blurred pane wipes in, reveal front moving left → right —
+          //    measured off RR's .rrmc-menu-bg-left (translateX -100% → 0,
+          //    ~0.75s strong ease-out, no fade). Done as a clip-path inset so
+          //    the backdrop-filter stays live (see paneEls note).
+          if (paneEls.length) {
+            tl.fromTo(
+              paneEls,
+              { clipPath: "inset(0 100% 0 0)" },
+              { clipPath: "inset(0 0% 0 0)", duration: 0.9, ease: "power2.out" },
+              0
             );
+          }
+
+          // 2) Links sweep in over it, bottom-up (lowest leads, top arrives
+          //    last) — starting while the pane is still wiping, as measured
+          //    (link N starts ≈0.2s + 0.1s·(count-1-N) after the click).
+          tl.fromTo(
+            largeItems,
+            { x: offX, autoAlpha: 0 },
+            {
+              x: 0,
+              autoAlpha: 1,
+              duration: 1.05,
+              ease: "power2.out",
+              stagger: { each: 0.12, from: "end" },
+            },
+            0.22
+          );
         }
 
         /* ---- Toggle handler ----------------------------------- */
@@ -326,24 +339,23 @@ export default function UnderlayNav() {
           // Let global CSS react to the open state if needed.
           document.body.setAttribute("data-menu-status", isOpen ? "open" : "");
 
-          // The toggle button + page slide are driven directly so they react
-          // instantly on every click, regardless of open/close direction.
+          // The toggle button + takeover reveal are driven directly so they
+          // react instantly on every click, regardless of open/close direction.
           animateToggleButton(isOpen);
 
           if (isOpen) {
-            // Reveal the overlay before it starts sliding in.
-            gsap.set(overlayEl, {
-              visibility: "visible",
-              pointerEvents: "auto",
-            });
-            slidePage(true);
+            // Snap the takeover live — no global fade; the pane wipe IS the
+            // reveal, exactly as measured on RR.
+            gsap.set(screenEl, { autoAlpha: 1, pointerEvents: "auto" });
+            lockScroll(true);
             tl.timeScale(1).play();
           } else {
-            // Stop intercepting clicks right away; visibility is cleared once
-            // the reverse fully completes (onReverseComplete).
-            gsap.set(overlayEl, { pointerEvents: "none" });
-            slidePage(false);
-            // Reverse the timeline so the decorative reveals mirror the open.
+            // Stop intercepting clicks right away; the screen is hidden once
+            // the reverse fully completes (onReverseComplete). The reverse IS
+            // the exit animation: top link accelerates out first, bottom last,
+            // then the pane wipes away beneath them — RR's close, mirrored.
+            gsap.set(screenEl, { pointerEvents: "none" });
+            lockScroll(false);
             tl.timeScale(1).reverse();
           }
         }
@@ -359,37 +371,29 @@ export default function UnderlayNav() {
           toggleBtn.setAttribute("aria-label", "open menu");
           document.body.setAttribute("data-menu-status", "");
           animateToggleButton(false);
-          gsap.set([getMain(), overlayEl].filter(Boolean), { x: 0 });
-          gsap.set(darkEl, { autoAlpha: 0 });
-          gsap.set(overlayEl, { visibility: "hidden", pointerEvents: "none" });
-          tl.pause(0); // rewind the decorative reveal timeline to closed
+          lockScroll(false); // release any scroll lock we placed
+          gsap.set(screenEl, { autoAlpha: 0, pointerEvents: "none" });
+          tl.pause(0); // rewind pane + link reveal to closed
         }
         closeMenuRef.current = forceClose;
 
         buildTimeline();
 
         /* ---- Event Listeners ---------------------------------- */
-        const handleOverlayClick = () => { if (isOpen) toggle(); };
+        // Clicking the blurred takeover background (anywhere that isn't a link
+        // or the close/toggle button) closes the menu — the links sit in their
+        // own column, so the rest of the screen is a big dismiss target.
+        const handleScreenClick = (e: MouseEvent) => {
+          if (!isOpen) return;
+          const t = e.target as HTMLElement;
+          if (t.closest("[data-underlay-nav-menu]")) return; // clicked a link
+          toggle();
+        };
         const handleKeydown = (e: KeyboardEvent) => {
           if (e.key === "Escape" && isOpen) {
             toggle();
             toggleBtn.focus();
           }
-        };
-        let resizeTimer: ReturnType<typeof setTimeout>;
-        const handleResize = () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            if (isOpen) {
-              // Snap the x position to the updated menu width immediately.
-              gsap.set([getMain(), overlayEl].filter(Boolean), {
-                x: getMenuOffset(),
-              });
-            } else {
-              // Let getMenuOffset re-evaluate on next open.
-              tl.invalidate();
-            }
-          }, 150);
         };
 
         // Landing-page section links. On "/" the hero owns the scroll (Lenis
@@ -427,18 +431,20 @@ export default function UnderlayNav() {
         };
 
         toggleBtn.addEventListener("click", toggle);
-        overlayEl.addEventListener("click", handleOverlayClick);
+        screenEl.addEventListener("click", handleScreenClick);
         sectionLinks.forEach((el) =>
           el.addEventListener("click", handleSectionClick)
         );
         homeLinks.forEach((el) => el.addEventListener("click", handleHomeClick));
         document.addEventListener("keydown", handleKeydown);
-        window.addEventListener("resize", handleResize);
 
         // Return cleanup from gsap.context() — runs automatically on ctx.revert()
         return () => {
+          // Make sure a mid-open unmount (e.g. StrictMode double-mount) never
+          // leaves Lenis stopped by us.
+          lockScroll(false);
           toggleBtn.removeEventListener("click", toggle);
-          overlayEl.removeEventListener("click", handleOverlayClick);
+          screenEl.removeEventListener("click", handleScreenClick);
           sectionLinks.forEach((el) =>
             el.removeEventListener("click", handleSectionClick)
           );
@@ -446,8 +452,6 @@ export default function UnderlayNav() {
             el.removeEventListener("click", handleHomeClick)
           );
           document.removeEventListener("keydown", handleKeydown);
-          window.removeEventListener("resize", handleResize);
-          clearTimeout(resizeTimer);
           document.body.removeAttribute("data-menu-status");
           // Drop the reset routine so the route-change effect can't call into a
           // reverted GSAP context (e.g. StrictMode double-mount).
@@ -499,15 +503,31 @@ export default function UnderlayNav() {
         </div>
       </header>
 
-      {/* ---- Slide-in menu panel (fixed to right edge) ---------- */}
-      <nav
-        data-underlay-nav-menu
-        className="underlay-nav__menu"
-        aria-label="Main navigation"
+      {/* ---- Full-screen takeover (Rolls-Royce style) ----------- */}
+      {/* A fixed layer covering the viewport. The blurred live-page backdrop
+          sits on the left and fades to clear on the right, so the page stays
+          sharp there; the links are pinned left. The whole layer fades in on
+          open — the page beneath is NOT pushed (unlike the old right panel). */}
+      <div
+        data-underlay-nav-screen
+        className="underlay-nav__screen"
+        aria-hidden="false"
       >
-        <div className="underlay-nav__inner">
+        {/* The blurred backdrop WIPES in left→right (GSAP animates a clip-path
+            inset on these directly). NOTE: they must NOT sit inside a
+            transformed wrapper — a transformed ancestor becomes the backdrop
+            root and kills backdrop-filter, losing the live blur. The blur is
+            the "matches the changing background but a bit blurred" pane; the
+            scrim keeps links legible; the mask keeps the right side crisp. */}
+        <div className="underlay-nav__blur" />
+        <div className="underlay-nav__scrim" />
 
-          {/* Primary links */}
+        {/* Left-pinned primary links */}
+        <nav
+          data-underlay-nav-menu
+          className="underlay-nav__menu"
+          aria-label="Main navigation"
+        >
           <ul className="underlay-nav__list">
             {NAV_LINKS.map(({ href, label, section, top }) => {
               const isActive = href === activeHref;
@@ -526,26 +546,7 @@ export default function UnderlayNav() {
               );
             })}
           </ul>
-
-        </div>
-      </nav>
-
-      {/* ---- Overlay: slides with page content and dims it ----- */}
-      <div data-underlay-nav-overlay="" className="underlay-nav__overlay">
-        {/* Semi-transparent dark film over the exposed page */}
-        <div className="underlay-nav__dark" />
-
-        {/* Decorative top + bottom border rows with rounded-corner trick */}
-        <div className="underlay-nav__borders">
-          <div className="underlay-nav__border-row">
-            <div className="underlay-nav__border" />
-            <div className="underlay-nav__corner" />
-          </div>
-          <div className="underlay-nav__border-row">
-            <div className="underlay-nav__corner is--bottom" />
-            <div className="underlay-nav__border" />
-          </div>
-        </div>
+        </nav>
       </div>
 
     </div>
