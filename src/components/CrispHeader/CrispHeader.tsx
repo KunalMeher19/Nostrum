@@ -44,7 +44,7 @@ const staScrollVh = () =>
 // 1.2s while the phase-locked ticker still glides the frames to a soft stop
 // that feels the same as active scrolling. Nudge up for more drift, down for a
 // tighter, more 1:1 chase.
-const STA_SCRUB = 0.2;
+const STA_SCRUB = 3;
 const staFramePath = (i: number) =>
   `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
@@ -848,15 +848,21 @@ export default function CrispHeader() {
           if (pos < STA_START_FRAME) pos = STA_START_FRAME;
           else if (pos > STA_FRAME_COUNT) pos = STA_FRAME_COUNT;
           
-          // Snap to the nearest integer frame. Drawing only one opaque frame per tick
-          // eliminates the massive GPU cost of cross-fading two full-screen JPEGs
-          // (which caused severe lag during slow scrolls and momentum tails).
-          const frameIndex = Math.round(pos);
-          if (frameIndex === lastRendered) return;
-          lastRendered = frameIndex;
+          if (pos === lastRendered) return;
+          lastRendered = pos;
+          
+          const baseFrame = Math.floor(pos);
+          const nextFrame = Math.min(baseFrame + 1, STA_FRAME_COUNT);
+          const fraction = pos - baseFrame;
           
           cctx.clearRect(0, 0, canvas.width, canvas.height);
-          blitFrame(frameIndex, 1);
+          blitFrame(baseFrame, 1);
+          
+          if (fraction > 0) {
+            blitFrame(nextFrame, fraction);
+            // Reset alpha so other drawing operations aren't affected
+            cctx.globalAlpha = 1; 
+          }
         };
 
         sizeCanvas();
