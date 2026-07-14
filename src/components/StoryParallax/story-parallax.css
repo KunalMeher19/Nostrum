@@ -156,16 +156,22 @@
 /* + photos to drop in later. Same ink base as the overlay's final      */
 /* frame so the hand-off from the pinned parallax is seamless.          */
 /* ------------------------------------------------------------------ */
-/* Keep the Story section out of the layout for the entire loader phase. While
-   the hero is `is--loading.is--hidden` it collapses to display:none, so without
-   this the Story section rises to the top of the page and flashes on first
-   paint. Crucially this uses display:none (not visibility:hidden) so the
-   section reserves NO height during load — otherwise its full-viewport box
-   makes the page taller than the screen and a scrollbar shows the whole time.
-   Revealed only once the hero is live and the pinned scrub can hand off. */
-main:has(.crisp-header.is--loading) .story-section {
-  display: none;
-}
+/* During the loader phase the Story section is hidden by the shared
+   `[data-main] > *:not(.crisp-header) { visibility: hidden }` rule (in
+   crisp-header.css AND the inlined critical CSS, so it applies from first
+   paint) — the same treatment the Products section gets, and for the same
+   reason: visibility keeps the section's LAYOUT BOX alive while invisible.
+
+   It used to be display:none here instead, to avoid a scrollbar from the
+   taller-than-viewport page during load. That concern is gone — the native
+   scrollbar is hidden site-wide (globals.css) and the critical CSS locks
+   html/body/main to overflow:hidden for the whole loader phase — but the
+   display:none had a real cost: the section only entered layout on the exact
+   frame `is--loading` dropped, so the browser did the ENTIRE subtree's first
+   layout + StoryProcess's path build + a ResizeObserver-triggered
+   ScrollTrigger refresh right at the hand-off — the post-loader input hitch.
+   With the box alive during load, all of that happens at mount (screen quiet,
+   input locked) and the reveal flip is paint-only. */
 
 .story-section {
   /* --story-ink follows the global inversion so the Story wrapper never peeks

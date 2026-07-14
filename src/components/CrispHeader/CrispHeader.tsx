@@ -355,15 +355,38 @@ export default function CrispHeader() {
           );
         }
 
+        // The reveal's heavy tail is split into two beats so the main-thread
+        // cost never lands on the frame the user gains control:
+        //
+        //  1. "+=0.05" — the intro's last tween has just settled (screen is
+        //     visually still, input is still trapped by !loaderDone). Remove
+        //     is--loading NOW: this flips the below-hero sections visible
+        //     (full-page reflow) and arms the scroll-through, whose
+        //     ScrollTrigger.refresh() must measure that fresh layout —
+        //     ~200ms of synchronous layout/measure work on a low-end frame.
+        //     Paying it here hides it inside the quiet beat where nothing is
+        //     animating and the user can't interact yet.
+        //  2. "+=0.4" — the same absolute moment the loader used to finish
+        //     (0.05 + 0.4 = the original +=0.45): unlock input. Everything is
+        //     already measured, so control arrives with zero jank.
         tl.call(
           function () {
             container.classList.remove("is--loading");
-            // Hero is live — arm the scroll-through (waits on frame preload too).
-            loaderDone = true;
+            // Hero is revealed — arm the scroll-through (waits on frame
+            // preload too). Input stays trapped until loaderDone below.
+            heroRevealed = true;
             maybeInitScrollThrough();
           },
           undefined,
-          "+=0.45"
+          "+=0.05"
+        );
+
+        tl.call(
+          function () {
+            loaderDone = true;
+          },
+          undefined,
+          "+=0.4"
         );
       };
 
@@ -697,6 +720,13 @@ export default function CrispHeader() {
 
       const frameImages: HTMLImageElement[] = new Array(STA_FRAME_COUNT + 1);
       let framesReady = false;
+      // Two separate gates at the loader's tail (see the two tl.call beats):
+      // heroRevealed — is--loading is off; safe to build the pinned scroll-
+      //                through and pay its layout/measure cost while the
+      //                screen is still quiet.
+      // loaderDone   — input unlock; wheel/touch stay trapped until this so
+      //                the user can't scroll mid-reveal.
+      let heroRevealed = false;
       let loaderDone = false;
       let staStarted = false;
       // Set when a section-scroll request arrives before the pinned scrub
@@ -764,7 +794,7 @@ export default function CrispHeader() {
       registerStoryScroll({ toSection: scrollToSection, toTop: scrollToTop });
 
       const maybeInitScrollThrough = () => {
-        if (staStarted || !framesReady || !loaderDone || prefersReducedMotion) {
+        if (staStarted || !framesReady || !heroRevealed || prefersReducedMotion) {
           return;
         }
         staStarted = true;

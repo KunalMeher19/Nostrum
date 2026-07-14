@@ -201,6 +201,14 @@ export default function StoryProcess() {
     // by VERTICAL position instead of arc-length (see lengthAtYFraction).
     let total = 0;
     let ySamples: { len: number; y: number }[] = [];
+    // The `d` we last sampled. paintPath is invoked from EVERY global
+    // ScrollTrigger.refresh (via the stroke trigger's onRefresh) — several of
+    // which fire back-to-back around the hero loader's hand-off — but the
+    // expensive part (260 getPointAtLength samples ≈ 50ms) only has meaning
+    // when the path GEOMETRY changed. Keying on the built `d` string skips the
+    // resample whenever layout is unchanged, which is what turned the loader
+    // hand-off frames into long-task jank.
+    let sampledD = "";
 
     // Set the SVG's viewBox to the track's pixel box (1 unit = 1px) and write
     // the freshly-built wild path. Returns the path length.
@@ -208,8 +216,10 @@ export default function StoryProcess() {
       if (!svg || !line || !track) return 0;
       const W = track.offsetWidth;
       const H = track.offsetHeight;
+      const d = buildWildPath(computeNodes(W), W, H);
+      if (d === sampledD) return total; // geometry unchanged — reuse samples
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      line.setAttribute("d", buildWildPath(computeNodes(W), W, H));
+      line.setAttribute("d", d);
       total = line.getTotalLength();
       // Sample arc-length → y so we can map a vertical target back to a length.
       const N = 260;
@@ -218,6 +228,7 @@ export default function StoryProcess() {
         const len = (i / N) * total;
         ySamples.push({ len, y: line.getPointAtLength(len).y });
       }
+      sampledD = d;
       return total;
     };
 
@@ -271,6 +282,10 @@ export default function StoryProcess() {
     let ctx: any = null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let scrollTriggerRef: any = null;
+    // Track size as of the last completed global refresh (see onStRefresh).
+    let refreshedW = -1;
+    let refreshedH = -1;
+    let onStRefresh: (() => void) | null = null;
 
     // On phones the section is a single centred column, so a big sideways
     // slide-in fights the layout and feels heavy. Use a lighter, quicker
@@ -285,6 +300,20 @@ export default function StoryProcess() {
       gsap.registerPlugin(ScrollTrigger);
       if (cancelled || !line) return;
       scrollTriggerRef = ScrollTrigger;
+
+      // Record the track's size every time a global refresh completes. The
+      // ResizeObserver below uses this to skip its own refresh when the size
+      // it observed has ALREADY been measured — e.g. at the loader hand-off,
+      // where the hero's initScrollThrough runs a global refresh on the same
+      // frame the sections become visible and the RO's follow-up (one frame
+      // later) would repeat the identical ~100ms measure pass for nothing.
+      onStRefresh = () => {
+        if (track) {
+          refreshedW = track.offsetWidth;
+          refreshedH = track.offsetHeight;
+        }
+      };
+      ScrollTrigger.addEventListener("refresh", onStRefresh);
 
       // Build the wild path from the live layout so it threads each step. The
       // SVG uses a 1:1 pixel viewBox (set here) so path coords == track px.
@@ -413,6 +442,20 @@ export default function StoryProcess() {
         // (hero loader) to visible, or on any reflow. getTotalLength is in
         // viewBox units so the stroke itself needs no rebuild — only the
         // trigger positions do. scrollTriggerRef is null until gsap imports.
+        //
+        // Skip when a global refresh has ALREADY measured this exact size:
+        // at the loader hand-off the hero's initScrollThrough refreshes on the
+        // same frame the section becomes visible, so the RO's follow-up one
+        // frame later would repeat the identical full-page measure (~100ms)
+        // right as input unlocks — the residual post-loader hitch. A real
+        // resize changes the track box, misses this guard, and refreshes.
+        if (
+          track &&
+          track.offsetWidth === refreshedW &&
+          track.offsetHeight === refreshedH
+        ) {
+          return;
+        }
         scrollTriggerRef?.refresh?.();
       });
     });
@@ -422,6 +465,7 @@ export default function StoryProcess() {
       cancelled = true;
       cancelAnimationFrame(rafId);
       ro.disconnect();
+      if (onStRefresh) scrollTriggerRef?.removeEventListener?.("refresh", onStRefresh);
       ctx?.revert();
     };
   }, []);
