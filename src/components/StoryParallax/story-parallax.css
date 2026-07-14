@@ -129,7 +129,7 @@
 .story-parallax__title {
   color: var(--sp-fg);
   text-align: right;
-  font-family: var(--font-display, serif);
+  font-family: var(--font-display, sans-serif);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 0.95;
@@ -222,7 +222,7 @@ main:has(.crisp-header.is--loading) .story-section {
 }
 
 .story-section__heading {
-  font-family: var(--font-display, serif);
+  font-family: var(--font-display, sans-serif);
   font-weight: 400; /* Lighter weight for premium editorial feel */
   letter-spacing: -0.03em;
   line-height: 0.95;

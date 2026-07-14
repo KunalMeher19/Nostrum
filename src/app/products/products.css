@@ -32,7 +32,7 @@
 
 .products__title {
   margin: 0;
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
   font-weight: 400;
   font-size: clamp(2.75rem, 8vw, 6rem);
   line-height: 0.95;
@@ -48,7 +48,7 @@
 
 .products__empty-line {
   margin: 0 0 0.75em;
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
   font-size: clamp(1.5rem, 3.5vw, 2.25rem);
   line-height: 1.15;
   font-weight: 400;

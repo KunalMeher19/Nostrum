@@ -1,19 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Fraunces } from "next/font/google";
+import { Libre_Franklin, Raleway } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
 import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
 import RingCursor from "@/components/RingCursor/RingCursor";
 
-// Refined grotesk for UI/body (§4 — free stand-in until client confirms licensed faces)
-const sans = Inter({
+// Clean, quiet sans for UI/body (§4 — client-approved type direction)
+const sans = Libre_Franklin({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-// Editorial display face for hero/wordmark moments (§4)
-const display = Fraunces({
+// Fashion-sleek display face for hero/wordmark moments (§4)
+const display = Raleway({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",

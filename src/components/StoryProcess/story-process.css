@@ -92,7 +92,7 @@
 
 .story-process__intro-title {
   text-align: left;
-  font-family: var(--font-display, serif);
+  font-family: var(--font-display, sans-serif);
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 0.95;
@@ -202,7 +202,7 @@
 }
 
 .story-process__step-title {
-  font-family: var(--font-display, serif);
+  font-family: var(--font-display, sans-serif);
   font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1;

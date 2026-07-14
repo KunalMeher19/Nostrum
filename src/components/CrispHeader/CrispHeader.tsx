@@ -1030,7 +1030,7 @@ export default function CrispHeader() {
       ctx = gsap.context(() => {
         const cleanupSlideshow = initSlideShow(container);
 
-        // Wait for the display font (Fraunces) to be active before splitting
+        // Wait for the display font (Raleway) to be active before splitting
         // text. `document.fonts.ready` can resolve while `font-display: swap`
         // fonts are still mid-swap, causing SplitText to measure fallback-font
         // geometry. A subsequent font swap then reflows the heading and
@@ -1042,7 +1042,7 @@ export default function CrispHeader() {
           try {
             // Try to load the exact face Next.js uses for --font-display.
             // If it's already cached the promise resolves immediately.
-            await document.fonts.load("400 1em Fraunces");
+            await document.fonts.load("400 1em Raleway");
           } catch {
             // Swallow — font name mismatch or unsupported browser; fall through.
           }
