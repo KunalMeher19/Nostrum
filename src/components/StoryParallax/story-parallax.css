@@ -171,7 +171,7 @@ main:has(.crisp-header.is--loading) .story-section {
   /* --story-ink follows the global inversion so the Story wrapper never peeks
      a dark edge behind the (also-inverting) StoryProcess at the Shop boundary.
      --page-t is 0 for all of the Story except right at that boundary. */
-  --story-ink: color-mix(in srgb, #14160f, #faf8f2 calc(var(--page-t, 0) * 100%));
+  --story-ink: color-mix(in srgb, #14160f, #edebe3 calc(var(--page-t, 0) * 100%));
   --story-fg: color-mix(in srgb, #edebe3, #14160f calc(var(--page-t, 0) * 100%));
   --story-gold: #e6b422;
   --story-olive: #1e2a16;

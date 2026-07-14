@@ -191,7 +191,7 @@ export default function ProductsSection() {
           root.style.setProperty("--nav-col", navColour(t));
           if (grain && !prefersReduced) {
             // Subtle always-on grain that swells across the flip then settles.
-            grain.style.opacity = String(0.05 + Math.sin(t * Math.PI) * 0.26);
+            grain.style.opacity = String(0.12 + Math.sin(t * Math.PI) * 0.26);
           }
         };
 
@@ -253,6 +253,9 @@ export default function ProductsSection() {
       {/* Fixed grain veil — full-viewport, inert; always-on subtle noise that
           pulses at the dark→light crossover (opacity scrubbed above). */}
       <div ref={grainRef} className="shop__grain" aria-hidden="true" />
+      
+      {/* Golden top divider */}
+      <div className="shop__divider" aria-hidden="true" />
 
       <div className="shop__inner">
         <div className="shop__head-row">

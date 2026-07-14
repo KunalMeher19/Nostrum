@@ -63,6 +63,33 @@
   gap: clamp(2.5rem, 6vh, 4.5rem);
 }
 
+/* ---- Top Divider --------------------------------------------------- */
+.shop__divider {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2 * clamp(1.5rem, 5vw, 5rem));
+  max-width: 84rem;
+  height: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.shop__divider::before {
+  content: "";
+  width: 50%;
+  height: 2px;
+  background-color: var(--nostrum-gold-metal);
+}
+
+.shop__divider::after {
+  content: "";
+  width: 50%;
+  height: 1px;
+  background-color: color-mix(in srgb, var(--nostrum-gold-metal) 30%, transparent);
+}
+
 /* ---- Head row: title/eyebrow on the left, Explore CTA on the right --- */
 .shop__head-row {
   display: flex;

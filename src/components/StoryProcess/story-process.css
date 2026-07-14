@@ -22,7 +22,7 @@
   --sp-ink: color-mix(
     in srgb,
     #14160f,
-    #faf8f2 calc(var(--page-t, 0) * 100%)
+    #edebe3 calc(var(--page-t, 0) * 100%)
   ); /* ink-black → warm-white */
   --sp-olive: color-mix(
     in srgb,

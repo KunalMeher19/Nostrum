@@ -19,7 +19,7 @@
   --nostrum-ink: #0e1a26;
 
   /* Shop / light-mode tokens (§7 — the bright white Shop) */
-  --nostrum-warm-white: #faf8f2; /* Shop background (LV/Balmain white)   */
+  --nostrum-warm-white: #edebe3; /* Shop background (off-white)   */
   --nostrum-shop-ink: #14160f; /* warm near-black text on warm-white     */
   --nostrum-shop-muted: #6f6a5f; /* muted warm grey for secondary text   */
   --nostrum-gold-metal: #e6b422; /* metallic gold — premium accents/border */
@@ -36,13 +36,13 @@
      crossover → ink on light. Default = dark-page white. */
   --nav-col: #f5f5f3;
   --shop-dark-bg: #14160f; /* == Story --sp-ink, so t=0 is seamless      */
-  --shop-light-bg: #faf8f2;
+  --shop-light-bg: #edebe3;
   --shop-dark-fg: #f5f5f3; /* light text in the dark phase               */
   --shop-light-fg: #14160f; /* dark ink in the light phase               */
   --shop-dark-muted: #9a978d;
   --shop-light-muted: #6f6a5f;
   --shop-dark-tile: #20261a; /* dark card panel in the dark phase         */
-  --shop-light-tile: #ffffff;
+  --shop-light-tile: #faf8f2;
 
   /* motion — long, soft luxury curves (§9) */
   --ease-lux: cubic-bezier(0.625, 0.05, 0, 1);
