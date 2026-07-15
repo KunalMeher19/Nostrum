@@ -92,10 +92,10 @@ export default function RootLayout({
         />
         {/* Global smooth scroll — no visual output */}
         <SmoothScroll />
-        {/* Global navigation — fixed, always on top */}
-        <UnderlayNav />
         {/* White ring pointer follower (RR-style). Self-disables on touch. */}
         <RingCursor />
+        {/* Global navigation — fixed, always on top */}
+        <UnderlayNav />
         {/* Page content — receives [data-main] in each page component */}
         {children}
       </body>

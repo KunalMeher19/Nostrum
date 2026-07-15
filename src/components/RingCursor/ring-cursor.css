@@ -57,8 +57,8 @@
    the component after it confirms a fine pointer). Applied to the root so it
    cascades; interactive elements keep pointer:none-free hit-testing since the
    ring itself is pointer-events:none. */
-html.has-ring-cursor,
-html.has-ring-cursor * {
+html,
+html * {
   cursor: none !important;
 }
 
@@ -68,8 +68,8 @@ html.has-ring-cursor * {
   .ring-cursor {
     display: none;
   }
-  html.has-ring-cursor,
-  html.has-ring-cursor * {
+  html,
+  html * {
     cursor: auto !important;
   }
 }

@@ -40,10 +40,6 @@ export default function RingCursor() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    // Enabling this class hides the native cursor site-wide (see CSS). Only do
-    // it once we KNOW we're on a fine pointer, so touch users keep theirs.
-    document.documentElement.classList.add("has-ring-cursor");
-
     // Target position (raw pointer) vs. rendered position (lerped toward it).
     let tx = window.innerWidth / 2;
     let ty = window.innerHeight / 2;
