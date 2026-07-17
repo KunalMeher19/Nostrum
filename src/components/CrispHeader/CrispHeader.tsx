@@ -103,11 +103,15 @@ export default function CrispHeader() {
       gsap.registerPlugin(SplitText, CustomEase, ScrollTrigger);
       CustomEase.create("slideshow-wipe", "0.625, 0.05, 0, 1");
 
-      // NOTE: ScrollTrigger.normalizeScroll(true) was tested here but removed —
-      // it intercepts touch events before the slideshow's handleTouchMove can
-      // process them, causing slides to be skipped on real mobile devices.
-      // The stableVh fix (canvas height + pin end distance) handles the
-      // address-bar jitter on its own without touching the event chain.
+      // On touch devices, let GSAP intercept and normalise touch-scroll so the
+      // mobile address-bar expand/collapse never feeds jittery innerHeight
+      // changes back into the scroll position. Lenis is NOT using syncTouch,
+      // so there is no double-compensation risk here.
+      const isTouchDevice =
+        "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      if (isTouchDevice) {
+        ScrollTrigger.normalizeScroll(true);
+      }
 
       // Two scroll regimes share this hero and must not fight:
       //   phase "slides" — the wheel-jack owns input; Lenis is STOPPED so the
