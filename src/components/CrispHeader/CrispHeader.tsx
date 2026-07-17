@@ -107,11 +107,13 @@ export default function CrispHeader() {
       // mobile address-bar expand/collapse never feeds jittery innerHeight
       // changes back into the scroll position. Lenis is NOT using syncTouch,
       // so there is no double-compensation risk here.
+      //
+      // IMPORTANT: normalizeScroll is toggled PER PHASE — it must be OFF during
+      // the slideshow so our handleTouchMove receives raw touch events for slide
+      // navigation, and ON during the STA so the pinned scrub is smooth.
+      // See enterSta() / enterSlides() for the toggle calls.
       const isTouchDevice =
         "ontouchstart" in window || navigator.maxTouchPoints > 0;
-      if (isTouchDevice) {
-        ScrollTrigger.normalizeScroll(true);
-      }
 
       // Passive safety net: tell ScrollTrigger's own internal resize listener
       // to skip height-only changes (mobile address bar). Works in BOTH phases.
@@ -148,8 +150,9 @@ export default function CrispHeader() {
         phase = "sta";
         staArmed = false;
         lenisRef?.start();
-        // Allow the page to scroll natively (or via GSAP's normalizeScroll)
-        document.body.style.overflow = "";
+        // Enable normalizeScroll for the STA phase — GSAP intercepts touch
+        // events and normalises scroll, preventing address-bar jitter.
+        if (isTouchDevice) ScrollTrigger.normalizeScroll(true);
         // Hard-hide the slide-1 CTA on STA entry. It's normally already hidden
         // by transitionText on the way to the last slide, but the STA's scrubbed
         // timeline must not own it (that would flash it back on), so kill it
@@ -169,9 +172,10 @@ export default function CrispHeader() {
       const enterSlides = () => {
         if (phase === "slides") return;
         phase = "slides";
-        // Lock the page scroll so GSAP's global normalizeScroll doesn't
-        // accidentally scroll the page and skip slides when the user swipes.
-        document.body.style.overflow = "hidden";
+        // Disable normalizeScroll so touch events reach the slideshow's
+        // handleTouchMove for slide navigation (normalizeScroll intercepts
+        // them, which skips slides on real mobile devices).
+        if (isTouchDevice) ScrollTrigger.normalizeScroll(false);
         lenisRef?.scrollTo(0, { immediate: true });
         lenisRef?.stop();
         // Snap the pinned scrub to its resolved target in THIS frame. The scrub
@@ -411,8 +415,6 @@ export default function CrispHeader() {
 
       // ---- Slideshow (verbatim logic, scoped to `container`) ---------------
       const initSlideShow = (el: HTMLElement) => {
-        // Initially lock body scroll so GSAP normalizeScroll can't scroll the page
-        document.body.style.overflow = "hidden";
         const ui = {
           el,
           slides: Array.from(
@@ -670,12 +672,24 @@ export default function CrispHeader() {
         };
 
         let touchStartY = 0;
+        let isHandoffGesture = false;
+
         const handleTouchStart = (e: TouchEvent) => {
+          isHandoffGesture = false;
           touchStartY = e.touches[0].clientY;
         };
 
         const handleTouchMove = (e: TouchEvent) => {
-          if (phase === "sta") return;
+          if (phase === "sta") {
+            // If this is the exact swipe that triggered the transition to STA,
+            // GSAP's newly-activated normalizeScroll missed the touchstart and
+            // will ignore the rest of the gesture. We MUST manually preventDefault
+            // here, otherwise the browser will natively scroll the remainder of
+            // the swipe, which hides the mobile address bar and gets it permanently
+            // stuck in the hidden state!
+            if (isHandoffGesture) e.preventDefault();
+            return;
+          }
           // Trap all touch input until the loader intro has fully finished.
           if (!loaderDone) {
             e.preventDefault();
@@ -688,7 +702,10 @@ export default function CrispHeader() {
           // Hand off to the scroll-through only once slide 5 has settled.
           if (current === length - 1 && direction === 1) {
             e.preventDefault();
-            if (!animating) enterSta();
+            if (!animating) {
+              isHandoffGesture = true;
+              enterSta();
+            }
             return;
           }
           if (current === 0 && direction === -1) return;
