@@ -103,6 +103,16 @@ export default function CrispHeader() {
       gsap.registerPlugin(SplitText, CustomEase, ScrollTrigger);
       CustomEase.create("slideshow-wipe", "0.625, 0.05, 0, 1");
 
+      // On touch devices, let GSAP intercept and normalise touch-scroll so the
+      // mobile address-bar expand/collapse never feeds jittery innerHeight
+      // changes back into the scroll position. Lenis is NOT using syncTouch,
+      // so there is no double-compensation risk here.
+      const isTouchDevice =
+        "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      if (isTouchDevice) {
+        ScrollTrigger.normalizeScroll(true);
+      }
+
       // Two scroll regimes share this hero and must not fight:
       //   phase "slides" — the wheel-jack owns input; Lenis is STOPPED so the
       //                    page stays locked at scrollY 0 (the STA pin adds
@@ -832,6 +842,14 @@ export default function CrispHeader() {
         const host = container; // guarded non-null capture for this closure
         if (!host) return;
 
+        // Capture the viewport height once — stable against the mobile
+        // address-bar show/hide cycle that mutates window.innerHeight mid-
+        // scroll. Updated only on real width-change resizes (orientation
+        // flip, window drag). If the very first value is slightly off
+        // (browser chrome still animating from a prior navigation), the
+        // next real resize will correct it.
+        let stableVh = window.innerHeight;
+
         const sizeCanvas = () => {
           // Cap DPR at 1.5, not 2. The crossfade blits TWO full-screen JPEGs per
           // frame; at 2× DPR on a retina/high-DPI display that's ~4× the pixels
@@ -841,7 +859,7 @@ export default function CrispHeader() {
           // while cutting fill cost ~45% and keeping the tail at a locked rate.
           const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           canvas.width = Math.round(window.innerWidth * dpr);
-          canvas.height = Math.round(window.innerHeight * dpr);
+          canvas.height = Math.round(stableVh * dpr);
         };
 
         // Cover-fit blit (object-fit: cover) centred on the canvas, at `alpha`.
@@ -912,7 +930,7 @@ export default function CrispHeader() {
           scrollTrigger: {
             trigger: host,
             start: "top top",
-            end: () => "+=" + window.innerHeight * staScrollVh(),
+            end: () => "+=" + stableVh * staScrollVh(),
             pin: true,
             pinSpacing: true,
             // Numeric scrub (vs. `true`) makes ScrollTrigger LERP the timeline
@@ -1036,9 +1054,14 @@ export default function CrispHeader() {
           // Ignore height-only resizes (width stays same) to fix the STA.
           if (window.innerWidth === lastWidth) return;
           lastWidth = window.innerWidth;
+          // Real width change (orientation flip / window drag) — update the
+          // stable viewport height so the pin distance and canvas match.
+          stableVh = window.innerHeight;
           sizeCanvas();
           lastRendered = -1;
           renderFrame();
+          // Recalc pin distances for the new layout.
+          ScrollTrigger.refresh();
         };
         window.addEventListener("resize", handleResize);
 

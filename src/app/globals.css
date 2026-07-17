@@ -74,6 +74,14 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  /* Hardware-accelerated momentum scrolling on older iOS WebKit. */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent double-tap-to-zoom delay on touch devices — taps respond
+   instantly while pinch-zoom and scroll remain available. */
+html {
+  touch-action: manipulation;
 }
 
 /* Hide the native scrollbar site-wide. Lenis owns the smooth-scroll, so the
