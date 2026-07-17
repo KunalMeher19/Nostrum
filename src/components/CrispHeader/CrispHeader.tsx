@@ -107,11 +107,17 @@ export default function CrispHeader() {
       // mobile address-bar expand/collapse never feeds jittery innerHeight
       // changes back into the scroll position. Lenis is NOT using syncTouch,
       // so there is no double-compensation risk here.
+      //
+      // IMPORTANT: normalizeScroll is toggled PER PHASE — it must be OFF during
+      // the slideshow so our handleTouchMove receives raw touch events for slide
+      // navigation, and ON during the STA so the pinned scrub is smooth.
+      // See enterSta() / enterSlides() for the toggle calls.
       const isTouchDevice =
         "ontouchstart" in window || navigator.maxTouchPoints > 0;
-      if (isTouchDevice) {
-        ScrollTrigger.normalizeScroll(true);
-      }
+
+      // Passive safety net: tell ScrollTrigger's own internal resize listener
+      // to skip height-only changes (mobile address bar). Works in BOTH phases.
+      ScrollTrigger.config({ ignoreMobileResize: true });
 
       // Two scroll regimes share this hero and must not fight:
       //   phase "slides" — the wheel-jack owns input; Lenis is STOPPED so the
@@ -144,6 +150,9 @@ export default function CrispHeader() {
         phase = "sta";
         staArmed = false;
         lenisRef?.start();
+        // Enable normalizeScroll for the STA phase — GSAP intercepts touch
+        // events and normalises scroll, preventing address-bar jitter.
+        if (isTouchDevice) ScrollTrigger.normalizeScroll(true);
         // Hard-hide the slide-1 CTA on STA entry. It's normally already hidden
         // by transitionText on the way to the last slide, but the STA's scrubbed
         // timeline must not own it (that would flash it back on), so kill it
@@ -163,6 +172,10 @@ export default function CrispHeader() {
       const enterSlides = () => {
         if (phase === "slides") return;
         phase = "slides";
+        // Disable normalizeScroll so touch events reach the slideshow's
+        // handleTouchMove for slide navigation (normalizeScroll intercepts
+        // them, which skips slides on real mobile devices).
+        if (isTouchDevice) ScrollTrigger.normalizeScroll(false);
         lenisRef?.scrollTo(0, { immediate: true });
         lenisRef?.stop();
         // Snap the pinned scrub to its resolved target in THIS frame. The scrub
