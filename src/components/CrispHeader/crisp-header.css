@@ -293,9 +293,6 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   display: flex;
   position: relative;
   overflow: hidden;
-  /* Only vertical panning — prevent horizontal swipe / pinch-zoom from
-     conflicting with the GSAP-driven scroll animation on mobile. */
-  touch-action: pan-y;
 }
 
 /* Loading: Hidden */
