@@ -195,25 +195,12 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
    right, so the right side of the hero shows through crisp. */
 .underlay-nav__blur {
   position: absolute;
-  inset: 0;
+  inset: 0 auto 0 0;
+  width: clamp(320px, 45vw, 650px);
   clip-path: inset(0 100% 0 0); /* closed — GSAP animates to inset(0 0% 0 0) */
   -webkit-backdrop-filter: blur(22px) saturate(1.35);
   backdrop-filter: blur(22px) saturate(1.35);
-  /* Strong blur on the left → clear on the right. */
-  -webkit-mask-image: linear-gradient(
-    to right,
-    #000 0%,
-    #000 42%,
-    rgba(0, 0, 0, 0.55) 60%,
-    transparent 80%
-  );
-  mask-image: linear-gradient(
-    to right,
-    #000 0%,
-    #000 42%,
-    rgba(0, 0, 0, 0.55) 60%,
-    transparent 80%
-  );
+  border-right: 1px solid var(--nav-border);
 }
 
 /* A gentle darkening under the links so they stay legible even when the page
@@ -221,15 +208,10 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
    the same clip as the blur. */
 .underlay-nav__scrim {
   position: absolute;
-  inset: 0;
+  inset: 0 auto 0 0;
+  width: clamp(320px, 45vw, 650px);
   clip-path: inset(0 100% 0 0); /* closed — wiped open by GSAP */
-  background: linear-gradient(
-    to right,
-    rgba(10, 8, 6, 0.72) 0%,
-    rgba(10, 8, 6, 0.55) 38%,
-    rgba(10, 8, 6, 0.2) 62%,
-    rgba(10, 8, 6, 0) 82%
-  );
+  background: rgba(10, 8, 6, 0.65);
 }
 
 /* ---- Left-pinned menu (links column) ---- */
@@ -240,10 +222,8 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  /* The column sits inside the blurred pane; its RIGHT edge (the list is
-     right-aligned) lands just past a third of the viewport, as on RR. */
   align-items: flex-start;
-  padding: 6em 0 6em clamp(5em, 27vw, 27em);
+  padding: 6em 0 6em clamp(4em, 22vw, 22em);
   pointer-events: none; /* the column is transparent; links re-enable below */
 }
 
@@ -270,6 +250,7 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   padding: 0.15em 0;
   transition: color 0.25s ease;
   text-align: right;
+  position: relative;
 }
 
 .underlay-nav__link-large:hover .underlay-nav__link-label {
@@ -324,16 +305,12 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   /* On a narrow screen there's no room for a "clear right edge" — let the blur
      cover the full width so the links stay legible. */
   .underlay-nav__blur {
-    -webkit-mask-image: none;
-    mask-image: none;
+    width: 100%;
+    border-right: none;
   }
 
   .underlay-nav__scrim {
-    background: linear-gradient(
-      to right,
-      rgba(10, 8, 6, 0.78) 0%,
-      rgba(10, 8, 6, 0.6) 70%,
-      rgba(10, 8, 6, 0.45) 100%
-    );
+    width: 100%;
+    background: rgba(10, 8, 6, 0.72);
   }
 }
