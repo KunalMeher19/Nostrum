@@ -53,8 +53,8 @@ export const viewport: Viewport = {
 const CRITICAL_LOADING_CSS = `
 html, body { background-color: #050505; }
 html:has(.crisp-header.is--loading) { overflow: hidden; }
-html:has(.crisp-header.is--loading) body { overflow: hidden; height: 100dvh; }
-main:has(.crisp-header.is--loading) { height: 100dvh; overflow: hidden; }
+html:has(.crisp-header.is--loading) body { overflow: hidden; height: 100svh; }
+main:has(.crisp-header.is--loading) { height: 100svh; overflow: hidden; }
 .crisp-loader { display: none; }
 .crisp-header.is--loading .crisp-header__slider { display: none; }
 .crisp-header.is--loading .crisp-loader { display: flex; }

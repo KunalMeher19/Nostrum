@@ -189,7 +189,7 @@
   /* Block flow — the pinned StoryProcess owns its own full-height layout and
      must not be vertically centred or padded by this shell. The ink base is
      kept so the seam from the parallax overlay stays seamless. */
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 /* Inner wrapper controls the max-width and layout grid */

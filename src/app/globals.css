@@ -66,6 +66,7 @@
 
 html,
 body {
+  height: 100svh;
   margin: 0;
   padding: 0;
   background-color: var(--nostrum-black);
@@ -133,7 +134,7 @@ html:has(.crisp-header.is--loading) {
   position: relative;
   z-index: 2;
   background-color: var(--nostrum-black);
-  min-height: 100vh;
+  min-height: 100svh;
   /* Will-change helps smooth the GSAP translation */
   will-change: transform;
 }

@@ -3,7 +3,7 @@
 /* Empty state for now; the grid styles are stubbed for later.          */
 /* ------------------------------------------------------------------ */
 .products {
-  min-height: 100dvh;
+  min-height: 100svh;
   background-color: var(--nostrum-black);
   color: var(--nostrum-white);
   display: flex;

@@ -304,7 +304,7 @@ export default function CrispHeader() {
         if (growingImage.length) {
           tl.to(
             growingImage,
-            { width: "100vw", height: "100dvh", duration: 2 },
+            { width: "100vw", height: "100svh", duration: 2 },
             "< 1.25"
           );
         }
@@ -1029,7 +1029,13 @@ export default function CrispHeader() {
         // pinned timeline (one continuous scroll); releases into <StorySection/>.
         initStoryParallax({ gsap, tl, host, canvas });
 
+        let lastWidth = window.innerWidth;
         const handleResize = () => {
+          // On mobile, scrolling hides/shows the address bar, firing a resize
+          // event. Resizing the canvas during a scrub causes a severe shake.
+          // Ignore height-only resizes (width stays same) to fix the STA.
+          if (window.innerWidth === lastWidth) return;
+          lastWidth = window.innerWidth;
           sizeCanvas();
           lastRendered = -1;
           renderFrame();
