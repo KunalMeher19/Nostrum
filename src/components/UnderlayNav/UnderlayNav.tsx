@@ -18,7 +18,6 @@ const NAV_LINKS = [
   { href: "/", label: "Home", top: true },
   { href: "/#story", label: "Our Story", section: "#story" },
   { href: "/#products", label: "Products", section: "#products" },
-  { href: "/origins", label: "Origins" },
   { href: "/journal", label: "Journal" },
   { href: "/contact", label: "Contact" },
 ];
