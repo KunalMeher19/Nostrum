@@ -93,15 +93,28 @@ export function initStoryParallax({
 
   const dur = 1 - start;
 
-  // --- Tweens that STAY on the STA timeline (scrub: 3) ----------------------
-  // These must remain coupled to the frame scrub so the canvas occlusion and
-  // slider hide happen in exact lockstep with the frame sequence.
-
-  // NOTE: The root `.story-parallax` visibility is now controlled by the layer
-  // trigger's onEnter/onLeaveBack (below), NOT by a tl.set on the STA timeline.
-  // The STA's scrub: 3 would delay the reveal by up to 3 seconds on a fast
-  // flick — the exact lag the user sees. The layer trigger fires at the correct
-  // scroll position instantly, so there's no lag.
+  // Reveal the overlay instantly when scroll crosses the start boundary.
+  // We use a separate ScrollTrigger (instead of tl.set) so the reveal isn't 
+  // delayed by the STA's scrub: 3. This ensures the overlay covers the screen 
+  // immediately on a fast flick, while the actual rise animations (below) still
+  // enjoy the smooth 3-second momentum.
+  const staST = tl.scrollTrigger;
+  if (staST) {
+    gsap.timeline({
+      scrollTrigger: {
+        trigger: host,
+        start: () => {
+          const staStart = staST.start as number;
+          const staEnd = staST.end as number;
+          return staStart + (staEnd - staStart) * start;
+        },
+        end: () => staST.end,
+        onEnter: () => gsap.set(root, { autoAlpha: 1 }),
+        onLeaveBack: () => gsap.set(root, { autoAlpha: 0 }),
+        invalidateOnRefresh: true,
+      }
+    });
+  }
 
   // The STA keeps playing — frames still scrub to 240 — but the canvas now
   // exits: it scales down AND drifts up and out through the top of the frame
@@ -134,48 +147,29 @@ export function initStoryParallax({
     tl.set(slider, { autoAlpha: 0 }, start);
   }
 
-  // --- Layer-rise tweens on their OWN ScrollTrigger (scrub: 0.8) ------------
+  // --- Layer-rise tweens on their OWN ScrollTrigger (scrub: 3) ------------
   // The STA's ScrollTrigger tells us its computed scroll range. The layer
-  // trigger covers the tail portion (start → 1.0) of that same range, but with
-  // a much tighter scrub so the layers chase scroll ~4× faster than the STA's
-  // scrub: 3.
-  const staST = tl.scrollTrigger;
-  if (!staST) return;
-
-  // Build a standalone timeline for the layer animations.
+  // trigger covers the tail portion (start → 1.0) of that same range.
+  // By putting the layers on their own trigger with scrub: 3, they begin their
+  // smooth 3-second rise IMMEDIATELY when the user scrolls past the boundary,
+  // perfectly synchronizing with the StorySection's 3-second scrub below it.
   const layerTl = gsap.timeline({
     scrollTrigger: {
       trigger: host,
       start: () => {
-        // Absolute scroll position where the STA tail begins.
         const staStart = staST.start as number;
         const staEnd = staST.end as number;
         return staStart + (staEnd - staStart) * start;
       },
       end: () => staST.end,
-      scrub: 0.8, // ~4× tighter than STA's 3-second lerp
+      scrub: 3, // Matches STA momentum and StorySection momentum
       invalidateOnRefresh: true,
-      // Reveal/hide the overlay root INSTANTLY when scroll crosses the trigger
-      // boundary — not lerped through the scrub. This replaces the old
-      // tl.set(root, { autoAlpha: 1 }) which was gated behind scrub: 3.
-      onEnter: () => gsap.set(root, { autoAlpha: 1 }),
-      onLeaveBack: () => gsap.set(root, { autoAlpha: 0 }),
     },
   });
 
   // Layers rise + shrink with a small per-layer stagger so they arrive as
   // separated depth planes (back-to-front). ease:"none" keeps them locked to
   // the scrub, so scrolling up and down parallaxes them up and down.
-  //
-  // The solid layers are kept fully OPAQUE the whole rise (no autoAlpha fade) so
-  // they physically OCCLUDE the receding bottle as they slide up over it — the
-  // whole point of the effect. Fading them in instead makes them translucent,
-  // so the frame-001 bottle behind shows straight through them (the bug). The
-  // root `.story-parallax` visibility gate (set above) is what keeps them
-  // hidden before the tail begins, so no per-layer opacity is needed here.
-  //
-  // The timeline is normalised 0→1 here (not start→1 like before), so the
-  // stagger offsets are recalculated proportionally.
   LAYERS.forEach((spec, idx) => {
     const el = root.querySelector<HTMLElement>(
       `[data-parallax-layer="${spec.layer}"]`
@@ -243,7 +237,7 @@ export default function StorySection() {
             trigger: inner,
             start: "top 85%",
             end: "top 25%",
-            scrub: 0.6,
+            scrub: 3, // Matches the STA timeline's 3-second scrub
             invalidateOnRefresh: true,
             // Below the pinned hero — measure after its pin spacing applies
             // (same reason as the old StoryProcess triggers here).
