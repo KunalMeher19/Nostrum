@@ -1,0 +1,100 @@
+/* ------------------------------------------------------------------ */
+/* Origins route — the dark storytelling page (NOSTRUM-DESIGN §7        */
+/* "History"). Hosts the StoryProcess timeline; the page chrome here is */
+/* just the editorial hero above it and a quiet outro CTA below.        */
+/*                                                                      */
+/* Background is the brand ink (#14160f) — the SAME base StoryProcess   */
+/* derives its --sp-ink from at --page-t 0 (no Shop on this route, so   */
+/* the inversion variable never leaves 0) — which keeps the hero →      */
+/* timeline → outro seams invisible.                                    */
+/* ------------------------------------------------------------------ */
+
+.origins {
+  background-color: #14160f;
+  color: #edebe3;
+  min-height: 100svh;
+}
+
+/* ---- Hero ---------------------------------------------------------- */
+/* Tall but not full-viewport: the timeline's own "How it is made" intro
+   follows right after, so this reads as one continuous editorial open. */
+.origins__hero {
+  display: flex;
+  align-items: flex-end;
+  min-height: 62svh;
+  padding: clamp(7rem, 16vh, 11rem) clamp(1.5rem, 5vw, 5rem)
+    clamp(2rem, 5vh, 4rem);
+}
+
+.origins__hero-inner {
+  width: 100%;
+  max-width: 78rem; /* aligns with .story-process__intro / steps */
+  margin: 0 auto;
+}
+
+.origins__eyebrow {
+  margin: 0 0 1.25em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.65rem, 0.8vw, 0.78rem);
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal);
+}
+
+.origins__title {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(3.25rem, 11vw, 9rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.origins__lead {
+  margin: clamp(1.5rem, 4vh, 2.5rem) 0 0;
+  max-width: 44ch;
+  font-size: clamp(1.05rem, 1.2vw, 1.25rem);
+  line-height: 1.7;
+  color: color-mix(in srgb, #edebe3 78%, transparent);
+}
+
+/* ---- Outro --------------------------------------------------------- */
+.origins__outro {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  gap: clamp(1.75rem, 4vh, 2.75rem);
+  text-align: center;
+  padding: clamp(4rem, 12vh, 9rem) clamp(1.5rem, 5vw, 5rem)
+    clamp(6rem, 14vh, 10rem);
+}
+
+.origins__outro-line {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.75rem, 4vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+}
+
+/* Underline CTA — same quiet treatment as .story-section__cta on Home. */
+.origins__cta {
+  display: inline-flex;
+  align-items: center;
+  color: #edebe3;
+  text-decoration: none;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-bottom: 1px solid color-mix(in srgb, #edebe3 30%, transparent);
+  padding-bottom: 0.5rem;
+  transition: border-color 0.4s ease, color 0.4s ease;
+}
+
+.origins__cta:hover {
+  border-color: var(--nostrum-gold-metal);
+  color: var(--nostrum-gold-metal);
+}

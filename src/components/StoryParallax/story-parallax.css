@@ -175,7 +175,7 @@
 
 .story-section {
   /* --story-ink follows the global inversion so the Story wrapper never peeks
-     a dark edge behind the (also-inverting) StoryProcess at the Shop boundary.
+     a dark edge against the (also-inverting) Shop at its boundary.
      --page-t is 0 for all of the Story except right at that boundary. */
   --story-ink: color-mix(in srgb, #14160f, #edebe3 calc(var(--page-t, 0) * 100%));
   --story-fg: color-mix(in srgb, #edebe3, #14160f calc(var(--page-t, 0) * 100%));
@@ -186,10 +186,14 @@
   z-index: 1;
   background-color: var(--story-ink);
   color: var(--story-fg);
-  /* Block flow — the pinned StoryProcess owns its own full-height layout and
-     must not be vertically centred or padded by this shell. The ink base is
-     kept so the seam from the parallax overlay stays seamless. */
+  /* One-viewport teaser (the full process timeline moved to /origins): the
+     shell centres the split-grid teaser. The ink base is kept so the seam
+     from the parallax overlay stays seamless. */
   min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: clamp(5rem, 12vh, 8rem) clamp(1.5rem, 5vw, 5rem);
+  box-sizing: border-box;
 }
 
 /* Inner wrapper controls the max-width and layout grid */

@@ -7,7 +7,10 @@ import "./story-process.css";
 /* ------------------------------------------------------------------ */
 /* StoryProcess                                                        */
 /*                                                                     */
-/* The "Our Story" process scrollytelling that fills the Story section. */
+/* The process-timeline scrollytelling. Lived in the homepage Story     */
+/* section until 2026-07, when the client asked for it on /origins       */
+/* instead (it stretched the home, worst on mobile) — the Origins page   */
+/* now renders it; Home keeps a one-viewport teaser that links there.    */
 /* Five steps of how the oil is made, alternating L/R. The section      */
 /* scrolls NATURALLY (no pin). Two motion systems, both scroll-driven:  */
 /*                                                                      */

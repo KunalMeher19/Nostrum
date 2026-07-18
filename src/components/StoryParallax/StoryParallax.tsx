@@ -1,6 +1,8 @@
 "use client";
 
-import StoryProcess from "../StoryProcess/StoryProcess";
+import { useEffect, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import "./story-parallax.css";
 
 /* ------------------------------------------------------------------ */
@@ -151,14 +153,96 @@ export function initStoryParallax({
 
 /**
  * StorySection — the destination the pinned scrub releases into. Dark,
- * editorial, sparse (§2, §5) with rich placeholders for the real History
- * copy + photography to drop in later. Rendered in normal flow after the
- * hero; its ink base matches the overlay's final frame for a seamless seam.
+ * editorial, sparse (§2, §5). Client direction (2026-07): the full process
+ * timeline stretched the homepage (worst on mobile), so it now lives on
+ * /origins and this section is a one-viewport TEASER that hands off to it —
+ * short copy + one visual + CTA, using the .story-section__* split layout.
+ * Its ink base matches the overlay's final frame for a seamless seam, and
+ * the id="story" scroll-spy / "View our story" target is unchanged.
  */
 export default function StorySection() {
+  const innerRef = useRef<HTMLDivElement>(null);
+
+  // One-shot reveal on enter, mirroring the step reveals the timeline had
+  // here: content rises in a small stagger, the visual fades up. Reversible
+  // so scrolling back re-arms it. Same conventions as the rest of the file's
+  // consumers: dynamic gsap import, context, reduced-motion = static.
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let cancelled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let ctx: any = null;
+
+    (async () => {
+      const gsapMod = await import("gsap");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gsap: any = (gsapMod as any).gsap ?? (gsapMod as any).default;
+      gsap.registerPlugin(ScrollTrigger);
+      if (cancelled) return;
+
+      const content = Array.from(
+        inner.querySelectorAll<HTMLElement>(".story-section__content > *")
+      );
+      const visual = inner.querySelector<HTMLElement>(".story-section__visual");
+
+      ctx = gsap.context(() => {
+        gsap.set(content, { y: 40, autoAlpha: 0 });
+        if (visual) gsap.set(visual, { y: 48, autoAlpha: 0 });
+
+        const tl = gsap.timeline({
+          defaults: { ease: "power3.out" },
+          scrollTrigger: {
+            trigger: inner,
+            start: "top 78%",
+            toggleActions: "play none none reverse",
+            invalidateOnRefresh: true,
+            // Below the pinned hero — measure after its pin spacing applies
+            // (same reason as the old StoryProcess triggers here).
+            refreshPriority: -1,
+          },
+        });
+        tl.to(content, { y: 0, autoAlpha: 1, duration: 0.9, stagger: 0.12 }, 0);
+        if (visual) {
+          tl.to(visual, { y: 0, autoAlpha: 1, duration: 1.1 }, 0.15);
+        }
+      }, inner);
+    })();
+
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
+  }, []);
+
   return (
     <section id="story" className="story-section" aria-label="Our story">
-      <StoryProcess />
+      <div ref={innerRef} className="story-section__inner">
+        <div className="story-section__content">
+          <p className="story-section__eyebrow">From the land</p>
+          <h2 className="story-section__heading">Born of the grove</h2>
+          <p className="story-section__lead">
+            A family grove on the Mediterranean coast — harvested by hand,
+            pressed within hours of picking. The story of how it&rsquo;s made
+            lives in Origins.
+          </p>
+          <Link href="/origins" className="story-section__cta">
+            Discover our origins
+          </Link>
+        </div>
+        <div className="story-section__visual">
+          <Image
+            className="story-section__image"
+            src="/images/1.png"
+            alt="Ripe olives on the branch in the Nostrum grove"
+            fill
+            sizes="(max-width: 899px) 92vw, 42vw"
+          />
+        </div>
+      </div>
     </section>
   );
 }

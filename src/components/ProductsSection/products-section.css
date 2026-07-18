@@ -100,7 +100,7 @@
 }
 
 /* ---- Head — left-aligned, title first then eyebrow beneath (mirrors the
-   "How it is made" intro in Our Story). ------------------------------- */
+   "How it is made" intro on the Origins timeline). -------------------- */
 .shop__head {
   display: flex;
   flex-direction: column;
