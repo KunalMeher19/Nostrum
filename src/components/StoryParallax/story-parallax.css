@@ -186,119 +186,180 @@
   z-index: 1;
   background-color: var(--story-ink);
   color: var(--story-fg);
-  /* One-viewport teaser (the full process timeline moved to /origins): the
-     shell centres the split-grid teaser. The ink base is kept so the seam
-     from the parallax overlay stays seamless. */
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  padding: clamp(5rem, 12vh, 8rem) clamp(1.5rem, 5vw, 5rem);
+  /* Vertical breathing room is PADDING, not margin, so the ink base stays
+     continuous with the parallax overlay's final frame above (the seam) and
+     the inverting Shop below. basicagency uses ~192px section margins; same
+     scale here. */
+  padding: clamp(7rem, 16vh, 12rem) clamp(1.5rem, 5vw, 5rem);
   box-sizing: border-box;
 }
 
-/* Inner wrapper controls the max-width and layout grid */
-.story-section__inner {
-  width: 100%;
-  max-width: 85rem; /* Wider for the split layout */
+/* ------------------------------------------------------------------ */
+/* Spotlight layout — after basicagency.com's home-spotlight (§1).     */
+/* Two equal columns, row-REVERSED (text left, media right; DOM order   */
+/* media-first so mobile stacks the visual on top). The media column's  */
+/* tall portrait frame sets the section height; the text column's inner */
+/* block is translated by ScrollTrigger to hold near the viewport top   */
+/* while the media scrolls past — their data-sticky, our GSAP.          */
+/* ------------------------------------------------------------------ */
+
+.story-spotlight__row {
+  max-width: 92rem;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4rem;
-  align-items: center;
 }
 
 @media (min-width: 900px) {
-  .story-section__inner {
-    grid-template-columns: 1fr 1fr;
-    gap: 8rem;
+  .story-spotlight__row {
+    display: flex;
+    flex-flow: row-reverse;
+    justify-content: space-between;
+  }
+
+  /* Two equal columns with a gutter between — the reference's 6/12 grid. */
+  .story-spotlight__col {
+    flex: 0 0 calc(50% - clamp(0.75rem, 2vw, 2rem));
   }
 }
 
-.story-section__content {
-  display: flex;
-  flex-flow: column;
-  gap: clamp(1.5rem, 4vh, 2.5rem);
-  max-width: 32rem;
-}
-
-.story-section__eyebrow {
-  color: var(--story-gold);
-  text-transform: uppercase;
-  letter-spacing: 0.35em;
-  font-size: clamp(0.75rem, 1vw, 0.85rem);
-  font-weight: 500;
-  margin: 0;
-  padding-left: 0.35em; /* optically re-centre the wide tracking */
-}
-
-.story-section__heading {
-  font-family: var(--font-display, sans-serif);
-  font-weight: 400; /* Lighter weight for premium editorial feel */
-  letter-spacing: -0.03em;
-  line-height: 0.95;
-  font-size: clamp(3rem, 7vw, 6rem);
-  margin: 0;
-  max-width: 14ch;
-}
-
-.story-section__lead {
-  font-family: var(--font-body, inherit);
-  font-size: clamp(1.05rem, 1.2vw, 1.25rem);
-  line-height: 1.7;
-  color: color-mix(in srgb, var(--story-fg) 75%, transparent);
-  margin: 0;
-  max-width: 40ch;
-}
-
-/* The visual side (image wrapper) */
-.story-section__visual {
+/* Media frame — tall portrait (the reference asset is 866×1214). Overflow
+   hidden: the oversized inner sheet drifts through it under the scrub. */
+.story-spotlight__media {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  border-radius: 4px; /* subtle softening */
+  aspect-ratio: 866 / 1214;
   overflow: hidden;
   background-color: var(--story-olive);
 }
 
-.story-section__visual::after {
+/* Oversized drift sheet — bleeds 8% beyond the frame top + bottom so the
+   ±6.5% scrubbed yPercent never exposes an edge. */
+.story-spotlight__media-inner {
+  position: absolute;
+  inset: -8% 0;
+  will-change: transform;
+}
+
+.story-spotlight__image {
+  object-fit: cover;
+}
+
+/* Soft ink grade at the media foot — keeps the frame seated in the dark
+   field (and legible if real photography arrives brighter than the mock). */
+.story-spotlight__media::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(20, 22, 15, 0.4), transparent);
+  z-index: 1;
+  background: linear-gradient(to top, rgba(20, 22, 15, 0.35), transparent 40%);
   pointer-events: none;
 }
 
-.story-section__image {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
-  transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* Mobile: media stacks first (DOM order), text follows. */
+.story-spotlight__col.is--text {
+  margin-top: 3rem;
 }
 
-.story-section__visual:hover .story-section__image {
-  transform: scale(1.05); /* Subtle slow zoom on hover */
+@media (min-width: 900px) {
+  .story-spotlight__col.is--text {
+    margin-top: 0;
+  }
 }
 
-/* Call to action */
-.story-section__cta {
+/* The sticky block — JS translates it (transform, not position:sticky, which
+   misbehaves inside the transformed [data-main] under Lenis). */
+.story-spotlight__sticky {
+  padding-bottom: 1px;
+  will-change: transform;
+}
+
+/* Poster statement — the reference's <q>: h1-scale, uppercase, tight,
+   line-height 0.9. Display face per §4; 500 is the heaviest weight loaded. */
+.story-spotlight__quote {
+  font-family: var(--font-display, sans-serif);
+  font-size: clamp(2.5rem, 6.2vw, 6rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* The inline gold dot — the reference's ● beat, recast as the jewelry (§3). */
+.story-spotlight__dot {
+  color: var(--story-gold);
+  font-size: 0.72em;
+  vertical-align: 0.09em;
+}
+
+/* Attribution line — small uppercase, light weight with a bold turn. */
+.story-spotlight__label {
+  margin: clamp(1.5rem, 3vh, 2rem) 0 0;
+  font-family: var(--font-body, inherit);
+  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--story-fg) 85%, transparent);
+}
+
+.story-spotlight__label strong {
+  font-weight: 600;
+}
+
+.story-spotlight__cta-row {
+  margin: clamp(2.5rem, 8vh, 5rem) 0 0;
+}
+
+/* Pill CTA — the reference's button-pill: hairline border, full radius,
+   small bold uppercase label, and a fill that RISES from the bottom on
+   hover (their ::before translate3d trick). Fill is gold, label flips to
+   ink — the jewelry used sparingly. */
+.story-spotlight__pill {
+  position: relative;
   display: inline-flex;
   align-items: center;
+  overflow: hidden;
+  padding: 0.2rem 1.9rem 0;
+  border: 1px solid color-mix(in srgb, var(--story-fg) 65%, transparent);
+  border-radius: 2rem;
   color: var(--story-fg);
-  text-decoration: none;
   font-family: var(--font-body, inherit);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 2.1rem;
+  text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-top: 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--story-fg) 30%, transparent);
-  padding-bottom: 0.5rem;
-  align-self: flex-start;
-  transition: border-color 0.4s ease, color 0.4s ease;
+  white-space: nowrap;
+  transform: translateZ(0);
+  transition:
+    color 0.25s ease-out,
+    border-color 0.65s ease-out;
 }
 
-.story-section__cta:hover {
+.story-spotlight__pill::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: calc(100% + 2px);
+  background-color: var(--story-gold);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 0.25s ease-out;
+}
+
+.story-spotlight__pill:hover,
+.story-spotlight__pill:focus-visible {
+  color: #14160f;
   border-color: var(--story-gold);
-  color: var(--story-gold);
+  outline: 0;
+}
+
+.story-spotlight__pill:hover::before,
+.story-spotlight__pill:focus-visible::before {
+  transform: translateZ(0);
 }
 
 @media (prefers-reduced-motion: reduce) {

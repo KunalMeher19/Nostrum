@@ -190,25 +190,42 @@ export function initStoryParallax({
   });
 }
 
+/* ---- Spotlight sticky config ---------------------------------------------- */
+// Viewport offset (px) the pinned text holds while the media scrolls past —
+// clear of the fixed nav. basicagency holds ~20px + a 35px adjustment; our
+// nav needs a little more headroom.
+const SPOTLIGHT_STICKY_TOP = 96;
+
 /**
  * StorySection — the destination the pinned scrub releases into. Dark,
- * editorial, sparse (§2, §5). Client direction (2026-07): the full process
- * timeline stretched the homepage (worst on mobile), so it now lives on
- * /origins and this section is a one-viewport TEASER that hands off to it —
- * short copy + one visual + CTA, using the .story-section__* split layout.
+ * editorial, sparse (§2, §5).
+ *
+ * Redesigned (2026-07) after the basicagency.com home-spotlight section the
+ * client's brief references (§1: "editorial confidence"): a two-column row —
+ * poster-scale uppercase statement with an inline gold ● on the left, a tall
+ * portrait visual on the right. The MEDIA column sets the section height and
+ * scrolls naturally with the page (the motion the client liked); the TEXT
+ * block stays put via a transform-driven sticky, releasing when its bottom
+ * meets the media's bottom — reverse-engineered from basicagency's own
+ * data-sticky implementation (they translate the block with an inline matrix;
+ * we do the same from a ScrollTrigger onUpdate, which also sidesteps CSS
+ * position:sticky pitfalls under Lenis + the transformed [data-main]).
+ *
  * Its ink base matches the overlay's final frame for a seamless seam, and
  * the id="story" scroll-spy / "View our story" target is unchanged.
  */
 export default function StorySection() {
-  const innerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLElement>(null);
 
-  // One-shot reveal on enter, mirroring the step reveals the timeline had
-  // here: content rises in a small stagger, the visual fades up. Reversible
-  // so scrolling back re-arms it. Same conventions as the rest of the file's
-  // consumers: dynamic gsap import, context, reduced-motion = static.
+  // Three scroll behaviours, one effect. Same conventions as the rest of the
+  // file's consumers: dynamic gsap import, context, reduced-motion = static.
+  //  1. Entrance reveal — content + media rise in as the section enters.
+  //  2. Media drift — a subtle inner parallax inside the overflow-hidden
+  //     frame, so the visual reads as "moving" beyond plain page scroll.
+  //  3. The spotlight sticky (≥900px only — mobile stacks like the reference).
   useEffect(() => {
-    const inner = innerRef.current;
-    if (!inner) return;
+    const root = rootRef.current;
+    if (!root) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let cancelled = false;
@@ -223,18 +240,24 @@ export default function StorySection() {
       gsap.registerPlugin(ScrollTrigger);
       if (cancelled) return;
 
-      const content = Array.from(
-        inner.querySelectorAll<HTMLElement>(".story-section__content > *")
+      const row = root.querySelector<HTMLElement>(".story-spotlight__row");
+      const sticky = root.querySelector<HTMLElement>(".story-spotlight__sticky");
+      const media = root.querySelector<HTMLElement>(".story-spotlight__media");
+      const drift = root.querySelector<HTMLElement>(
+        ".story-spotlight__media-inner"
       );
-      const visual = inner.querySelector<HTMLElement>(".story-section__visual");
+      if (!row || !sticky || !media) return;
 
       ctx = gsap.context(() => {
+        // 1 — Entrance: the sticky block's children stagger up, the media
+        // fades up alongside. Scrubbed + reversible so scrolling back re-arms.
+        const content = Array.from(sticky.children) as HTMLElement[];
         gsap.set(content, { y: 40, autoAlpha: 0 });
-        if (visual) gsap.set(visual, { y: 48, autoAlpha: 0 });
+        gsap.set(media, { y: 48, autoAlpha: 0 });
 
-        const tl = gsap.timeline({
+        const enter = gsap.timeline({
           scrollTrigger: {
-            trigger: inner,
+            trigger: root,
             start: "top 85%",
             end: "top 25%",
             scrub: 3, // Matches the STA timeline's 3-second scrub
@@ -244,11 +267,62 @@ export default function StorySection() {
             refreshPriority: -1,
           },
         });
-        tl.to(content, { y: 0, autoAlpha: 1, duration: 0.7, stagger: 0.08 }, 0);
-        if (visual) {
-          tl.to(visual, { y: 0, autoAlpha: 1, duration: 0.85 }, 0.1);
+        enter.to(content, { y: 0, autoAlpha: 1, duration: 0.7, stagger: 0.08 }, 0);
+        enter.to(media, { y: 0, autoAlpha: 1, duration: 0.85 }, 0.1);
+
+        // 2 — Media drift: the image (oversized 116% of its frame) slides
+        // through the frame across the section's whole time on screen.
+        // ease:"none" locks it to the scrub so it parallaxes both directions.
+        if (drift) {
+          gsap.fromTo(
+            drift,
+            { yPercent: -6.5 },
+            {
+              yPercent: 6.5,
+              ease: "none",
+              scrollTrigger: {
+                trigger: root,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 3,
+                invalidateOnRefresh: true,
+                refreshPriority: -1,
+              },
+            }
+          );
         }
-      }, inner);
+
+        // 3 — The spotlight sticky. Trigger geometry makes (end − start)
+        // exactly the sticky's travel (row height − sticky height), so
+        // y = progress × (end − start) holds the block SPOTLIGHT_STICKY_TOP
+        // from the viewport top, then parks it flush with the media's bottom
+        // — the same clamp basicagency's sticky lands on. gsap.set (no scrub)
+        // because Lenis already smooths the scroll; a second lerp here would
+        // make the "pin" visibly swim.
+        const mm = gsap.matchMedia();
+        mm.add("(min-width: 900px)", () => {
+          const st = ScrollTrigger.create({
+            trigger: row,
+            start: () => `top ${SPOTLIGHT_STICKY_TOP}`,
+            end: () => `bottom ${SPOTLIGHT_STICKY_TOP + sticky.offsetHeight}`,
+            onUpdate(self: {
+              progress: number;
+              start: number;
+              end: number;
+            }) {
+              gsap.set(sticky, {
+                y: self.progress * Math.max(0, self.end - self.start),
+              });
+            },
+            invalidateOnRefresh: true,
+            refreshPriority: -1,
+          });
+          return () => {
+            st.kill();
+            gsap.set(sticky, { y: 0 });
+          };
+        });
+      }, root);
     })();
 
     return () => {
@@ -258,28 +332,46 @@ export default function StorySection() {
   }, []);
 
   return (
-    <section id="story" className="story-section" aria-label="Our story">
-      <div ref={innerRef} className="story-section__inner">
-        <div className="story-section__content">
-          <p className="story-section__eyebrow">From the land</p>
-          <h2 className="story-section__heading">Born of the grove</h2>
-          <p className="story-section__lead">
-            A family grove on the Mediterranean coast — harvested by hand,
-            pressed within hours of picking. The story of how it&rsquo;s made
-            lives in Origins.
-          </p>
-          <Link href="/origins" className="story-section__cta">
-            Discover our origins
-          </Link>
+    <section
+      id="story"
+      ref={rootRef}
+      className="story-section story-spotlight"
+      aria-label="Our story"
+    >
+      {/* DOM order media→text (like the reference): mobile stacks the visual
+          on top; ≥900px row-reverse puts the text left, media right. */}
+      <div className="story-spotlight__row">
+        <div className="story-spotlight__col is--media">
+          <div className="story-spotlight__media">
+            <div className="story-spotlight__media-inner">
+              <Image
+                className="story-spotlight__image"
+                src="/images/1.png"
+                alt="Ripe olives on the branch in the Nostrum grove"
+                fill
+                sizes="(max-width: 899px) 92vw, 46vw"
+              />
+            </div>
+          </div>
         </div>
-        <div className="story-section__visual">
-          <Image
-            className="story-section__image"
-            src="/images/1.png"
-            alt="Ripe olives on the branch in the Nostrum grove"
-            fill
-            sizes="(max-width: 899px) 92vw, 42vw"
-          />
+        <div className="story-spotlight__col is--text">
+          <div className="story-spotlight__sticky">
+            <h2 className="story-spotlight__quote">
+              Nostrum is born of the grove{" "}
+              <span className="story-spotlight__dot" aria-hidden="true">
+                ●
+              </span>{" "}
+              pressed within hours
+            </h2>
+            <p className="story-spotlight__label">
+              The grove <strong>Mediterranean coast</strong>
+            </p>
+            <p className="story-spotlight__cta-row">
+              <Link href="/origins" className="story-spotlight__pill">
+                Our origins
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </section>
