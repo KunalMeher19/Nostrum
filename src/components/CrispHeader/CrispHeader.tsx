@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import "./crisp-header.css";
 import { onLenis, getLenis } from "../SmoothScroll/lenisStore";
 import { registerStoryScroll } from "../SmoothScroll/storyScroll";
+import { hasClientNavigated } from "../RouteCurtain/curtainNav";
 import LuxButton from "../LuxButton/LuxButton";
 import {
   StoryParallaxOverlay,
@@ -217,6 +218,21 @@ export default function CrispHeader() {
       // build — the growing image simply reaches fullscreen where the old
       // scale-up used to, so the two phases splice together at the same beat.
       const initCrispLoadingAnimation = () => {
+        // Client-side arrival (RouteCurtain navigation): the drape was the
+        // loader — the hero's long cinematic intro is a FIRST-LOAD experience
+        // only. Jump straight to the revealed end-state: is--loading off
+        // flips the below-hero sections visible, both loader gates open, and
+        // the scroll-through arms. All while still hidden under the curtain,
+        // so the reveal shows a settled hero.
+        if (hasClientNavigated()) {
+          container.classList.remove("is--hidden");
+          container.classList.remove("is--loading");
+          heroRevealed = true;
+          maybeInitScrollThrough();
+          loaderDone = true;
+          return;
+        }
+
         const heading = container.querySelectorAll(".crisp-header__h1");
         // Willem loader parts
         const loadingLetter = container.querySelectorAll(".willem__letter");

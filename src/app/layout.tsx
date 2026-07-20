@@ -4,6 +4,7 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
 import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
 import RingCursor from "@/components/RingCursor/RingCursor";
+import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
 
 // Clean, quiet sans for UI/body (§4 — client-approved type direction)
 const sans = Libre_Franklin({
@@ -96,6 +97,8 @@ export default function RootLayout({
         <RingCursor />
         {/* Global navigation — fixed, always on top */}
         <UnderlayNav />
+        {/* Route-transition drape — covers, shows the section name, reveals */}
+        <RouteCurtain />
         {/* Page content — receives [data-main] in each page component */}
         {children}
       </body>
