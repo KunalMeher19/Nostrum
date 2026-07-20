@@ -1,0 +1,80 @@
+/* ------------------------------------------------------------------ */
+/* Origin voice — the family quote beat on /origins.                    */
+/* Bark-brown canvas (§3), italic editorial display, one sentence only  */
+/* (§4/§7 — few words, human). Words rise through masks on scroll (JS). */
+/* ------------------------------------------------------------------ */
+
+.origin-voice {
+  /* Bark-brown, warmed by a faint olive glow from below — layered depth,
+     not a flat fill. */
+  background:
+    radial-gradient(
+      ellipse 110% 80% at 50% 115%,
+      rgba(30, 42, 22, 0.5) 0%,
+      rgba(44, 33, 23, 0) 60%
+    ),
+    #2c2117;
+  color: #edebe3;
+  display: grid;
+  place-items: center;
+  min-height: 88svh;
+  padding: clamp(5rem, 14vh, 10rem) clamp(1.5rem, 6vw, 6rem);
+}
+
+.origin-voice__quote {
+  margin: 0;
+  max-width: 56rem;
+  text-align: center;
+}
+
+.origin-voice__line {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4.6vw, 4.25rem);
+  line-height: 1.24;
+  letter-spacing: -0.015em;
+}
+
+/* Word masks — each word rises within its own clipped span (JS drives
+   the inner transform/opacity from scroll). */
+.origin-voice__mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Italic ascenders/descenders overhang the em-box; pad the clip so the
+     f/j/g strokes aren't shaved while rising. */
+  padding: 0.08em 0.06em 0.06em;
+  margin: -0.08em -0.06em -0.06em;
+}
+
+.origin-voice__word {
+  display: inline-block;
+  opacity: 0.15;
+  transform: translateY(0.55em);
+  will-change: transform, opacity;
+}
+
+.origin-voice__attribution {
+  margin-top: clamp(1.75rem, 4vh, 2.75rem);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-style: normal;
+  font-size: clamp(0.7rem, 0.85vw, 0.82rem);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal, #e6b422);
+  opacity: 0;
+}
+
+/* ---- Reduced motion ------------------------------------------------ */
+.origin-voice.is--static .origin-voice__word {
+  opacity: 1;
+  transform: none;
+}
+
+.origin-voice.is--static .origin-voice__attribution {
+  opacity: 1;
+  transform: none;
+}

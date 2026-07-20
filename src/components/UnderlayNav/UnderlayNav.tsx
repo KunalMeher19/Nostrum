@@ -14,10 +14,30 @@ import { onLenis, getLenis } from "../SmoothScroll/lenisStore";
 // NOSTRUM wordmark scroll back up to the hero. The remaining links are ordinary
 // routes. `activeHref` (scroll-spy for landing sections, route match otherwise)
 // drives the gold is--current highlight.
-const NAV_LINKS = [
+// `children` are sub-routes nested under a landing-page section link. They
+// render as an indented sub-link with an elbow connector: collapsed by
+// default, smoothly revealed on hover/focus of the parent item, and pinned
+// open (+ gold highlight) while their route is the current page.
+const NAV_LINKS: {
+  href: string;
+  label: string;
+  top?: boolean;
+  section?: string;
+  children?: { href: string; label: string }[];
+}[] = [
   { href: "/", label: "Home", top: true },
-  { href: "/#story", label: "Our Story", section: "#story" },
-  { href: "/#products", label: "Products", section: "#products" },
+  {
+    href: "/#story",
+    label: "Our Story",
+    section: "#story",
+    children: [{ href: "/origins", label: "Origins" }],
+  },
+  {
+    href: "/#products",
+    label: "Collections",
+    section: "#products",
+    children: [{ href: "/products", label: "Products" }],
+  },
   { href: "/journal", label: "Journal" },
   { href: "/contact", label: "Contact" },
 ];
@@ -528,10 +548,18 @@ export default function UnderlayNav() {
           aria-label="Main navigation"
         >
           <ul className="underlay-nav__list">
-            {NAV_LINKS.map(({ href, label, section, top }) => {
+            {NAV_LINKS.map(({ href, label, section, top, children }) => {
               const isActive = href === activeHref;
+              // A child route being current pins its sub-link open (no hover
+              // needed) — e.g. /origins under Our Story, /products under
+              // Products.
+              const activeChild = children?.some((c) => c.href === activeHref);
               return (
-                <li key={label} data-reveal-l>
+                <li
+                  key={label}
+                  data-reveal-l
+                  className={`underlay-nav__item${children ? " has--sub" : ""}${activeChild ? " is--sub-active" : ""}`}
+                >
                   <Link
                     href={href}
                     className={`underlay-nav__link-large${isActive ? " is--current" : ""}`}
@@ -541,6 +569,31 @@ export default function UnderlayNav() {
                   >
                     <span className="underlay-nav__link-label">{label}</span>
                   </Link>
+                  {children && (
+                    <ul className="underlay-nav__sublist">
+                      {children.map((child) => {
+                        const childActive = child.href === activeHref;
+                        return (
+                          <li key={child.label}>
+                            <Link
+                              href={child.href}
+                              className={`underlay-nav__sublink${childActive ? " is--current" : ""}`}
+                              aria-current={childActive ? "page" : undefined}
+                            >
+                              {/* Elbow connector drawn from the parent link */}
+                              <span
+                                className="underlay-nav__sub-elbow"
+                                aria-hidden="true"
+                              />
+                              <span className="underlay-nav__sublink-label">
+                                {child.label}
+                              </span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
               );
             })}

@@ -1,0 +1,101 @@
+/* ------------------------------------------------------------------ */
+/* Origin thread — the chapter progress line on /origins.               */
+/* A hairline track at the left edge; the gold fill scales with page    */
+/* scroll (JS), ticks mark chapters and turn gold as you pass them.     */
+/*                                                                      */
+/* Pinned by NATIVE position:sticky, not position:fixed — [data-main]   */
+/* carries a transform (will-change / UnderlayNav GSAP), which makes it */
+/* the containing block for fixed descendants, so "fixed" would scroll  */
+/* away with the page. Instead: a zero-impact absolute shell spans the  */
+/* whole of <main>, and the pin inside it sticks for the full height —  */
+/* the thread stays in view through every scene, top to bottom.         */
+/* ------------------------------------------------------------------ */
+
+.origin-thread {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease 0.4s;
+}
+
+.origin-thread.is--on {
+  opacity: 1;
+}
+
+/* The sticky pin IS the line: viewport-centred vertically, hugging the
+   left edge. Sticks for the entire height of the shell (= all of main). */
+.origin-thread__pin {
+  position: sticky;
+  top: calc((100svh - min(52vh, 30rem)) / 2);
+  margin-left: clamp(0.9rem, 2vw, 1.75rem);
+  height: min(52vh, 30rem);
+  width: 1px;
+}
+
+.origin-thread__track {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, #edebe3 14%, transparent);
+}
+
+.origin-thread__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--nostrum-gold-metal, #e6b422);
+  transform: scaleY(0);
+  transform-origin: top;
+  will-change: transform;
+}
+
+.origin-thread__ticks {
+  position: absolute;
+  inset: 0;
+}
+
+.origin-thread__tick {
+  position: absolute;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, #edebe3 30%, transparent);
+  transition: background 0.4s var(--ease-lux, ease), transform 0.4s
+    var(--ease-lux, ease);
+}
+
+.origin-thread__tick.is--passed {
+  background: var(--nostrum-gold-metal, #e6b422);
+  transform: translate(-50%, -50%) scale(1.35);
+}
+
+/* Chapter name — whispers in beside a tick only once passed. */
+.origin-thread__tick-label {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-style: normal;
+  font-size: 0.56rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #edebe3 45%, transparent);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-lux, ease);
+}
+
+.origin-thread__tick.is--passed .origin-thread__tick-label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* The thread is a wide-screen luxury — phones keep the clean edge. */
+@media (max-width: 900px) {
+  .origin-thread {
+    display: none;
+  }
+}

@@ -144,8 +144,7 @@ const SCENES: Scene[] = [
 
 /* Hand-drawn (esbozo) annotation arrow — a loose curved stroke + open head,
    drawn in via stroke-dashoffset when its scene becomes active. */
-function SketchArrow({ style }: { style: React.CSSProperties }) {
-  return (
+function SketchArrow({ style }: { style: React.CSSProperties }) {  return (
     <svg
       className="story-scenes__callout-arrow"
       viewBox="0 0 120 70"
@@ -226,11 +225,113 @@ export default function StoryScenes() {
       entryTimer = window.setTimeout(beginEntry, 60);
     }
 
+    /* ---- Golden dust atmosphere ------------------------------------ */
+    // ~30 soft gold motes drifting slowly upward over the pinned stage —
+    // the Home light-streak signature carried here as atmosphere. 2D canvas,
+    // DPR-capped, and only running while the stage is actually on screen
+    // (IntersectionObserver gates the rAF loop). Skipped under reduced
+    // motion (we returned above).
+    const dustCanvas = root.querySelector<HTMLCanvasElement>(
+      ".story-scenes__dust"
+    );
+    let dustRaf = 0;
+    let dustOn = false;
+    let dustObserver: IntersectionObserver | null = null;
+
+    if (dustCanvas) {
+      const dctx = dustCanvas.getContext("2d");
+      type Mote = {
+        x: number; // 0..1 of width
+        y: number; // 0..1 of height
+        r: number; // radius px
+        a: number; // base alpha
+        vy: number; // upward drift, fraction of height / s
+        vx: number; // sideways sway amplitude
+        ph: number; // sway phase
+        tw: number; // twinkle speed
+      };
+      // Deterministic-ish spread via golden-ratio scatter — no layout thrash,
+      // stable across re-mounts.
+      const MOTES: Mote[] = Array.from({ length: 30 }, (_, i) => {
+        const g = (i * 0.618034) % 1;
+        const h = (i * 0.754878) % 1;
+        return {
+          x: g,
+          y: h,
+          r: 0.8 + ((i * 7) % 10) * 0.22,
+          a: 0.12 + ((i * 13) % 10) * 0.02,
+          vy: 0.006 + ((i * 11) % 10) * 0.0012,
+          vx: 0.004 + ((i * 5) % 10) * 0.0009,
+          ph: g * Math.PI * 2,
+          tw: 0.3 + ((i * 3) % 10) * 0.08,
+        };
+      });
+
+      const sizeDust = () => {
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        dustCanvas.width = Math.round(dustCanvas.offsetWidth * dpr);
+        dustCanvas.height = Math.round(dustCanvas.offsetHeight * dpr);
+      };
+      sizeDust();
+
+      let last = performance.now();
+      const tick = (now: number) => {
+        if (!dustOn || !dctx) return;
+        const dt = Math.min((now - last) / 1000, 0.05);
+        last = now;
+        const W = dustCanvas.width;
+        const H = dustCanvas.height;
+        dctx.clearRect(0, 0, W, H);
+        const t = now / 1000;
+        for (const m of MOTES) {
+          m.y -= m.vy * dt;
+          if (m.y < -0.02) {
+            m.y = 1.02;
+            m.x = Math.random();
+          }
+          const sway = Math.sin(t * 0.6 + m.ph) * m.vx;
+          // Slow twinkle so motes breathe instead of blinking.
+          const glow = m.a * (0.65 + 0.35 * Math.sin(t * m.tw + m.ph));
+          const px = (m.x + sway) * W;
+          const py = m.y * H;
+          const pr = m.r * (W / 1600 + 0.6);
+          const grad = dctx.createRadialGradient(px, py, 0, px, py, pr * 3);
+          grad.addColorStop(0, `rgba(230, 180, 34, ${glow})`);
+          grad.addColorStop(1, "rgba(230, 180, 34, 0)");
+          dctx.fillStyle = grad;
+          dctx.beginPath();
+          dctx.arc(px, py, pr * 3, 0, Math.PI * 2);
+          dctx.fill();
+        }
+        dustRaf = requestAnimationFrame(tick);
+      };
+
+      dustObserver = new IntersectionObserver(
+        ([entry]) => {
+          const want = entry.isIntersecting;
+          if (want && !dustOn) {
+            dustOn = true;
+            sizeDust();
+            last = performance.now();
+            dustRaf = requestAnimationFrame(tick);
+          } else if (!want && dustOn) {
+            dustOn = false;
+            cancelAnimationFrame(dustRaf);
+          }
+        },
+        { threshold: 0 }
+      );
+      dustObserver.observe(root);
+    }
+
     const scenes = Array.from(
       root.querySelectorAll<HTMLElement>(".story-scenes__scene")
     );
     const dots = Array.from(
       root.querySelectorAll<HTMLElement>(".story-scenes__dot")
+    );
+    const manifesto = root.querySelector<HTMLElement>(
+      ".story-scenes__manifesto"
     );
     const n = scenes.length;
     if (!n) return;
@@ -245,12 +346,40 @@ export default function StoryScenes() {
     const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
     const smooth = (v: number) => v * v * (3 - 2 * v);
 
+    // The manifesto "title page" owns the opening slice of the pin: a
+    // near-black frame of huge words that holds, then dissolves into the
+    // first photograph (scene 0 is already alive underneath it).
+    const MANIFESTO_SPAN = 0.2;
+
     const applyProgress = (p: number) => {
+      // ---- Manifesto (beat 0) ---------------------------------------
+      // Holds fully dark for the first ~55% of its slice, then dissolves.
+      // Slight drift + scale-down on the words as they go, like a title
+      // card sinking into the film.
+      const mLocal = clamp01(p / MANIFESTO_SPAN);
+      const mVis = 1 - smooth(clamp01((mLocal - 0.55) / 0.45));
+      if (manifesto) {
+        manifesto.style.opacity = `${mVis}`;
+        manifesto.style.visibility = mVis <= 0.001 ? "hidden" : "visible";
+        const inner = manifesto.querySelector<HTMLElement>(
+          ".story-scenes__manifesto-inner"
+        );
+        if (inner) {
+          const gone = 1 - mVis;
+          inner.style.transform = `translateY(${gone * -28}px) scale(${
+            1 - gone * 0.04
+          })`;
+        }
+      }
+      root.classList.toggle("is--on-manifesto", mVis > 0.35);
+
+      // ---- Photo beats — remapped past the manifesto's slice --------
+      const ps = clamp01((p - MANIFESTO_SPAN) / (1 - MANIFESTO_SPAN));
       const span = 1 / n;
       let active = 0;
       for (let i = 0; i < n; i++) {
         const start = i * span;
-        const local = (p - start) / span; // 0→1 across this scene's slice
+        const local = (ps - start) / span; // 0→1 across this scene's slice
         // Fade in over the first 35%, fade out over the last 35% (last scene
         // never fades out). A held middle keeps the caption readable.
         // First scene opens fully visible (no fade-in from black at p=0);
@@ -267,11 +396,21 @@ export default function StoryScenes() {
         const cap = scene.querySelector<HTMLElement>(".story-scenes__caption");
         const lp = clamp01(local);
         if (img) img.style.transform = `scale(${1.08 + lp * 0.08})`;
-        if (cap) cap.style.transform = `translateY(${(1 - fadeIn) * 40}px)`;
+        if (cap)
+          cap.style.transform = `translateY(${(1 - fadeIn) * 40 + lp * -14}px)`;
         scene.style.zIndex = `${vis > 0.02 ? 2 : 1}`;
+        // Parallax depth: annotations drift on a slightly different rate
+        // than the photo (which scales up) — a few px of counter-travel
+        // reads as the arrows floating just above the print.
+        const callouts = scene.querySelectorAll<HTMLElement>(
+          ".story-scenes__callout"
+        );
+        callouts.forEach((c) => {
+          c.style.transform = `translateY(${lp * -22}px)`;
+        });
         // Arrows/callouts sketch themselves in while their scene is on
         // screen, and reset when it leaves so they redraw on return.
-        scene.classList.toggle("is--live", vis >= 0.45);
+        scene.classList.toggle("is--live", vis >= 0.45 && mVis < 0.6);
         if (vis >= 0.5) active = i;
       }
       dots.forEach((d, i) =>
@@ -315,6 +454,9 @@ export default function StoryScenes() {
       window.removeEventListener(CURTAIN_REVEAL_EVENT, beginEntry);
       window.clearTimeout(entryTimer);
       window.clearTimeout(entryDoneTimer);
+      dustOn = false;
+      cancelAnimationFrame(dustRaf);
+      dustObserver?.disconnect();
       ctx?.revert();
     };
   }, []);
@@ -324,7 +466,8 @@ export default function StoryScenes() {
       className="story-scenes"
       ref={rootRef}
       aria-label="The Nostrum story"
-      style={{ "--scene-count": SCENES.length } as React.CSSProperties}
+      /* +1 beat: the manifesto title page owns the opening slice of the pin */
+      style={{ "--scene-count": SCENES.length + 1 } as React.CSSProperties}
     >
       <div className="story-scenes__stage">
         {SCENES.map((s, i) => (
@@ -383,6 +526,31 @@ export default function StoryScenes() {
             </div>
           </div>
         ))}
+
+        {/* Golden dust — ambient motes over every beat (canvas, JS-driven). */}
+        <canvas className="story-scenes__dust" aria-hidden="true" />
+
+        {/* Manifesto — the near-black "title page" that opens the pin and
+            dissolves into the first photograph. Copy is placeholder in the
+            brief's voice; the client may supply the real founding line. */}
+        <div className="story-scenes__manifesto" aria-hidden="false">
+          <div className="story-scenes__manifesto-inner">
+            <p className="story-scenes__manifesto-eyebrow">Nostrum · Origins</p>
+            <h1 className="story-scenes__manifesto-line">
+              <span className="story-scenes__manifesto-word">Four</span>{" "}
+              <span className="story-scenes__manifesto-word">generations.</span>
+              <br />
+              <span className="story-scenes__manifesto-word">One</span>{" "}
+              <span className="story-scenes__manifesto-word">grove.</span>
+            </h1>
+          </div>
+          {/* Scroll hint — a whisper + a slowly drawing line; hidden the
+              moment the visitor starts travelling. */}
+          {/* <div className="story-scenes__hint">
+            <span className="story-scenes__hint-word">Scroll</span>
+            <span className="story-scenes__hint-line" />
+          </div> */}
+        </div>
 
         {/* Progress dots — which beat you're on */}
         <ul className="story-scenes__dots" aria-hidden="true">

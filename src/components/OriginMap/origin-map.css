@@ -1,0 +1,208 @@
+/* ------------------------------------------------------------------ */
+/* Origin map — the place beat on /origins.                             */
+/* Ink-black canvas (matches StoryProcess's --sp-ink so the map sits    */
+/* seamlessly after "How it is made"), gold-ink hand-drawn coastline,   */
+/* pulsing grove marker + esbozo annotation. Draw/reveal driven from JS */
+/* scroll progress; the marker/annotation transitions are class-driven  */
+/* (.is--marked), same pattern as the StoryScenes callouts.             */
+/* ------------------------------------------------------------------ */
+
+.origin-map {
+  background:
+    radial-gradient(
+      ellipse 120% 90% at 50% -10%,
+      rgba(30, 42, 22, 0.4) 0%,
+      rgba(20, 22, 15, 0) 55%
+    ),
+    #14160f;
+  color: #edebe3;
+  text-align: center;
+  padding: clamp(6rem, 16vh, 11rem) clamp(1.5rem, 6vw, 6rem)
+    clamp(5rem, 12vh, 9rem);
+}
+
+.origin-map__eyebrow {
+  margin: 0 0 1.2em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.65rem, 0.8vw, 0.78rem);
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal, #e6b422);
+}
+
+.origin-map__title {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.25rem, 5.5vw, 5rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+/* ---- Stage ---------------------------------------------------------- */
+.origin-map__stage {
+  position: relative;
+  margin: clamp(2.5rem, 7vh, 5rem) auto 0;
+  max-width: 46rem;
+}
+
+.origin-map__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--nostrum-gold-metal, #e6b422);
+  overflow: visible;
+}
+
+/* Coastline — drawn from JS (dashoffset 1→0, pathLength=1). */
+.origin-map__coast {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.85;
+}
+
+/* ---- Marker --------------------------------------------------------- */
+.origin-map__marker-dot {
+  fill: var(--nostrum-gold-metal, #e6b422);
+  transform: scale(0);
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.origin-map__marker-ring {
+  fill: none;
+  stroke: var(--nostrum-gold-metal, #e6b422);
+  stroke-width: 1;
+  opacity: 0;
+  transform: scale(0.3);
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.origin-map__marker-dot {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.origin-map.is--marked .origin-map__marker-dot {
+  transform: scale(1);
+}
+
+/* Breathing rings once revealed — slow, two beats out of phase. */
+.origin-map.is--marked .origin-map__marker-ring {
+  animation: origin-map-pulse 3.2s cubic-bezier(0.25, 0.6, 0.4, 1) infinite;
+}
+
+.origin-map.is--marked .origin-map__marker-ring--late {
+  animation-delay: 1.6s;
+}
+
+@keyframes origin-map-pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.3);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* ---- Esbozo annotation ---------------------------------------------- */
+.origin-map__note-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.origin-map__note-head {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.origin-map.is--marked .origin-map__note-line {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.25s;
+}
+
+.origin-map.is--marked .origin-map__note-head {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.4, 0, 0.2, 1) 1.05s;
+}
+
+/* Reset instantly when scrolled back out so it redraws on return. */
+.origin-map:not(.is--marked) .origin-map__note-line,
+.origin-map:not(.is--marked) .origin-map__note-head {
+  transition: none;
+}
+
+/* ---- HTML labels over the stage -------------------------------------- */
+.origin-map__label {
+  position: absolute;
+  /* Sits by the annotation's tail (viewBox 640×520 → % of the stage). */
+  left: 57%;
+  top: 56%;
+  margin: 0;
+  text-align: left;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-style: italic;
+  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 88%, #fff);
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.origin-map.is--marked .origin-map__label {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s ease 0.6s,
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.6s;
+}
+
+.origin-map:not(.is--marked) .origin-map__label {
+  transition: none;
+}
+
+/* The sea, whispered — quiet caption floating in the empty water. */
+.origin-map__sea {
+  position: absolute;
+  left: 64%;
+  top: 82%;
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.6rem, 0.75vw, 0.72rem);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #edebe3 30%, transparent);
+  white-space: nowrap;
+}
+
+/* ---- Reduced motion -------------------------------------------------- */
+.origin-map.is--static .origin-map__coast,
+.origin-map.is--static .origin-map__note-line,
+.origin-map.is--static .origin-map__note-head {
+  stroke-dashoffset: 0;
+}
+
+.origin-map.is--static .origin-map__marker-dot {
+  transform: scale(1);
+}
+
+.origin-map.is--static .origin-map__marker-ring {
+  opacity: 0.35;
+  transform: scale(1);
+  animation: none;
+}
+
+.origin-map.is--static .origin-map__label {
+  opacity: 1;
+  transform: none;
+}
+
+.origin-map.is--static .origin-map__eyebrow,
+.origin-map.is--static .origin-map__title {
+  opacity: 1 !important;
+  transform: none !important;
+}

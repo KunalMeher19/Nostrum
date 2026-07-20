@@ -261,6 +261,93 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   color: var(--nav-accent);
 }
 
+/* ---- Sub-links (Our Story → Origins, Products → All Products) ----
+   Each parent <li class="has--sub"> carries a nested sublist that is collapsed
+   (0fr grid row + fade) by default and smoothly expands when the parent item is
+   hovered / keyboard-focused. When the sub-route IS the current page
+   (.is--sub-active, e.g. /origins), it stays pinned open without hover so the
+   sidebar always shows where you are. The reveal uses grid-template-rows so
+   the sibling links glide apart instead of jumping. */
+.underlay-nav__item.has--sub {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* keep the right-aligned column rhythm */
+}
+
+.underlay-nav__sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-rows: 0fr; /* collapsed */
+  opacity: 0;
+  transform: translateY(-0.35em);
+  transition:
+    grid-template-rows 0.5s cubic-bezier(0.625, 0.05, 0, 1),
+    opacity 0.4s ease,
+    transform 0.5s cubic-bezier(0.625, 0.05, 0, 1);
+}
+
+.underlay-nav__sublist > li {
+  overflow: hidden; /* required for the 0fr → 1fr row collapse */
+  min-height: 0;
+}
+
+.underlay-nav__item.has--sub:hover .underlay-nav__sublist,
+.underlay-nav__item.has--sub:focus-within .underlay-nav__sublist,
+.underlay-nav__item.is--sub-active .underlay-nav__sublist {
+  grid-template-rows: 1fr; /* open */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.underlay-nav__sublink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.55em 0 0.1em;
+  transition: color 0.25s ease;
+}
+
+/* The connector elbow — a short └-shape drawn from beneath the parent link
+   down into the sub-link, echoing a hand-annotated tree. */
+.underlay-nav__sub-elbow {
+  display: block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-top: -0.45em; /* rise toward the parent's baseline */
+  border-left: 1px solid rgba(245, 245, 243, 0.35);
+  border-bottom: 1px solid rgba(245, 245, 243, 0.35);
+  border-bottom-left-radius: 0.4em;
+  flex: none;
+  transition: border-color 0.25s ease;
+}
+
+.underlay-nav__sublink-label {
+  display: block;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.72rem, 0.9vw, 0.85rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.75);
+  transition: color 0.25s ease;
+}
+
+.underlay-nav__sublink:hover .underlay-nav__sublink-label {
+  color: var(--nav-accent);
+}
+
+.underlay-nav__sublink.is--current .underlay-nav__sublink-label {
+  color: var(--nav-accent);
+}
+
+.underlay-nav__sublink.is--current .underlay-nav__sub-elbow,
+.underlay-nav__sublink:hover .underlay-nav__sub-elbow {
+  border-color: var(--nav-accent);
+}
+
 /* Small, luxury-tracked uppercase — matches the RR menu type, not display
    headlines. The tracking carries the luxury, not the size. */
 .underlay-nav__link-label {

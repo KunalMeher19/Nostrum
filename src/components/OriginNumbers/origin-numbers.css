@@ -1,0 +1,74 @@
+/* ------------------------------------------------------------------ */
+/* Origin numbers — the stats interlude on /origins.                    */
+/* Ink canvas, poster-scale figures in display type, whisper labels.    */
+/* Counts driven from JS (GSAP, once on enter).                         */
+/* ------------------------------------------------------------------ */
+
+.origin-numbers {
+  background-color: #14160f;
+  color: #edebe3;
+  padding: clamp(6rem, 16vh, 11rem) clamp(1.5rem, 6vw, 6rem);
+}
+
+.origin-numbers__eyebrow {
+  margin: 0 0 clamp(3rem, 8vh, 5.5rem);
+  text-align: center;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.65rem, 0.8vw, 0.78rem);
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal, #e6b422);
+}
+
+.origin-numbers__grid {
+  margin: 0 auto;
+  max-width: 78rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 3vw, 3rem);
+}
+
+.origin-numbers__item {
+  text-align: center;
+  /* Pre-reveal state is applied by GSAP (autoAlpha 0 / y) — leave the
+     resting CSS visible so no-JS still shows everything. */
+}
+
+.origin-numbers__label {
+  margin: 0 0 0.9em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.68rem, 0.8vw, 0.8rem);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #edebe3 55%, transparent);
+}
+
+.origin-numbers__figure {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.75rem, 6.5vw, 6rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  /* Steady digit widths while rolling — no lateral jitter. */
+  font-variant-numeric: tabular-nums;
+}
+
+.origin-numbers__affix {
+  color: var(--nostrum-gold-metal, #e6b422);
+}
+
+@media (max-width: 900px) {
+  .origin-numbers__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 460px) {
+  .origin-numbers__grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
