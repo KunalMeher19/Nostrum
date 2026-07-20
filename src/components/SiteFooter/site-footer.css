@@ -1,0 +1,289 @@
+/* ------------------------------------------------------------------ */
+/* SiteFooter — mirrors the Shop's --page-t colour system in reverse.  */
+/* At t=1 (light) the footer is seamlessly warm-white against the Shop */
+/* above; as you scroll in, the footer drives --page-t back to 0 and   */
+/* the whole viewport (Shop tail + footer) returns to dark together.   */
+/* Every colour is derived from the same shared --page-t via           */
+/* color-mix(), so there is never a two-tone seam.                     */
+/* ------------------------------------------------------------------ */
+.nf {
+  /* Derived palette — identical tokens to the Shop, same direction */
+  --_bg: color-mix(
+    in srgb,
+    var(--shop-dark-bg),
+    var(--shop-light-bg) calc(var(--page-t) * 100%)
+  );
+  --_fg: color-mix(
+    in srgb,
+    var(--shop-dark-fg),
+    var(--shop-light-fg) calc(var(--page-t) * 100%)
+  );
+  --_muted: color-mix(
+    in srgb,
+    var(--shop-dark-muted),
+    var(--shop-light-muted) calc(var(--page-t) * 100%)
+  );
+  --_border: color-mix(
+    in srgb,
+    rgba(245, 245, 243, 0.1),
+    rgba(20, 22, 15, 0.1) calc(var(--page-t) * 100%)
+  );
+
+  background-color: var(--_bg);
+  color: var(--_fg);
+  padding: clamp(4rem, 8vh, 7rem) clamp(1.5rem, 5vw, 5rem) 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Head row ─────────────────────────────────────────────────────── */
+.nf__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: clamp(2.5rem, 5vh, 4rem);
+  border-bottom: 1px solid var(--_border);
+}
+
+.nf__tagline {
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--_fg);
+  margin: 0;
+  max-width: 18ch;
+}
+
+.nf__top-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--_border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--_fg);
+  cursor: pointer;
+  transition:
+    border-color 0.3s var(--ease-lux),
+    background 0.3s var(--ease-lux);
+}
+
+.nf__top-btn:hover {
+  border-color: var(--nostrum-gold);
+  background: rgba(230, 180, 90, 0.08);
+}
+
+.nf__top-arrow {
+  fill: currentColor;
+  will-change: transform;
+}
+
+/* ── Body: 3-col grid ─────────────────────────────────────────────── */
+.nf__body {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  padding: clamp(2.5rem, 5vh, 4rem) 0;
+  border-bottom: 1px solid var(--_border);
+}
+
+@media (max-width: 640px) {
+  .nf__body {
+    grid-template-columns: 1fr 1fr;
+  }
+  .nf__body .nf__col:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.nf__col-title {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--_muted);
+  margin: 0 0 1.25rem;
+}
+
+.nf__address {
+  font-style: normal;
+  font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+  line-height: 1.8;
+  color: var(--_muted);
+}
+
+.nf__nav,
+.nf__socials,
+.nf__contact {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.nf__nav a,
+.nf__socials a,
+.nf__contact a {
+  position: relative;
+  align-self: flex-start;
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
+  color: var(--_muted);
+  text-decoration: none;
+  transition: color 0.3s var(--ease-lux);
+}
+
+/* Sliding underline — gold hairline wipes in from the left on hover */
+.nf__nav a::after,
+.nf__socials a::after,
+.nf__contact a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: var(--nostrum-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s var(--ease-lux);
+}
+
+.nf__nav a:hover,
+.nf__socials a:hover,
+.nf__contact a:hover {
+  color: var(--_fg);
+}
+
+.nf__nav a:hover::after,
+.nf__socials a:hover::after,
+.nf__contact a:hover::after {
+  transform: scaleX(1);
+}
+
+/* Contact block sits a touch below the address */
+.nf__contact {
+  margin-top: 1.1rem;
+  gap: 0.5rem;
+}
+
+.nf__wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nf__wa svg {
+  transition: transform 0.4s var(--ease-lux);
+}
+
+.nf__wa:hover svg {
+  transform: translate(2px, -2px);
+}
+
+/* ── Poster wordmark — ghost type, lime only under the cursor ─────── */
+.nf-pressure {
+  position: relative;
+  width: 100%;
+  margin-top: clamp(2rem, 5vh, 4rem);
+  /* Mask for the one-time rise entrance */
+  overflow: hidden;
+}
+
+.nf-pressure__title {
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  width: 100%;
+  line-height: 1.05;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.nf-pressure__char {
+  display: inline-block;
+  font-variation-settings: "wght" 420;
+  /* Rest: ghost off-white (matte, no glow). --p (0→1, cursor proximity,
+     set from JS) tints the letter toward lime — the accent stays jewelry
+     that follows the hand instead of a flat lime wall. */
+  --p: 0;
+  color: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--_fg) 22%, transparent),
+    var(--nostrum-lime) calc(var(--p) * 100%)
+  );
+  will-change: font-variation-settings, transform;
+
+  /* One-time staggered rise — letters climb out of the overflow mask
+     when the footer first scrolls in, then rest calm. */
+  transform: translateY(112%);
+  transition: transform 1s var(--ease-lux) calc(var(--i, 0) * 65ms);
+}
+
+.nf-pressure.is--in .nf-pressure__char {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-pressure__char {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── Legal row ────────────────────────────────────────────────────── */
+.nf__legal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 0 1.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--_muted);
+}
+
+.nf__origin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.nf__origin-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--nostrum-gold);
+  opacity: 0.7;
+}
+
+.nf__gdpr {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nf__gdpr a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nf__gdpr a:hover {
+  color: var(--_fg);
+}

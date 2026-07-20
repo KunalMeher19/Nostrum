@@ -799,6 +799,12 @@ export default function CrispHeader() {
         const target = document.querySelector<HTMLElement>(selector);
         if (!lenis || !target) return;
         enterSta();
+        // enterSta() no-ops when the phase is already "sta" (e.g. clicking a
+        // nav link while scrolled to a section), but the open menu's scroll
+        // lock has STOPPED Lenis — and a stopped Lenis silently drops
+        // scrollTo. Start it explicitly so the dive always runs; the menu's
+        // own unlock-on-close is then a harmless re-start.
+        lenis.start();
         lenis.scrollTo(target, {
           // Land a few px PAST each section's top so ScrollTrigger boundaries
           // (e.g. the hero pin's onLeave) fire reliably and the nav scroll-spy
@@ -837,6 +843,9 @@ export default function CrispHeader() {
         if (phase === "slides") return; // already at the top hero
         const lenis = lenisRef ?? getLenis();
         if (!lenis) return;
+        // Same as runSectionScroll: the open menu's scroll lock stops Lenis,
+        // and a stopped Lenis drops scrollTo — start it before the ride up.
+        lenis.start();
         lenis.scrollTo(0, {
           duration: 2.0,
           easing: (t: number) => 1 - Math.pow(1 - t, 3), // easeOutCubic

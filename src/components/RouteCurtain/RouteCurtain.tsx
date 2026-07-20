@@ -109,11 +109,8 @@ export default function RouteCurtain() {
       const gsap = gsapMod.gsap ?? gsapMod.default;
 
       ctx = gsap.context(() => {
-        const darkPath = root.querySelector<SVGPathElement>(
-          "[data-curtain-dark]"
-        )!;
-        const goldPath = root.querySelector<SVGPathElement>(
-          "[data-curtain-gold]"
+        const mainPath = root.querySelector<SVGPathElement>(
+          "[data-curtain-main]"
         )!;
         const labelEl = root.querySelector<HTMLElement>(
           "[data-curtain-label]"
@@ -121,158 +118,84 @@ export default function RouteCurtain() {
         const eyebrowEl = root.querySelector<HTMLElement>(
           "[data-curtain-eyebrow]"
         )!;
-        if (!darkPath || !goldPath || !labelEl || !eyebrowEl) return;
+        if (!mainPath || !labelEl || !eyebrowEl) return;
 
         /* ---- Drape state + draw ------------------------------- */
-        // One tweened state drives both paths every frame. `anchor` flips
-        // which side of the curve is filled — top for the covering sweep,
-        // bottom for the revealing sweep (same downward travel).
         const drape = {
-          yL: 0,
-          yR: 0,
+          yEdge: 0,
           yMid: 0,
           anchor: "top" as "top" | "bottom",
         };
 
         const draw = () => {
-          const { yL, yR, yMid, anchor } = drape;
+          const { yEdge, yMid, anchor } = drape;
           if (anchor === "top") {
-            // Curtain hangs from the top; curve = bottom edge. Gold lip
-            // extends LIP units past the dark edge, leading the sweep.
-            darkPath.setAttribute(
+            mainPath.setAttribute(
               "d",
-              `M0,0 L100,0 L100,${yR} Q50,${yMid} 0,${yL} Z`
-            );
-            goldPath.setAttribute(
-              "d",
-              `M0,0 L100,0 L100,${yR + LIP} Q50,${yMid + LIP} 0,${yL + LIP} Z`
+              `M0,0 L100,0 L100,${yEdge} Q50,${yMid} 0,${yEdge} Z`
             );
           } else {
-            // Curtain pinned to the bottom; curve = top edge. Gold lip sits
-            // ABOVE the dark edge so it still leads the downward reveal.
-            darkPath.setAttribute(
+            mainPath.setAttribute(
               "d",
-              `M0,100 L100,100 L100,${yR} Q50,${yMid} 0,${yL} Z`
-            );
-            goldPath.setAttribute(
-              "d",
-              `M0,100 L100,100 L100,${Math.max(yR - LIP, -2)} Q50,${Math.max(
-                yMid - LIP,
-                -2
-              )} 0,${Math.max(yL - LIP, -2)} Z`
+              `M0,100 L100,100 L100,${yEdge} Q50,${yMid} 0,${yEdge} Z`
             );
           }
         };
         draw();
 
         /* ---- The two sweeps, as awaitable timelines ----------- */
-        // Open: curtain drops from the top and covers. The right corner
-        // lags the left slightly and the mid control point overshoots —
-        // the diagonal + sag that reads as dragged cloth.
         const openCurtain = () =>
           new Promise<void>((resolve) => {
             drape.anchor = "top";
-            drape.yL = drape.yR = drape.yMid = 0;
+            drape.yEdge = 0;
+            drape.yMid = 0;
             gsap
               .timeline({ onUpdate: draw, onComplete: resolve })
-              .to(drape, { yL: COVERED, duration: 0.55, ease: "expo.out" }, 0)
-              .to(
-                drape,
-                { yR: COVERED, duration: 0.55, ease: "expo.out" },
-                0.08
-              )
-              .to(
-                drape,
-                { yMid: COVERED + 20, duration: 0.5, ease: "power3.out" },
-                0
-              )
-              .to(drape, {
-                yMid: COVERED,
-                duration: 0.22,
-                ease: "power2.inOut",
-              });
+              .to(drape, { yEdge: COVERED, duration: 1.2, ease: "power3.inOut" }, 0)
+              .to(drape, { yMid: COVERED + 25, duration: 0.7, ease: "power2.in" }, 0)
+              .to(drape, { yMid: COVERED, duration: 0.5, ease: "power2.out" }, 0.7);
           });
 
-        // Close: the boundary keeps travelling down, now revealing the new
-        // page above it. Slower + more drape than the open, right leads.
         const closeCurtain = () =>
           new Promise<void>((resolve) => {
             drape.anchor = "bottom";
-            drape.yL = drape.yR = drape.yMid = 0;
+            drape.yEdge = 0;
+            drape.yMid = 0;
             gsap
               .timeline({ onUpdate: draw, onComplete: resolve })
-              .to(drape, { yR: EXIT, duration: 0.85, ease: "power3.inOut" }, 0)
-              .to(
-                drape,
-                { yL: EXIT, duration: 0.85, ease: "power3.inOut" },
-                0.08
-              )
-              .to(
-                drape,
-                { yMid: EXIT + 18, duration: 0.9, ease: "power4.inOut" },
-                0.04
-              );
+              .to(drape, { yEdge: EXIT, duration: 1.2, ease: "power3.inOut" }, 0)
+              .to(drape, { yMid: EXIT + 25, duration: 0.7, ease: "power2.in" }, 0)
+              .to(drape, { yMid: EXIT, duration: 0.5, ease: "power2.out" }, 0.7);
           });
 
-        /* ---- Label (masked char rise) ------------------------- */
-        // The destination name, one span per char inside an overflow-hidden
-        // line — chars rise in with a stagger, then lift out fast before
-        // the reveal. Rebuilt per navigation (the text changes each time).
+        /* ---- Label ------------------------- */
         const showLabel = (name: string) =>
           new Promise<void>((resolve) => {
-            labelEl.innerHTML = name
-              .split("")
-              .map(
-                (c) =>
-                  `<span class="route-curtain__char">${
-                    c === " " ? "&nbsp;" : c
-                  }</span>`
-              )
-              .join("");
-            const chars = labelEl.querySelectorAll(".route-curtain__char");
+            labelEl.textContent = name;
             gsap
               .timeline({ onComplete: resolve })
               .fromTo(
-                eyebrowEl,
-                { autoAlpha: 0, y: 12 },
-                { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" },
+                [eyebrowEl, labelEl],
+                { autoAlpha: 0, y: 20 },
+                { autoAlpha: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.1 },
                 0
-              )
-              .fromTo(
-                chars,
-                { yPercent: 115 },
-                {
-                  yPercent: 0,
-                  duration: 0.7,
-                  ease: "expo.out",
-                  stagger: 0.035,
-                },
-                0.05
               );
           });
 
         const hideLabel = () =>
           new Promise<void>((resolve) => {
-            const chars = labelEl.querySelectorAll(".route-curtain__char");
             gsap
               .timeline({ onComplete: resolve })
-              .to(chars, {
-                yPercent: -115,
-                duration: 0.3,
+              .to([eyebrowEl, labelEl], {
+                autoAlpha: 0,
+                y: -20,
+                duration: 0.6,
                 ease: "power2.in",
-                stagger: 0.02,
-              })
-              .to(
-                eyebrowEl,
-                { autoAlpha: 0, duration: 0.2, ease: "power1.in" },
-                0
-              );
+                stagger: 0.05,
+              });
           });
 
         /* ---- Route swap under cover --------------------------- */
-        // Push the new route and wait until React has actually rendered it
-        // (the pathname effect resolves), with a timeout net so a slow or
-        // failed navigation can never strand the curtain over the screen.
         const settleRoute = (path: string) =>
           new Promise<void>((resolve) => {
             if (pathnameRef.current === path) return resolve();
@@ -294,28 +217,27 @@ export default function RouteCurtain() {
 
           try {
             await openCurtain();
-            // Fully covered — bring the name up while the route swaps.
-            const labelIn = showLabel(name);
+            
+            // Wait for the text animation to completely finish first
+            await showLabel(name);
+
             markClientNavigation();
             router.push(path);
-            await Promise.all([labelIn, settleRoute(path)]);
+            
+            // Wait for route to settle
+            await settleRoute(path);
 
-            // New page is mounted beneath the curtain: reset scroll while
-            // nothing is visible. The hero manages Lenis itself on "/"
-            // (stopped for its slideshow); on every other route make sure
-            // Lenis is running — the hero stops the shared instance and
-            // nothing else restarts it after a client-side departure.
             const lenis = getLenis();
             lenis?.scrollTo(0, { immediate: true, force: true });
             if (path !== "/") lenis?.start();
             window.scrollTo(0, 0);
 
-            await wait(300); // readable beat on the name
+            await wait(400); // slightly longer beat since everything is slower
             await hideLabel();
             await closeCurtain();
           } finally {
             root.classList.remove("is--active");
-            labelEl.innerHTML = "";
+            labelEl.textContent = "";
             transitioning = false;
           }
         };
@@ -323,10 +245,6 @@ export default function RouteCurtain() {
     })();
 
     /* ---- Click interception (capture phase) ------------------- */
-    // Must run BEFORE Next's <Link> handler (which preventDefaults + pushes
-    // itself), hence document capture. Bubble-phase element handlers (the
-    // nav's section-scroll interceptors, Link's router push suppressed by
-    // our preventDefault) still run afterwards untouched.
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented) return;
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
@@ -344,17 +262,13 @@ export default function RouteCurtain() {
       }
       if (url.origin !== window.location.origin) return;
 
-      // Landing-page section links scroll in-page on "/" — never curtain
-      // them there. From any other route they become a navigation home.
       const isSectionLink =
         a.hasAttribute("data-section-link") || a.hasAttribute("data-home-link");
       if (isSectionLink && pathnameRef.current === "/") return;
 
-      // Same route (incl. hash-only changes): let the default happen.
       if (url.pathname === pathnameRef.current) return;
 
       if (transitioning) {
-        // One transition at a time — swallow stray clicks mid-flight.
         e.preventDefault();
         return;
       }
@@ -362,7 +276,6 @@ export default function RouteCurtain() {
       e.preventDefault();
 
       if (prefersReducedMotion || !runTransition) {
-        // No curtain, but still a client-side route + hero-intro skip.
         markClientNavigation();
         router.push(url.pathname + url.hash);
         return;
@@ -378,8 +291,6 @@ export default function RouteCurtain() {
       document.removeEventListener("click", onClick, true);
       ctx?.revert();
     };
-    // router is stable; pathname changes are tracked via pathnameRef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -389,10 +300,14 @@ export default function RouteCurtain() {
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
       >
-        {/* Gold lip first (painted beneath), dark panel on top — the lip is
-            whatever sticks out past the dark edge. */}
-        <path data-curtain-gold className="route-curtain__gold" d="" />
-        <path data-curtain-dark className="route-curtain__dark" d="" />
+        <defs>
+          <linearGradient id="curtain-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f5f5f0" />
+            <stop offset="50%" stopColor="#e6b422" />
+            <stop offset="100%" stopColor="#c0c0c0" />
+          </linearGradient>
+        </defs>
+        <path data-curtain-main className="route-curtain__main" d="" />
       </svg>
 
       <div className="route-curtain__center">

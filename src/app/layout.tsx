@@ -13,12 +13,14 @@ const sans = Libre_Franklin({
   display: "swap",
 });
 
-// Fashion-sleek display face for hero/wordmark moments (§4)
+// Fashion-sleek display face for hero/wordmark moments (§4).
+// Loaded as a variable font (full wght axis) so the footer wordmark can
+// drive `font-variation-settings: 'wght'` under the cursor — fixed-weight
+// instances would ignore it. Regular styles keep using font-weight as before.
 const display = Raleway({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["300", "400", "500"],
 });
 
 export const metadata: Metadata = {
