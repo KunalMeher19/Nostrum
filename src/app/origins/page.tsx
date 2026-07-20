@@ -50,8 +50,6 @@ export default function OriginsPage() {
       </div>
 
       <section className="origins__outro" aria-label="Continue to the shop">
-        <p className="origins__outro-eyebrow">First cold pressing</p>
-        <p className="origins__outro-line">From our grove to your table.</p>
         <Link href="/products" className="origins__cta">
           <span>Shop the collection</span>
           <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">

@@ -102,8 +102,10 @@ export default function OriginMap() {
       ref={rootRef}
       aria-label="Where the grove is"
     >
-      <p className="origin-map__eyebrow">The place</p>
-      <h2 className="origin-map__title">Here — nowhere else.</h2>
+      <div className="origin-map__head">
+        <p className="origin-map__eyebrow">The place</p>
+        <h2 className="origin-map__title">Here — nowhere else.</h2>
+      </div>
 
       <div className="origin-map__stage">
         <svg

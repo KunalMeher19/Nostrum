@@ -17,8 +17,16 @@
     #14160f;
   color: #edebe3;
   text-align: center;
-  padding: clamp(6rem, 16vh, 11rem) clamp(1.5rem, 6vw, 6rem)
-    clamp(5rem, 12vh, 9rem);
+  padding: clamp(6rem, 16vh, 11rem) 0 clamp(5rem, 12vh, 9rem);
+}
+
+/* Head — same left rail as the "How it is made" intro (StoryProcess):
+   78rem container, same gutter, left-aligned. */
+.origin-map__head {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0 clamp(1.5rem, 5vw, 5rem);
+  text-align: left;
 }
 
 .origin-map__eyebrow {
@@ -26,7 +34,6 @@
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: clamp(0.65rem, 0.8vw, 0.78rem);
   letter-spacing: 0.35em;
-  text-indent: 0.35em;
   text-transform: uppercase;
   color: var(--nostrum-gold-metal, #e6b422);
 }
@@ -44,7 +51,7 @@
 .origin-map__stage {
   position: relative;
   margin: clamp(2.5rem, 7vh, 5rem) auto 0;
-  max-width: 46rem;
+  width: min(46rem, calc(100% - 2 * clamp(1.5rem, 6vw, 6rem)));
 }
 
 .origin-map__svg {
