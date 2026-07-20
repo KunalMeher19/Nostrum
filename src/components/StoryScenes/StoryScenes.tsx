@@ -330,9 +330,7 @@ export default function StoryScenes() {
     const dots = Array.from(
       root.querySelectorAll<HTMLElement>(".story-scenes__dot")
     );
-    const manifesto = root.querySelector<HTMLElement>(
-      ".story-scenes__manifesto"
-    );
+
     const n = scenes.length;
     if (!n) return;
 
@@ -346,40 +344,12 @@ export default function StoryScenes() {
     const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
     const smooth = (v: number) => v * v * (3 - 2 * v);
 
-    // The manifesto "title page" owns the opening slice of the pin: a
-    // near-black frame of huge words that holds, then dissolves into the
-    // first photograph (scene 0 is already alive underneath it).
-    const MANIFESTO_SPAN = 0.2;
-
     const applyProgress = (p: number) => {
-      // ---- Manifesto (beat 0) ---------------------------------------
-      // Holds fully dark for the first ~55% of its slice, then dissolves.
-      // Slight drift + scale-down on the words as they go, like a title
-      // card sinking into the film.
-      const mLocal = clamp01(p / MANIFESTO_SPAN);
-      const mVis = 1 - smooth(clamp01((mLocal - 0.55) / 0.45));
-      if (manifesto) {
-        manifesto.style.opacity = `${mVis}`;
-        manifesto.style.visibility = mVis <= 0.001 ? "hidden" : "visible";
-        const inner = manifesto.querySelector<HTMLElement>(
-          ".story-scenes__manifesto-inner"
-        );
-        if (inner) {
-          const gone = 1 - mVis;
-          inner.style.transform = `translateY(${gone * -28}px) scale(${
-            1 - gone * 0.04
-          })`;
-        }
-      }
-      root.classList.toggle("is--on-manifesto", mVis > 0.35);
-
-      // ---- Photo beats — remapped past the manifesto's slice --------
-      const ps = clamp01((p - MANIFESTO_SPAN) / (1 - MANIFESTO_SPAN));
       const span = 1 / n;
       let active = 0;
       for (let i = 0; i < n; i++) {
         const start = i * span;
-        const local = (ps - start) / span; // 0→1 across this scene's slice
+        const local = (p - start) / span; // 0→1 across this scene's slice
         // Fade in over the first 35%, fade out over the last 35% (last scene
         // never fades out). A held middle keeps the caption readable.
         // First scene opens fully visible (no fade-in from black at p=0);
@@ -410,7 +380,7 @@ export default function StoryScenes() {
         });
         // Arrows/callouts sketch themselves in while their scene is on
         // screen, and reset when it leaves so they redraw on return.
-        scene.classList.toggle("is--live", vis >= 0.45 && mVis < 0.6);
+        scene.classList.toggle("is--live", vis >= 0.45);
         if (vis >= 0.5) active = i;
       }
       dots.forEach((d, i) =>
@@ -434,6 +404,13 @@ export default function StoryScenes() {
         // carry transforms, which break ScrollTrigger's position:fixed pin).
         // ScrollTrigger here does nothing but report scroll progress across the
         // tall section; sticky handles the "stay in place" for free.
+        // Snap points: center of each scene's slice + boundaries.
+        const snapPoints = [0];
+        for (let i = 0; i < n; i++) {
+          snapPoints.push((i + 0.5) / n);
+        }
+        snapPoints.push(1);
+
         ScrollTrigger.create({
           trigger: root,
           start: "top top",
@@ -441,6 +418,12 @@ export default function StoryScenes() {
           invalidateOnRefresh: true,
           // Measured after any upstream pin — matches StoryProcess.
           refreshPriority: -1,
+          snap: {
+            snapTo: snapPoints,
+            duration: { min: 0.2, max: 0.6 },
+            delay: 0.1,
+            ease: "power2.inOut"
+          },
           onUpdate: (self: { progress: number }) => applyProgress(self.progress),
           onRefresh: (self: { progress: number }) => applyProgress(self.progress),
         });
@@ -466,8 +449,7 @@ export default function StoryScenes() {
       className="story-scenes"
       ref={rootRef}
       aria-label="The Nostrum story"
-      /* +1 beat: the manifesto title page owns the opening slice of the pin */
-      style={{ "--scene-count": SCENES.length + 1 } as React.CSSProperties}
+      style={{ "--scene-count": SCENES.length } as React.CSSProperties}
     >
       <div className="story-scenes__stage">
         {SCENES.map((s, i) => (
@@ -530,27 +512,6 @@ export default function StoryScenes() {
         {/* Golden dust — ambient motes over every beat (canvas, JS-driven). */}
         <canvas className="story-scenes__dust" aria-hidden="true" />
 
-        {/* Manifesto — the near-black "title page" that opens the pin and
-            dissolves into the first photograph. Copy is placeholder in the
-            brief's voice; the client may supply the real founding line. */}
-        <div className="story-scenes__manifesto" aria-hidden="false">
-          <div className="story-scenes__manifesto-inner">
-            <p className="story-scenes__manifesto-eyebrow">Nostrum · Origins</p>
-            <h1 className="story-scenes__manifesto-line">
-              <span className="story-scenes__manifesto-word">Four</span>{" "}
-              <span className="story-scenes__manifesto-word">generations.</span>
-              <br />
-              <span className="story-scenes__manifesto-word">One</span>{" "}
-              <span className="story-scenes__manifesto-word">grove.</span>
-            </h1>
-          </div>
-          {/* Scroll hint — a whisper + a slowly drawing line; hidden the
-              moment the visitor starts travelling. */}
-          {/* <div className="story-scenes__hint">
-            <span className="story-scenes__hint-word">Scroll</span>
-            <span className="story-scenes__hint-line" />
-          </div> */}
-        </div>
 
         {/* Progress dots — which beat you're on */}
         <ul className="story-scenes__dots" aria-hidden="true">
