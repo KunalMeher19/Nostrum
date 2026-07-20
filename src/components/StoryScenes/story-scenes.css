@@ -1,0 +1,186 @@
+/* ------------------------------------------------------------------ */
+/* Story scenes — the pinned cinematic scroll-story that opens          */
+/* /origins (before the "How it is made" timeline).                     */
+/*                                                                      */
+/* A full-viewport stage is pinned by GSAP while scenes crossfade over  */
+/* it (opacity/scale/caption-rise driven from JS). On-brand dark ink    */
+/* canvas + gold accent (NOSTRUM-DESIGN §3), huge editorial type with   */
+/* few words (§4), photography-led (§6). Colours are constant here      */
+/* (this section is always dark — no --page-t inversion; the Shop is    */
+/* far below, past the timeline).                                       */
+/* ------------------------------------------------------------------ */
+
+.story-scenes {
+  position: relative;
+  background-color: #14160f;
+  color: #edebe3;
+  /* Tall section = the scroll travel of the story. The stage stays stuck
+     for (height − 100svh) of scrolling — one viewport of travel per scene
+     (--scene-count is set inline from the scene data). */
+  height: calc((var(--scene-count, 3) + 1) * 100svh);
+}
+
+/* The viewport-sized stage — pinned by NATIVE position:sticky, not by
+   ScrollTrigger's pin (fixed-position pinning breaks under the transformed
+   ancestors this app has: [data-main] / RouteCurtain). */
+.story-scenes__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Each scene is stacked full-bleed; JS drives opacity + z-index. */
+.story-scenes__scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
+/* Media wrapper carries the Ken Burns scale (JS sets transform). */
+.story-scenes__media {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.08);
+  will-change: transform;
+}
+
+.story-scenes__image {
+  object-fit: cover;
+}
+
+/* Legibility scrim — darker at the bottom where the caption sits. */
+.story-scenes__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to top,
+      rgba(20, 22, 15, 0.92) 0%,
+      rgba(20, 22, 15, 0.55) 32%,
+      rgba(20, 22, 15, 0.15) 60%,
+      rgba(20, 22, 15, 0.4) 100%
+    );
+}
+
+/* Caption anchored bottom-left, editorial column. */
+.story-scenes__caption {
+  position: absolute;
+  left: clamp(1.5rem, 5vw, 5rem);
+  right: clamp(1.5rem, 5vw, 5rem);
+  bottom: clamp(3rem, 10vh, 7rem);
+  max-width: 40rem;
+  will-change: transform;
+}
+
+.story-scenes__eyebrow {
+  margin: 0 0 1em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.65rem, 0.8vw, 0.78rem);
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal, #e6b422);
+}
+
+.story-scenes__title {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
+.story-scenes__copy {
+  margin: clamp(1rem, 2.5vh, 1.75rem) 0 0;
+  max-width: 34ch;
+  font-size: clamp(1rem, 1.2vw, 1.2rem);
+  line-height: 1.65;
+  color: color-mix(in srgb, #edebe3 82%, transparent);
+}
+
+/* Progress dots — bottom-right, gold when active. */
+.story-scenes__dots {
+  position: absolute;
+  right: clamp(1.5rem, 5vw, 5rem);
+  bottom: clamp(3rem, 10vh, 7rem);
+  z-index: 3;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.story-scenes__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, #edebe3 30%, transparent);
+  transition: background 0.4s var(--ease-lux, ease), transform 0.4s
+    var(--ease-lux, ease);
+}
+
+.story-scenes__dot.is--active {
+  background: var(--nostrum-gold-metal, #e6b422);
+  transform: scale(1.5);
+}
+
+/* Placeholder badge — same convention as StoryProcess. */
+.story-scenes__placeholder-tag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 4;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(237, 235, 227, 0.7);
+  background: rgba(20, 22, 15, 0.55);
+  border: 1px solid rgba(237, 235, 227, 0.18);
+  padding: 0.3rem 0.6rem;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 640px) {
+  .story-scenes__dots {
+    bottom: auto;
+    top: clamp(5.5rem, 12vh, 8rem);
+    flex-direction: row;
+  }
+}
+
+/* ---- Reduced motion / no-JS fallback ------------------------------- */
+/* Scenes stack and scroll naturally, all visible, no pin/scrub. */
+.story-scenes.is--static {
+  height: auto;
+}
+
+.story-scenes.is--static .story-scenes__stage {
+  position: relative;
+  height: auto;
+}
+
+.story-scenes.is--static .story-scenes__scene {
+  position: relative;
+  opacity: 1;
+  min-height: 80svh;
+}
+
+.story-scenes.is--static .story-scenes__media {
+  transform: none;
+}
+
+.story-scenes.is--static .story-scenes__caption {
+  transform: none;
+}
+
+.story-scenes.is--static .story-scenes__dots {
+  display: none;
+}

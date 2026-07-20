@@ -73,7 +73,11 @@ body {
   color: var(--nostrum-white);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  /* `clip` (not `hidden`): hidden makes body a scroll container, which breaks
+     position:sticky for every descendant (sticky then references body's
+     never-scrolling scrollport — the StoryScenes stage on /origins stopped
+     sticking). clip clips the same overflow without creating a container. */
+  overflow-x: clip;
   /* Hardware-accelerated momentum scrolling on older iOS WebKit. */
   -webkit-overflow-scrolling: touch;
 }

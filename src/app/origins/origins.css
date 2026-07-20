@@ -15,49 +15,9 @@
   min-height: 100svh;
 }
 
-/* ---- Hero ---------------------------------------------------------- */
-/* Tall but not full-viewport: the timeline's own "How it is made" intro
-   follows right after, so this reads as one continuous editorial open. */
-.origins__hero {
-  display: flex;
-  align-items: flex-end;
-  min-height: 62svh;
-  padding: clamp(7rem, 16vh, 11rem) clamp(1.5rem, 5vw, 5rem)
-    clamp(2rem, 5vh, 4rem);
-}
-
-.origins__hero-inner {
-  width: 100%;
-  max-width: 78rem; /* aligns with .story-process__intro / steps */
-  margin: 0 auto;
-}
-
-.origins__eyebrow {
-  margin: 0 0 1.25em;
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(0.65rem, 0.8vw, 0.78rem);
-  letter-spacing: 0.35em;
-  text-indent: 0.35em;
-  text-transform: uppercase;
-  color: var(--nostrum-gold-metal);
-}
-
-.origins__title {
-  margin: 0;
-  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
-  font-weight: 400;
-  font-size: clamp(3.25rem, 11vw, 9rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-}
-
-.origins__lead {
-  margin: clamp(1.5rem, 4vh, 2.5rem) 0 0;
-  max-width: 44ch;
-  font-size: clamp(1.05rem, 1.2vw, 1.25rem);
-  line-height: 1.7;
-  color: color-mix(in srgb, #edebe3 78%, transparent);
-}
+/* The pinned StoryScenes opener + the StoryProcess timeline carry the top
+   of this page now; the hero that used to live here was replaced by the
+   cinematic scroll-story (2026-07). Only the outro chrome remains. */
 
 /* ---- Outro --------------------------------------------------------- */
 .origins__outro {
@@ -68,6 +28,16 @@
   text-align: center;
   padding: clamp(4rem, 12vh, 9rem) clamp(1.5rem, 5vw, 5rem)
     clamp(6rem, 14vh, 10rem);
+}
+
+.origins__outro-eyebrow {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.65rem, 0.8vw, 0.78rem);
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal);
 }
 
 .origins__outro-line {
@@ -84,6 +54,7 @@
 .origins__cta {
   display: inline-flex;
   align-items: center;
+  gap: 0.6rem;
   color: #edebe3;
   text-decoration: none;
   font-size: 0.85rem;
@@ -91,10 +62,19 @@
   letter-spacing: 0.15em;
   border-bottom: 1px solid color-mix(in srgb, #edebe3 30%, transparent);
   padding-bottom: 0.5rem;
-  transition: border-color 0.4s ease, color 0.4s ease;
+  transition: border-color 0.4s var(--ease-lux, ease), color 0.4s
+    var(--ease-lux, ease);
+}
+
+.origins__cta svg {
+  transition: transform 0.4s var(--ease-lux, ease);
 }
 
 .origins__cta:hover {
   border-color: var(--nostrum-gold-metal);
   color: var(--nostrum-gold-metal);
+}
+
+.origins__cta:hover svg {
+  transform: translate(3px, -3px);
 }

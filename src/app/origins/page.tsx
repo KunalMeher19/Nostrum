@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import StoryScenes from "@/components/StoryScenes/StoryScenes";
 import StoryProcess from "@/components/StoryProcess/StoryProcess";
 import "./origins.css";
 
@@ -23,28 +24,26 @@ export const metadata: Metadata = {
 export default function OriginsPage() {
   return (
     <main data-main className="origins">
-      <header className="origins__hero">
-        <div className="origins__hero-inner">
-          <p className="origins__eyebrow">From the land</p>
-          <h1 className="origins__title">Origins</h1>
-          <p className="origins__lead">
-            A family grove on the Mediterranean coast. Old trees, patient
-            hands, and one rule that never changed&nbsp;— the fruit decides
-            when.
-          </p>
-        </div>
-      </header>
+      {/* Cinematic pinned scroll-story — the land → family → harvest.
+          Opens the page and flows straight into the process timeline. */}
+      <StoryScenes />
 
       {/* The process timeline — moved from the homepage Story section. */}
       <StoryProcess />
 
       <section className="origins__outro" aria-label="Continue to the shop">
-        <p className="origins__outro-
-        line">
-          From our grove to your table.
-        </p>
+        <p className="origins__outro-eyebrow">First cold pressing</p>
+        <p className="origins__outro-line">From our grove to your table.</p>
         <Link href="/products" className="origins__cta">
-          Shop the collection
+          <span>Shop the collection</span>
+          <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
+            <path
+              d="M1 13 13 1M4 1h9v9"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+            />
+          </svg>
         </Link>
       </section>
     </main>
