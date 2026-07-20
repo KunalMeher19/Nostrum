@@ -6,6 +6,7 @@ import {
   hasClientNavigated,
   CURTAIN_REVEAL_EVENT,
 } from "../RouteCurtain/curtainNav";
+import { getLenis } from "../SmoothScroll/lenisStore";
 import "./story-scenes.css";
 
 /* ------------------------------------------------------------------ */
@@ -404,29 +405,90 @@ export default function StoryScenes() {
         // carry transforms, which break ScrollTrigger's position:fixed pin).
         // ScrollTrigger here does nothing but report scroll progress across the
         // tall section; sticky handles the "stay in place" for free.
+
         // Snap points: center of each scene's slice + boundaries.
-        const snapPoints = [0];
+        const snapPoints: number[] = [];
         for (let i = 0; i < n; i++) {
           snapPoints.push((i + 0.5) / n);
         }
         snapPoints.push(1);
 
-        ScrollTrigger.create({
+        // Custom Lenis-based snapping. GSAP's built-in `snap` fights with
+        // Lenis because Lenis owns the scroll position via its own
+        // interpolation. Instead we watch for scroll-stop (via Lenis'
+        // own event) and programmatically scrollTo the nearest snap point.
+        let snapTimer = 0;
+        let isSnapping = false;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let stInstance: any = null;
+
+        const doSnap = () => {
+          if (!stInstance) return;
+          const lenis = getLenis();
+          if (!lenis) return;
+
+          const progress = stInstance.progress as number;
+          // Don't snap at the very start or very end (allow natural
+          // scroll out of the section).
+          if (progress <= 0.01 || progress >= 0.99) return;
+
+          // Find the nearest snap point.
+          let best = snapPoints[0];
+          let bestDist = Math.abs(progress - best);
+          for (let i = 1; i < snapPoints.length; i++) {
+            const d = Math.abs(progress - snapPoints[i]);
+            if (d < bestDist) {
+              bestDist = d;
+              best = snapPoints[i];
+            }
+          }
+
+          // Only snap if we're not already close enough.
+          if (bestDist < 0.005) return;
+
+          // Convert progress to an absolute scroll position.
+          const triggerStart = stInstance.start as number;
+          const triggerEnd = stInstance.end as number;
+          const targetScroll = triggerStart + best * (triggerEnd - triggerStart);
+
+          isSnapping = true;
+          lenis.scrollTo(targetScroll, {
+            duration: 0.8,
+            easing: (t: number) => 1 - Math.pow(1 - t, 3), // easeOutCubic
+            onComplete: () => {
+              isSnapping = false;
+            },
+          });
+        };
+
+        // Listen for Lenis scroll-stop to trigger snapping.
+        const lenis = getLenis();
+        const onLenisScroll = () => {
+          if (isSnapping) return;
+          window.clearTimeout(snapTimer);
+          snapTimer = window.setTimeout(doSnap, 120);
+        };
+        if (lenis) {
+          lenis.on("scroll", onLenisScroll);
+        }
+
+        stInstance = ScrollTrigger.create({
           trigger: root,
           start: "top top",
           end: "bottom bottom",
           invalidateOnRefresh: true,
           // Measured after any upstream pin — matches StoryProcess.
           refreshPriority: -1,
-          snap: {
-            snapTo: snapPoints,
-            duration: { min: 0.2, max: 0.6 },
-            delay: 0.1,
-            ease: "power2.inOut"
-          },
           onUpdate: (self: { progress: number }) => applyProgress(self.progress),
           onRefresh: (self: { progress: number }) => applyProgress(self.progress),
         });
+
+        // Store cleanup for the Lenis listener.
+        (root as any).__storySnapCleanup = () => {
+          window.clearTimeout(snapTimer);
+          const l = getLenis();
+          if (l) l.off("scroll", onLenisScroll);
+        };
       }, root);
 
       ScrollTrigger.refresh();
@@ -440,6 +502,11 @@ export default function StoryScenes() {
       dustOn = false;
       cancelAnimationFrame(dustRaf);
       dustObserver?.disconnect();
+      // Clean up Lenis snap listener.
+      if (root && (root as any).__storySnapCleanup) {
+        (root as any).__storySnapCleanup();
+        delete (root as any).__storySnapCleanup;
+      }
       ctx?.revert();
     };
   }, []);
