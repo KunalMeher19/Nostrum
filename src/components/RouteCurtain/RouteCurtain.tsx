@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import "./route-curtain.css";
-import { markClientNavigation } from "./curtainNav";
+import { markClientNavigation, CURTAIN_REVEAL_EVENT } from "./curtainNav";
 import { getLenis } from "../SmoothScroll/lenisStore";
 
 /* ---- Route → display name ------------------------------------ */
@@ -234,6 +234,9 @@ export default function RouteCurtain() {
 
             await wait(400); // slightly longer beat since everything is slower
             await hideLabel();
+            // The reveal sweep starts NOW — let the destination page begin its
+            // own entry choreography in sync with the drape lifting.
+            window.dispatchEvent(new CustomEvent(CURTAIN_REVEAL_EVENT));
             await closeCurtain();
           } finally {
             root.classList.remove("is--active");

@@ -51,6 +51,191 @@
   object-fit: cover;
 }
 
+/* ---- Entry choreography (the welcome) ------------------------------ */
+/* is--pre  = staged & held (arriving from Home under the RouteCurtain):  */
+/*   image zoomed deeper, caption lines below their mask, arrows undrawn. */
+/* is--enter = the settle — plays as the drape lifts. Slow expo easings,  */
+/* long stagger: image settles first, words rise, arrows sketch in last.  */
+/* JS owns `transform` on __media/__caption (Ken Burns / rise), so the    */
+/* entry animates their CHILDREN — no property tug-of-war.                */
+
+.story-scenes.is--pre .story-scenes__scene[data-index="0"] .story-scenes__image {
+  transform: scale(1.14);
+  filter: brightness(0.65) saturate(0.85);
+}
+
+.story-scenes.is--pre .story-scenes__scene[data-index="0"] .story-scenes__eyebrow,
+.story-scenes.is--pre .story-scenes__scene[data-index="0"] .story-scenes__title,
+.story-scenes.is--pre .story-scenes__scene[data-index="0"] .story-scenes__copy {
+  opacity: 0;
+  transform: translateY(1.2em);
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__image {
+  transform: scale(1);
+  filter: brightness(1) saturate(1);
+  transition:
+    transform 2.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Caption lines rise through a clipped mask, staggered eyebrow→title→copy. */
+.story-scenes__scene[data-index="0"] .story-scenes__eyebrow,
+.story-scenes__scene[data-index="0"] .story-scenes__title,
+.story-scenes__scene[data-index="0"] .story-scenes__copy {
+  clip-path: inset(-0.2em -0.1em -0.15em -0.1em);
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__eyebrow,
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__title,
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__copy {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__eyebrow {
+  transition-delay: 0.55s;
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__title {
+  transition-delay: 0.75s;
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__copy {
+  transition-delay: 0.95s;
+}
+
+/* Scene 0's arrows wait for the caption during the entry, then sketch in
+   (the extra 1.3s rides on top of each callout's own --callout-delay). */
+.story-scenes.is--pre .story-scenes__scene[data-index="0"] .story-scenes__callout,
+.story-scenes.is--pre .story-scenes__dots {
+  opacity: 0;
+}
+
+.story-scenes.is--enter .story-scenes__dots {
+  opacity: 1;
+  transition: opacity 1s ease 1.6s;
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"] .story-scenes__callout {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  transition-delay: calc(1.3s + var(--callout-delay, 0s));
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"].is--live .story-scenes__arrow-line {
+  transition-delay: calc(1.3s + var(--callout-delay, 0s));
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"].is--live .story-scenes__arrow-head {
+  transition-delay: calc(2.05s + var(--callout-delay, 0s));
+}
+
+.story-scenes.is--enter .story-scenes__scene[data-index="0"].is--live .story-scenes__callout-label {
+  transition-delay: calc(1.9s + var(--callout-delay, 0s));
+}
+
+/* ---- Hand-drawn callouts (esbozo arrows + a few words) ------------- */
+/* Gold ink annotations pointing into the photograph. Anchored in stage % */
+/* from the scene data; the arrow draws itself via dashoffset when the    */
+/* scene goes live, the label fades up just after the nib lands.          */
+
+.story-scenes__callout {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.story-scenes__callout-arrow {
+  position: absolute;
+  width: clamp(64px, 8vw, 120px);
+  height: auto;
+  color: var(--nostrum-gold-metal, #e6b422);
+  filter: drop-shadow(0 1px 6px rgba(20, 22, 15, 0.6));
+  overflow: visible;
+}
+
+.story-scenes__arrow-line {
+  stroke-dasharray: 150;
+  stroke-dashoffset: 150;
+}
+
+.story-scenes__arrow-head {
+  stroke-dasharray: 34;
+  stroke-dashoffset: 34;
+}
+
+.story-scenes__callout-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  max-width: 12rem;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-style: italic;
+  font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 88%, #fff);
+  text-shadow: 0 1px 8px rgba(20, 22, 15, 0.75);
+  opacity: 0;
+  white-space: nowrap;
+}
+
+/* Draw-in when the scene is on screen (is--live from the scrub / entry). */
+.story-scenes__scene.is--live .story-scenes__arrow-line {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: var(--callout-delay, 0s);
+}
+
+.story-scenes__scene.is--live .story-scenes__arrow-head {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: calc(0.75s + var(--callout-delay, 0s));
+}
+
+.story-scenes__scene.is--live .story-scenes__callout-label {
+  opacity: 1;
+  transition: opacity 0.7s ease;
+  transition-delay: calc(0.6s + var(--callout-delay, 0s));
+}
+
+/* Reset instantly (no transition) when the scene leaves, so arrows
+   redraw fresh every time you scroll back to a beat. */
+.story-scenes__scene:not(.is--live) .story-scenes__arrow-line,
+.story-scenes__scene:not(.is--live) .story-scenes__arrow-head,
+.story-scenes__scene:not(.is--live) .story-scenes__callout-label {
+  transition: none;
+}
+
+/* While staged under the curtain (is--pre), hold everything undrawn even if
+   the scrub has already marked the scene live — otherwise the arrows would
+   sketch themselves invisibly before the reveal and the entry loses its beat. */
+.story-scenes.is--pre .story-scenes__scene.is--live .story-scenes__arrow-line {
+  stroke-dashoffset: 150;
+  transition: none;
+}
+
+.story-scenes.is--pre .story-scenes__scene.is--live .story-scenes__arrow-head {
+  stroke-dashoffset: 34;
+  transition: none;
+}
+
+.story-scenes.is--pre .story-scenes__scene.is--live .story-scenes__callout-label {
+  opacity: 0;
+  transition: none;
+}
+
+@media (max-width: 640px) {
+  .story-scenes__callout-label {
+    font-size: 0.78rem;
+    max-width: 9rem;
+    white-space: normal;
+  }
+}
+
 /* Legibility scrim — darker at the bottom where the caption sits. */
 .story-scenes__scrim {
   position: absolute;
@@ -130,23 +315,8 @@
   transform: scale(1.5);
 }
 
-/* Placeholder badge — same convention as StoryProcess. */
-.story-scenes__placeholder-tag {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 4;
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(237, 235, 227, 0.7);
-  background: rgba(20, 22, 15, 0.55);
-  border: 1px solid rgba(237, 235, 227, 0.18);
-  padding: 0.3rem 0.6rem;
-  border-radius: 2px;
-  backdrop-filter: blur(4px);
-}
+/* Placeholder badge convention (StoryProcess) no longer needed here —
+   the origin photography is client-supplied, final. */
 
 @media (max-width: 640px) {
   .story-scenes__dots {
@@ -183,4 +353,14 @@
 
 .story-scenes.is--static .story-scenes__dots {
   display: none;
+}
+
+/* Static mode: annotations simply present, fully drawn — no choreography. */
+.story-scenes.is--static .story-scenes__arrow-line,
+.story-scenes.is--static .story-scenes__arrow-head {
+  stroke-dashoffset: 0;
+}
+
+.story-scenes.is--static .story-scenes__callout-label {
+  opacity: 1;
 }

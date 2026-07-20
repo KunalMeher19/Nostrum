@@ -14,6 +14,15 @@
  */
 let clientNavigated = false;
 
+/**
+ * Fired on `window` by RouteCurtain the moment the closing sweep starts
+ * revealing the new page. Destination pages that stage their own entry
+ * choreography (e.g. /origins' first StoryScene) listen for this so their
+ * animation plays AS the drape lifts — never hidden underneath it, never
+ * awkwardly late after it.
+ */
+export const CURTAIN_REVEAL_EVENT = "nostrum:curtain-reveal";
+
 /** Called by RouteCurtain just before it pushes the new route. */
 export function markClientNavigation(): void {
   clientNavigated = true;

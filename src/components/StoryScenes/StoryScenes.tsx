@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import {
+  hasClientNavigated,
+  CURTAIN_REVEAL_EVENT,
+} from "../RouteCurtain/curtainNav";
 import "./story-scenes.css";
 
 /* ------------------------------------------------------------------ */
@@ -26,39 +30,148 @@ import "./story-scenes.css";
 /* import, gsap.context revert, refreshPriority below the hero pin).    */
 /* ------------------------------------------------------------------ */
 
+type Callout = {
+  label: string;
+  /* Label + arrow anchors, % of the stage (photography is art-directed to
+     keep these features roughly in place across cover-crops). */
+  labelX: string;
+  labelY: string;
+  arrowX: string;
+  arrowY: string;
+  /* Arrow aim — rotation in deg, optional horizontal flip. */
+  rotate: number;
+  flip?: boolean;
+  /* Draw-in stagger within the scene. */
+  delay?: number;
+};
+
 type Scene = {
   eyebrow: string;
   title: string;
   copy: string;
   img: string;
   alt: string;
+  callouts?: Callout[];
 };
 
-// Placeholder copy (few words, brief's voice) + placeholder imagery reusing
-// the existing stills until real grove/family photography arrives (§7).
+// Origin photography (client-supplied, 2026-07) + esbozo arrow annotations
+// pointing out what the frame is really about — sketchy hand-drawn arrows for
+// craft warmth (NOSTRUM-DESIGN motion ideas), gold ink, few words.
 const SCENES: Scene[] = [
   {
     eyebrow: "The land",
     title: "Where it begins",
     copy: "A single grove on the Mediterranean coast. Old trees, patient soil, salt in the air.",
-    img: "/images/1.png",
-    alt: "Olive grove on the Mediterranean coast",
+    img: "/images/origin_1.png",
+    alt: "Ancient olive tree above the Mediterranean coast at golden hour",
+    callouts: [
+      {
+        label: "two centuries old",
+        labelX: "47%",
+        labelY: "36%",
+        arrowX: "56%",
+        arrowY: "42%",
+        rotate: 32,
+        delay: 0,
+      },
+      {
+        label: "salt in the air",
+        labelX: "20%",
+        labelY: "18%",
+        arrowX: "12%",
+        arrowY: "23%",
+        rotate: 148,
+        flip: true,
+        delay: 0.5,
+      },
+    ],
   },
   {
     eyebrow: "The family",
     title: "The same hands",
     copy: "Four generations, one grove. Nothing here is rushed, and nothing is left to chance.",
-    img: "/images/5.png",
-    alt: "Family hands among the olive branches",
+    img: "/images/origin_2.png",
+    alt: "Weathered hands passing fresh olives to a younger hand",
+    callouts: [
+      {
+        label: "grandfather's harvest",
+        labelX: "50%",
+        labelY: "20%",
+        arrowX: "58%",
+        arrowY: "25%",
+        rotate: 38,
+        delay: 0,
+      },
+      {
+        label: "the next pair",
+        labelX: "43%",
+        labelY: "82%",
+        arrowX: "50%",
+        arrowY: "87%",
+        rotate: 16,
+        delay: 0.5,
+      },
+    ],
   },
   {
     eyebrow: "The harvest",
     title: "When the fruit decides",
     copy: "Picked at first light, at the peak of ripeness — then pressed the very same day.",
-    img: "/images/2.png",
-    alt: "Olives gathered at harvest",
+    img: "/images/origin_3.png",
+    alt: "Olives pouring from a wooden harvest crate at sunrise",
+    callouts: [
+      {
+        label: "crate by crate, by hand",
+        labelX: "48%",
+        labelY: "18%",
+        arrowX: "56%",
+        arrowY: "23%",
+        rotate: 22,
+        delay: 0,
+      },
+      {
+        label: "hours from the press",
+        labelX: "56%",
+        labelY: "68%",
+        arrowX: "63%",
+        arrowY: "74%",
+        rotate: 26,
+        delay: 0.5,
+      },
+    ],
   },
 ];
+
+/* Hand-drawn (esbozo) annotation arrow — a loose curved stroke + open head,
+   drawn in via stroke-dashoffset when its scene becomes active. */
+function SketchArrow({ style }: { style: React.CSSProperties }) {
+  return (
+    <svg
+      className="story-scenes__callout-arrow"
+      viewBox="0 0 120 70"
+      style={style}
+      aria-hidden="true"
+    >
+      <path
+        className="story-scenes__arrow-line"
+        d="M6 12 C 34 2, 76 10, 104 48"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        className="story-scenes__arrow-head"
+        d="M89 46 L 104 48 L 103 32"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export default function StoryScenes() {
   const rootRef = useRef<HTMLElement | null>(null);
@@ -72,8 +185,45 @@ export default function StoryScenes() {
     ).matches;
     // Reduced motion: leave the static stacked fallback (CSS shows all scenes).
     if (prefersReduced) {
+      root.classList.remove("is--pre");
       root.classList.add("is--static");
       return;
+    }
+
+    /* ---- Entry choreography (the welcome) --------------------------- */
+    // First scene opens with a slow settle: image eases down from a deeper
+    // zoom, caption lines rise through a mask, arrows sketch themselves in
+    // last. When we arrive from Home via the RouteCurtain, the whole thing
+    // is held (is--pre) until the drape starts lifting, so the settle plays
+    // AS the page is revealed — one continuous premium beat, not two.
+    let entryTimer = 0;
+    let entryDoneTimer = 0;
+    const beginEntry = () => {
+      window.removeEventListener(CURTAIN_REVEAL_EVENT, beginEntry);
+      window.clearTimeout(entryTimer);
+      root.classList.remove("is--pre");
+      // Reflow so the pre→enter transition actually animates.
+      void root.offsetWidth;
+      root.classList.add("is--enter");
+      // Once the choreography has fully played, shed the entry class so its
+      // extra transition-delays don't slow later scroll-back arrow redraws.
+      entryDoneTimer = window.setTimeout(
+        () => root.classList.remove("is--enter"),
+        4500
+      );
+    };
+
+    root.classList.add("is--pre");
+    if (hasClientNavigated()) {
+      // Arriving from Home under the RouteCurtain: hold until the drape
+      // starts lifting so the settle plays through the reveal.
+      window.addEventListener(CURTAIN_REVEAL_EVENT, beginEntry);
+      // Safety: if the reveal event never lands (curtain interrupted), enter anyway.
+      entryTimer = window.setTimeout(beginEntry, 3500);
+    } else {
+      // Hard load: play the same settle right away (next frame, so the
+      // staged pre-state has painted and the transition can run).
+      entryTimer = window.setTimeout(beginEntry, 60);
     }
 
     const scenes = Array.from(
@@ -119,6 +269,9 @@ export default function StoryScenes() {
         if (img) img.style.transform = `scale(${1.08 + lp * 0.08})`;
         if (cap) cap.style.transform = `translateY(${(1 - fadeIn) * 40}px)`;
         scene.style.zIndex = `${vis > 0.02 ? 2 : 1}`;
+        // Arrows/callouts sketch themselves in while their scene is on
+        // screen, and reset when it leaves so they redraw on return.
+        scene.classList.toggle("is--live", vis >= 0.45);
         if (vis >= 0.5) active = i;
       }
       dots.forEach((d, i) =>
@@ -159,6 +312,9 @@ export default function StoryScenes() {
 
     return () => {
       cancelled = true;
+      window.removeEventListener(CURTAIN_REVEAL_EVENT, beginEntry);
+      window.clearTimeout(entryTimer);
+      window.clearTimeout(entryDoneTimer);
       ctx?.revert();
     };
   }, []);
@@ -187,10 +343,39 @@ export default function StoryScenes() {
                 priority={i === 0}
                 sizes="100vw"
               />
-              <span className="story-scenes__placeholder-tag">Placeholder</span>
             </div>
             {/* Dark gradient scrim so caption text stays legible over photos */}
             <div className="story-scenes__scrim" aria-hidden="true" />
+
+            {/* Hand-drawn annotations — arrow + a few words pointing into the
+                photograph. Decorative; the copy below carries the meaning. */}
+            {s.callouts?.map((c) => (
+              <div
+                className="story-scenes__callout"
+                key={c.label}
+                aria-hidden="true"
+                style={
+                  { "--callout-delay": `${c.delay ?? 0}s` } as React.CSSProperties
+                }
+              >
+                <span
+                  className="story-scenes__callout-label"
+                  style={{ left: c.labelX, top: c.labelY }}
+                >
+                  {c.label}
+                </span>
+                <SketchArrow
+                  style={{
+                    left: c.arrowX,
+                    top: c.arrowY,
+                    transform: `translate(-50%, -50%) rotate(${c.rotate}deg)${
+                      c.flip ? " scaleX(-1)" : ""
+                    }`,
+                  }}
+                />
+              </div>
+            ))}
+
             <div className="story-scenes__caption">
               <p className="story-scenes__eyebrow">{s.eyebrow}</p>
               <h2 className="story-scenes__title">{s.title}</h2>
