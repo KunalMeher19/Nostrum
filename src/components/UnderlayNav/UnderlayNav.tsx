@@ -518,6 +518,58 @@ export default function UnderlayNav() {
                 <span className="underlay-nav__toggle-bar" />
               </span>
             </button>
+
+            {/* ---- Right-side actions: cart + account ------------- */}
+            {/* Placeholder buttons for now (no routes yet). Icons are the
+                visible paths extracted from the Lottie-exported SVGs in
+                /assests, re-inked with currentColor so they ride the same
+                --nav-col auto-contrast as the wordmark + Menu toggle. */}
+            <div className="underlay-nav__actions">
+              <button
+                type="button"
+                className="underlay-nav__action"
+                aria-label="Shopping cart"
+              >
+                <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
+                  {/* Inner group carries the hover animation (CSS transform
+                      would clobber the positioning transform if applied to the
+                      translated group directly). */}
+                  <g transform="translate(117.501 127.5)">
+                    <g className="underlay-nav__icon-cart">
+                      <path d="M61.992 0H-41.68l-18.643-72.5H90.322L74.101-9.385A12.5 12.5 0 0 1 61.992 0m43.935-84.6a7.5 7.5 0 0 0-5.928-2.9h-200a7.5 7.5 0 0 0 0 15h24.18L-55.44 6.768-42.725 15H61.992c12.55 0 23.504-8.499 26.63-20.654l18.643-72.481a7.51 7.51 0 0 0-1.338-6.465" />
+                      <path d="M64.814 2.177H-45.085l-19.762-76.854H94.846L77.651-7.771a13.254 13.254 0 0 1-12.837 9.948M42.499 60c0-6.904 5.596-12.5 12.5-12.5s12.5 5.596 12.5 12.5-5.596 12.5-12.5 12.5-12.5-5.596-12.5-12.5m-105 0c0-6.904 5.596-12.5 12.5-12.5s12.5 5.596 12.5 12.5-5.596 12.5-12.5 12.5-12.5-5.596-12.5-12.5M-44.71 2.685l-10.73 4.083-18.613 39.902A27.4 27.4 0 0 0-77.501 60c0 15.188 12.312 27.5 27.5 27.5s27.5-12.312 27.5-27.5c0-4.506-1.106-8.747-3.027-12.5h56.055A27.35 27.35 0 0 0 27.499 60c0 15.188 12.312 27.5 27.5 27.5s27.5-12.312 27.5-27.5c0-14.926-11.892-27.047-26.718-27.461a8 8 0 0 0-.782-.039h-105c-.304 0-.606.029-.908.039L-42.725 15z" />
+                    </g>
+                  </g>
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="underlay-nav__action"
+                aria-label="Account"
+              >
+                <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
+                  <defs>
+                    {/* Clips the head + shoulders to the ring's interior —
+                        replaces the alpha masks in the Lottie export. */}
+                    <clipPath id="nav-account-clip">
+                      <circle cx="120" cy="120" r="91.154" />
+                    </clipPath>
+                  </defs>
+                  {/* Head + shoulders slide up from inside the ring on hover
+                      ("in reveal"), clipped so they emerge from below. */}
+                  <g clipPath="url(#nav-account-clip)">
+                    <g className="underlay-nav__icon-person">
+                      <path d="M120 135c22.091 0 40-17.909 40-40s-17.909-40-40-40-40 17.909-40 40 17.909 40 40 40m0-65c13.807 0 25 11.193 25 25s-11.193 25-25 25-25-11.193-25-25 11.193-25 25-25" />
+                      <path d="M182.5 235a7.5 7.5 0 0 0 7.5-7.5v-30c0-26.234-21.266-47.5-47.5-47.5h-45C71.266 150 50 171.266 50 197.5v30a7.5 7.5 0 0 0 7.5 7.5zm-40-70c17.949 0 32.5 14.551 32.5 32.5V220H65v-22.5c0-17.949 14.551-32.5 32.5-32.5z" />
+                    </g>
+                  </g>
+                  <path
+                    d="M0 100c55.228 0 100-44.772 100-100S55.228-100 0-100-100-55.228-100 0-55.228 100 0 100M0-85c46.944 0 85 38.056 85 85S46.944 85 0 85-85 46.944-85 0s38.056-85 85-85"
+                    transform="translate(120 120)"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </header>

@@ -32,6 +32,17 @@
   inset: 0 0 auto;
   z-index: 100;
   color: var(--nav-fg);
+  /* Same trick as the RingCursor: the whole bar difference-blends against
+     whatever is painted beneath it, so the wordmark / Menu toggle / cart +
+     account icons invert per-pixel — white over dark, ink over light, and
+     crucially still legible when a stray white headline or image scrolls
+     directly under one of them (a single computed colour can't do that).
+     The blend is on the HEADER itself (not its children): a translateY /
+     opacity on this element creates a stacking context that would isolate
+     any child blending, but an element's own blend still composites against
+     the page below. All children paint pure white — see the colour rules
+     below. */
+  mix-blend-mode: difference;
   /* Only the interactive children (logo, toggle) intercept pointer events so
      the full-width bar doesn't accidentally block hovers on the hero below. */
   pointer-events: none;
@@ -83,19 +94,23 @@ body:has(.crisp-header.is--hidden) .underlay-nav__header {
 }
 
 /* ---- Auto-contrast nav ----------------------------------------------
-   The Story→Shop inversion makes the whole viewport ONE uniform tone at every
-   scroll position, so the nav can track it with a single colour, --nav-col,
-   that ProductsSection computes per-frame: white on the dark phase → brand gold
-   at the mid-grey crossover (a chromatic hop keeps it legible where a grey→grey
-   fade would wash out) → ink on the light Shop. Scoped to the CLOSED menu so
-   the open dark panel keeps its own solid colours; !important beats any inline
-   colour GSAP leaves on the toggle button after an open/close. */
+   Contrast is now handled per-pixel by mix-blend-mode:difference on the
+   header (see above), exactly like the RingCursor: everything in the bar
+   paints PURE WHITE and the blend inverts it against whatever sits beneath —
+   dark hero, light Shop, or a white headline passing directly under a label.
+   The old --nav-col scroll-computed colour (white → gold → ink, driven by
+   ProductsSection/SiteFooter) must NOT be painted any more: a non-white ink
+   through `difference` comes out as a tinted negative. !important beats any
+   inline colour GSAP leaves on the toggle after an open/close.
+   Scoped to the CLOSED menu; when the takeover is open the header still
+   blends, but only ever over the dark scrim, so white stays white. */
 body:not([data-menu-status="open"]) .underlay-nav__logo,
-body:not([data-menu-status="open"]) .underlay-nav__toggle-label {
-  color: var(--nav-col) !important;
+body:not([data-menu-status="open"]) .underlay-nav__toggle-label,
+body:not([data-menu-status="open"]) .underlay-nav__action {
+  color: #fff !important;
 }
 body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
-  background-color: var(--nav-col) !important;
+  background-color: #fff !important;
 }
 
 .underlay-nav__container {
@@ -170,6 +185,96 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   height: 0.125em;
   background-color: currentColor;
   flex: none;
+}
+
+/* ---- Right-side actions (cart + account) ----
+   Pinned to the bar's right edge (the toggle sits on the left, the wordmark is
+   absolutely centered, so these are the only flex-end children). Icons are
+   inline SVGs filled with currentColor, so they inherit the same --nav-col
+   auto-contrast as the wordmark + Menu toggle — always legible on the dark
+   hero AND the light Shop. Sized/weighted to visually match the toggle's
+   1.5em bar icon. */
+.underlay-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.1em;
+  margin-left: auto; /* push to the right edge of the bar */
+  pointer-events: auto;
+}
+
+.underlay-nav__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--nav-fg);
+  /* Expand the click target without affecting layout (same as the toggle) */
+  margin: -0.5em;
+  padding: 0.5em;
+  outline: none;
+  transition: opacity 0.25s ease;
+}
+
+.underlay-nav__action:hover {
+  opacity: 0.65;
+}
+
+.underlay-nav__action svg {
+  display: block;
+  width: 1.5em; /* matches the Menu toggle icon width */
+  height: 1.5em;
+  fill: currentColor; /* re-inked from the export's hard-coded navy */
+  overflow: visible; /* the cart's hover tilt swings slightly past the box */
+}
+
+/* ---- Icon hover motion ----
+   The source files are Lordicon Lottie exports whose animations only run via
+   the Lottie player; inlined as static SVG those keyframes are gone. These CSS
+   motions recreate the spirit of each: the cart gives a quick "select" rock,
+   the account's head+shoulders dip and re-reveal inside the ring (it's clipped
+   to the ring interior, so it slides back up from below — "in reveal"). Both
+   also fire on :active so a click/tap replays them. */
+.underlay-nav__icon-cart,
+.underlay-nav__icon-person {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+@keyframes nav-cart-rock {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  55% { transform: rotate(7deg); }
+  80% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.underlay-nav__action:hover .underlay-nav__icon-cart,
+.underlay-nav__action:active .underlay-nav__icon-cart {
+  animation: nav-cart-rock 0.6s ease-in-out;
+}
+
+@keyframes nav-person-reveal {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(115%); } /* drop fully out of the ring… */
+  40.01% { transform: translateY(-115%); } /* …jump above, unseen (clipped) */
+  100% { transform: translateY(0); } /* …and reveal back in */
+}
+
+.underlay-nav__action:hover .underlay-nav__icon-person,
+.underlay-nav__action:active .underlay-nav__icon-person {
+  animation: nav-person-reveal 0.7s cubic-bezier(0.5, 0, 0.3, 1);
+}
+
+/* Respect users who opt out of motion. */
+@media (prefers-reduced-motion: reduce) {
+  .underlay-nav__action:hover .underlay-nav__icon-cart,
+  .underlay-nav__action:active .underlay-nav__icon-cart,
+  .underlay-nav__action:hover .underlay-nav__icon-person,
+  .underlay-nav__action:active .underlay-nav__icon-person {
+    animation: none;
+  }
 }
 
 /* ---- Full-screen takeover (Rolls-Royce style) ----
@@ -373,6 +478,15 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
 
   .underlay-nav__toggle-label {
     font-size: 0.875em;
+  }
+
+  .underlay-nav__actions {
+    gap: 0.85em;
+  }
+
+  .underlay-nav__action svg {
+    width: 1.35em;
+    height: 1.35em;
   }
 
   .underlay-nav__menu {
