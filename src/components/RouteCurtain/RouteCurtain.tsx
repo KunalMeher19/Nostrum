@@ -304,14 +304,47 @@ export default function RouteCurtain() {
         preserveAspectRatio="none"
       >
         <defs>
-          <linearGradient id="curtain-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f5f5f0" />
-            <stop offset="50%" stopColor="#e6b422" />
-            <stop offset="100%" stopColor="#c0c0c0" />
+          {/* Majority-dark brand drape: ink-black across most of the diagonal,
+              with only the far corner warming into a faint golden glow — a hint
+              of gold catching one edge, not a band through the middle.
+
+              gradientUnits="userSpaceOnUse" pins the gradient to the fixed
+              viewBox (0 0 → 100 100) instead of the path's per-frame bounding
+              box. Without this the gold rescales as the drape morphs and reads
+              as an ugly second wave of colour — especially on the exit sweep. */}
+          <linearGradient
+            id="curtain-grad"
+            gradientUnits="userSpaceOnUse"
+            x1="0"
+            y1="0"
+            x2="100"
+            y2="100"
+          >
+            <stop offset="0%" stopColor="#101208" />
+            <stop offset="58%" stopColor="#14160F" />
+            <stop offset="82%" stopColor="#241F11" />
+            <stop offset="93%" stopColor="#463818" />
+            <stop offset="100%" stopColor="#7A6326" />
           </linearGradient>
         </defs>
         <path data-curtain-main className="route-curtain__main" d="" />
       </svg>
+
+      {/* Soft radial bloom over the warm corner — gives the gold edge depth
+          and a lit-from-within glow rather than a hard gradient stop. */}
+      <div className="route-curtain__glow" aria-hidden="true" />
+
+      {/* Gold sparkles — a faint scatter of twinkling motes clustered toward
+          the warm corner of the drape. Purely decorative; staggered CSS
+          twinkle so they never all flash together. */}
+      <div className="route-curtain__sparkles" aria-hidden="true">
+        <span className="route-curtain__spark" style={{ top: "62%", left: "78%", ["--d" as string]: "0s" }} />
+        <span className="route-curtain__spark" style={{ top: "74%", left: "88%", ["--d" as string]: "0.9s" }} />
+        <span className="route-curtain__spark" style={{ top: "83%", left: "70%", ["--d" as string]: "1.6s" }} />
+        <span className="route-curtain__spark" style={{ top: "55%", left: "90%", ["--d" as string]: "0.4s" }} />
+        <span className="route-curtain__spark" style={{ top: "90%", left: "84%", ["--d" as string]: "2.1s" }} />
+        <span className="route-curtain__spark" style={{ top: "70%", left: "64%", ["--d" as string]: "1.2s" }} />
+      </div>
 
       <div className="route-curtain__center">
         <p data-curtain-eyebrow className="route-curtain__eyebrow">

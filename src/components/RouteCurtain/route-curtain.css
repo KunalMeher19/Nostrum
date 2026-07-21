@@ -49,7 +49,7 @@
   font-weight: 500;
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  color: #131a0e;
+  color: #e6b422; /* gold eyebrow — the jewelry on the dark drape */
   opacity: 0; /* GSAP fades it in */
 }
 
@@ -62,7 +62,7 @@
   font-size: clamp(2.4rem, 7vw, 5.5rem);
   line-height: 1.12;
   letter-spacing: 0.04em;
-  color: #131a0e;
+  color: #edebe3; /* off-white — readable on the dark drape */
   white-space: nowrap;
 }
 
@@ -70,4 +70,62 @@
   display: inline-block;
   transform: translateY(115%);
   will-change: transform;
+}
+
+/* ---- Warm corner bloom ------------------------------------------ */
+/* A large, very soft radial that sits over the gold corner so the edge
+   glows rather than ending on a hard gradient stop. Screen blend keeps it
+   additive over the dark drape. */
+/* .route-curtain__glow {
+  position: absolute;
+  right: -10%;
+  bottom: -10%;
+  width: 70%;
+  height: 70%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle at bottom right,
+    rgba(230, 180, 34, 0.32) 0%,
+    rgba(230, 180, 34, 0.12) 32%,
+    rgba(230, 180, 34, 0) 68%
+  );
+} */
+
+/* ---- Gold sparkles ---------------------------------------------- */
+
+.route-curtain__sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.route-curtain__spark {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #e6b422;
+  box-shadow: 0 0 6px 1px rgba(230, 180, 34, 0.6);
+  opacity: 0;
+  animation: route-curtain-twinkle 3.2s ease-in-out var(--d, 0s) infinite;
+}
+
+@keyframes route-curtain-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-curtain__spark {
+    animation: none;
+    opacity: 0.4;
+  }
 }

@@ -1,0 +1,718 @@
+/* ------------------------------------------------------------------ */
+/* ContactSection — dark split contact (NOSTRUM-DESIGN §7 "Contact").   */
+/*                                                                      */
+/* Geometry mirrors the reference: a full-height rounded brand card     */
+/* pinned LEFT (sticky, inset from the viewport edge), the form column  */
+/* breathing on the ink canvas at RIGHT. Everything dark; lime + gold   */
+/* stay "jewelry" — the eyebrow, focus lines, the submit underline.     */
+/* ------------------------------------------------------------------ */
+
+.ct {
+  --ct-ink: #14160f; /* page canvas (brand ink)                  */
+  --ct-panel-a: #1e2a16; /* deep olive — card base                 */
+  --ct-panel-b: #2c2117; /* bark brown — card depth                */
+  --ct-fg: #edebe3; /* off-white text on dark                     */
+  --ct-muted: #9a978d;
+  --ct-gold: #e6b422;
+  --ct-lime: #a6ce3a;
+  --ct-hair: color-mix(in srgb, #edebe3 14%, transparent);
+
+  display: grid;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  gap: clamp(2rem, 5vw, 6rem);
+  max-width: 96rem;
+  margin: 0 auto;
+  min-height: 100svh;
+  padding: clamp(4.75rem, 9vh, 6.25rem) clamp(1rem, 3vw, 3rem)
+    clamp(1.5rem, 4vh, 2.75rem);
+  background-color: var(--ct-ink);
+  color: var(--ct-fg);
+}
+
+/* ==================================================================== */
+/* LEFT — the cinematic card                                             */
+/* ==================================================================== */
+
+/* The card grows with its content — NEVER capped (a max-height clipped the
+   channels off the bottom edge on shorter viewports). min-height fills the
+   viewport when there's room; when the content is taller, the card simply
+   extends and the page scrolls it naturally. */
+.ct__panel {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(1.5rem, 3.5vh, 2.75rem);
+  min-height: calc(
+    100svh - clamp(4.75rem, 9vh, 6.25rem) - clamp(1.5rem, 4vh, 2.75rem)
+  );
+  padding: clamp(1.75rem, 3.5vw, 3rem);
+  border-radius: 18px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      158deg,
+      var(--ct-panel-a) 0%,
+      color-mix(in srgb, var(--ct-panel-a) 55%, var(--ct-ink)) 46%,
+      var(--ct-panel-b) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--ct-gold) 14%, transparent);
+}
+
+/* The card is NOT pinned — it lives in normal flow and scrolls away with
+   the page. The RIGHT form column is the sticky one (see .ct__form-col):
+   it stays in view while the reader scrolls the card's channels/socials. */
+
+/* The warm bloom — same family as the site's load glow: a low golden
+   light rising from the bottom of the card, like late sun on the grove. */
+.ct__panel-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(
+      ellipse 85% 55% at 18% 108%,
+      rgba(230, 180, 34, 0.28) 0%,
+      rgba(120, 94, 28, 0.14) 38%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 90% -10%,
+      rgba(166, 206, 58, 0.1) 0%,
+      transparent 60%
+    );
+  pointer-events: none;
+}
+
+/* Film grain over the gradient so the card reads as material, not vector. */
+.ct__panel-grain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.ct__eyebrow {
+  margin: 0 0 1.4em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--ct-gold);
+}
+
+.ct__headline {
+  margin: 0 0 0.35em;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(3rem, 6vw, 5.25rem);
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  color: #faf8f2;
+}
+
+.ct__lede {
+  margin: 0;
+  max-width: 24rem;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--ct-fg) 78%, transparent);
+}
+
+/* ---- Direct channels ------------------------------------------------ */
+
+.ct__channels {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.8rem, 1.6vh, 1.2rem);
+}
+
+.ct__channel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: clamp(0.8rem, 1.6vh, 1.2rem);
+  border-top: 1px solid color-mix(in srgb, #faf8f2 10%, transparent);
+}
+
+.ct__channel-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ct-fg) 52%, transparent);
+}
+
+.ct__channel-value {
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: clamp(1.05rem, 1.4vw, 1.3rem);
+  font-weight: 400;
+  color: var(--ct-fg);
+  text-decoration: none;
+  width: fit-content;
+  transition: color 0.4s var(--ease-lux, ease);
+}
+
+a.ct__channel-value:hover {
+  color: var(--ct-gold);
+}
+
+.ct__address {
+  font-style: normal;
+  line-height: 1.45;
+}
+
+/* ---- WhatsApp — §12: discreet outline pill, never stock green ------- */
+
+.ct__wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: fit-content;
+  margin-top: 0.4rem;
+  padding: 0.75rem 1.3rem;
+  border: 1px solid color-mix(in srgb, var(--ct-lime) 45%, transparent);
+  border-radius: 999px;
+  color: var(--ct-fg);
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-indent: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    border-color 0.45s var(--ease-lux, ease),
+    color 0.45s var(--ease-lux, ease),
+    box-shadow 0.45s var(--ease-lux, ease);
+}
+
+.ct__wa:hover {
+  border-color: var(--ct-lime);
+  color: var(--ct-lime);
+  box-shadow: 0 0 24px rgba(166, 206, 58, 0.18);
+}
+
+.ct__wa svg:last-child {
+  transition: transform 0.45s var(--ease-lux, ease);
+}
+
+.ct__wa:hover svg:last-child {
+  transform: translate(2px, -2px);
+}
+
+/* ---- Socials -------------------------------------------------------- */
+
+.ct__socials {
+  display: flex;
+  gap: 1.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ct__socials a {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ct-fg) 55%, transparent);
+  text-decoration: none;
+  transition: color 0.4s var(--ease-lux, ease);
+}
+
+.ct__socials a:hover {
+  color: var(--ct-gold);
+}
+
+/* ==================================================================== */
+/* RIGHT — the form column                                               */
+/* ==================================================================== */
+
+/* The form column is the pinned half: exactly one viewport tall, stuck to
+   the top, never scrolling itself. The form inside is fluid-compact (every
+   gap/size clamps against vh) so it ALWAYS fits within the 100svh box —
+   the page scroll only moves the left card past it. */
+.ct__form-col {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100svh;
+  /* Pull the sticky box back up over the section's top padding so its
+     100svh spans the true viewport, then repad inside (clears the nav). */
+  margin-top: calc(clamp(4.75rem, 9vh, 6.25rem) * -1);
+  padding: clamp(4.25rem, 8vh, 5.5rem) 0 clamp(1rem, 3vh, 2rem);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.ct__form {
+  width: 100%;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.9rem, 2.6vh, 2.2rem);
+}
+
+.ct__form-eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--ct-muted);
+}
+
+/* ---- Fields — editorial underline inputs ---------------------------- */
+
+.ct__field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.35rem, 1vh, 0.7rem);
+}
+
+.ct__field label {
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ct-fg) 60%, transparent);
+  transition: color 0.4s var(--ease-lux, ease);
+}
+
+.ct__field:focus-within label {
+  color: var(--ct-gold);
+}
+
+.ct__field input,
+.ct__field textarea {
+  appearance: none;
+  width: 100%;
+  padding: clamp(0.15rem, 0.6vh, 0.35rem) 0 clamp(0.4rem, 1.2vh, 0.85rem);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #faf8f2;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: clamp(1.05rem, 2.2vh, 1.45rem);
+  font-weight: 300;
+  line-height: 1.4;
+  caret-color: var(--ct-gold);
+  outline: none;
+  resize: none;
+}
+
+/* Cap the textarea against the viewport so the form box never overflows
+   the 100svh sticky column — it shrinks first on short screens. */
+.ct__field textarea {
+  height: clamp(3.2rem, 12vh, 7rem);
+}
+
+.ct__field ::placeholder {
+  color: color-mix(in srgb, var(--ct-fg) 28%, transparent);
+  opacity: 1;
+}
+
+/* Kill the browser autofill yellow on the dark canvas. */
+.ct__field input:-webkit-autofill,
+.ct__field input:-webkit-autofill:hover,
+.ct__field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #faf8f2;
+  -webkit-box-shadow: 0 0 0 1000px var(--ct-ink) inset;
+  transition: background-color 9999s ease-out;
+}
+
+/* The hairline under each field, with a gold fill that draws in on focus
+   (the LuxButton line, applied to inputs). */
+.ct__field-line {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--ct-hair);
+  overflow: hidden;
+}
+
+.ct__field-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--ct-gold), var(--ct-lime));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.7s var(--ease-lux, ease);
+}
+
+.ct__field:focus-within .ct__field-line::after {
+  transform: scaleX(1);
+}
+
+/* ---- Topic — segmented pills ---------------------------------------- */
+
+.ct__topics {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ct__topics legend {
+  padding: 0;
+  margin-bottom: clamp(0.45rem, 1.2vh, 0.9rem);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ct-fg) 60%, transparent);
+}
+
+.ct__topics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.ct__topic {
+  position: relative;
+  cursor: pointer;
+}
+
+.ct__topic input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ct__topic span {
+  display: inline-block;
+  padding: clamp(0.4rem, 1vh, 0.65rem) 1.2rem;
+  border: 1px solid var(--ct-hair);
+  border-radius: 999px;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-indent: 0.07em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ct-fg) 70%, transparent);
+  transition:
+    border-color 0.45s var(--ease-lux, ease),
+    color 0.45s var(--ease-lux, ease),
+    background-color 0.45s var(--ease-lux, ease);
+}
+
+.ct__topic:hover span {
+  border-color: color-mix(in srgb, var(--ct-gold) 55%, transparent);
+  color: var(--ct-fg);
+}
+
+.ct__topic.is--on span {
+  border-color: var(--ct-gold);
+  background: color-mix(in srgb, var(--ct-gold) 10%, transparent);
+  color: var(--ct-gold);
+}
+
+.ct__topic input:focus-visible + span {
+  border-color: var(--ct-gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ct-gold) 25%, transparent);
+}
+
+/* ---- Submit — LuxButton-style editorial CTA -------------------------- */
+
+.ct__submit-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Label + gold arrow side by side; the underline wraps to a full-width
+   second row (flex-basis: 100%) beneath both — the LuxButton geometry. */
+.ct__submit {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55em 0.9em;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--ct-fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.84rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ct__submit:disabled {
+  cursor: default;
+  color: var(--ct-muted);
+}
+
+.ct__submit-label {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.15;
+  vertical-align: bottom;
+}
+
+.ct__submit-inner {
+  display: block;
+  transition: transform 0.55s var(--ease-lux, ease);
+}
+
+.ct__submit-inner.is--dup {
+  position: absolute;
+  inset: 0;
+  transform: translateY(105%);
+  color: var(--ct-gold);
+}
+
+/* On hover the base label rolls up and out; the gold dup (which also
+   carries .ct__submit-inner — hence the :not) rolls up INTO view. */
+.ct__submit:hover:not(:disabled) .ct__submit-inner:not(.is--dup) {
+  transform: translateY(-105%);
+}
+
+.ct__submit:hover:not(:disabled) .ct__submit-inner.is--dup {
+  transform: none;
+}
+
+.ct__submit-arrow {
+  color: var(--ct-gold);
+  font-size: 0.95em;
+  transition: transform 0.55s var(--ease-lux, ease);
+}
+
+.ct__submit:hover:not(:disabled) .ct__submit-arrow {
+  transform: translateX(6px);
+}
+
+.ct__submit-line {
+  flex-basis: 100%;
+  height: 1px;
+  background: var(--ct-hair);
+  position: relative;
+  overflow: hidden;
+}
+
+.ct__submit-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.6em;
+  height: 100%;
+  background: var(--ct-gold);
+  transition: opacity 0.2s linear;
+}
+
+.ct__submit-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ct-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.55s var(--ease-lux, ease);
+}
+
+.ct__submit:hover:not(:disabled) .ct__submit-line::after,
+.ct__submit:focus-visible .ct__submit-line::after {
+  transform: scaleX(1);
+}
+
+.ct__submit:hover:not(:disabled) .ct__submit-line::before {
+  opacity: 0;
+}
+
+.ct__submit:focus-visible {
+  outline: none;
+}
+
+.ct__gdpr {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--ct-fg) 42%, transparent);
+  max-width: 15rem;
+}
+
+.ct__gdpr a {
+  color: color-mix(in srgb, var(--ct-fg) 65%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.4s var(--ease-lux, ease);
+}
+
+.ct__gdpr a:hover {
+  color: var(--ct-gold);
+}
+
+/* ---- Sent state ------------------------------------------------------ */
+
+.ct__sent {
+  width: 100%;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.2rem;
+  animation: ct-sent-in 1s var(--ease-lux, ease) both;
+}
+
+@keyframes ct-sent-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ct__sent-mark {
+  display: grid;
+  place-items: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  border: 1px solid color-mix(in srgb, var(--ct-lime) 55%, transparent);
+  border-radius: 999px;
+  color: var(--ct-lime);
+}
+
+.ct__sent-title {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  letter-spacing: -0.02em;
+}
+
+.ct__sent-line {
+  margin: 0;
+  max-width: 26rem;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--ct-fg) 72%, transparent);
+}
+
+/* ==================================================================== */
+/* Entry choreography — curtain-aware (matches StoryScenes' pattern)     */
+/* ==================================================================== */
+
+/* Staged: the card is slightly veiled + risen, every [data-ct-reveal]
+   block sits low and transparent. Released (is--pre removed, is--enter
+   added), everything settles with a soft cascade. After the entry the
+   classes are shed, so these rules stop applying entirely. */
+.ct.is--pre .ct__panel {
+  opacity: 0;
+  transform: translateY(26px) scale(0.985);
+}
+
+.ct.is--pre [data-ct-reveal] {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.ct.is--enter .ct__panel {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 1.1s var(--ease-lux, ease),
+    transform 1.1s var(--ease-lux, ease);
+}
+
+.ct.is--enter [data-ct-reveal] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.95s var(--ease-lux, ease),
+    transform 0.95s var(--ease-lux, ease);
+}
+
+/* Cascade — left card content first, then the form top-to-bottom. */
+.ct.is--enter .ct__panel-head {
+  transition-delay: 0.15s;
+}
+.ct.is--enter .ct__channels {
+  transition-delay: 0.3s;
+}
+.ct.is--enter .ct__socials {
+  transition-delay: 0.45s;
+}
+.ct.is--enter .ct__form [data-ct-reveal]:nth-child(1) {
+  transition-delay: 0.35s;
+}
+.ct.is--enter .ct__form [data-ct-reveal]:nth-child(2) {
+  transition-delay: 0.45s;
+}
+.ct.is--enter .ct__form [data-ct-reveal]:nth-child(3) {
+  transition-delay: 0.55s;
+}
+.ct.is--enter .ct__form [data-ct-reveal]:nth-child(4) {
+  transition-delay: 0.65s;
+}
+.ct.is--enter .ct__form [data-ct-reveal]:nth-child(5) {
+  transition-delay: 0.75s;
+}
+.ct.is--enter .ct__form [data-ct-reveal]:nth-child(6) {
+  transition-delay: 0.85s;
+}
+
+/* ==================================================================== */
+/* Responsive                                                            */
+/* ==================================================================== */
+
+@media (max-width: 900px) {
+  .ct {
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 6vh, 4rem);
+    padding-top: clamp(5rem, 9vh, 6.5rem);
+  }
+
+  .ct__panel {
+    position: static;
+    min-height: 0;
+    gap: 2.25rem;
+  }
+
+  /* Stacked: no pinning, no viewport cap — both halves flow and the page
+     scrolls normally (on-screen keyboards make 100vh a lie here anyway). */
+  .ct__form-col {
+    position: static;
+    height: auto;
+    margin-top: 0;
+    padding: 0 0 2rem;
+    overflow: visible;
+  }
+
+  .ct__field textarea {
+    height: auto;
+    min-height: 6rem;
+  }
+
+  .ct__form {
+    max-width: none;
+  }
+}
+
+/* Reduced motion: everything visible, no staging (globals.css already
+   flattens transition durations; this removes the staged offsets too). */
+@media (prefers-reduced-motion: reduce) {
+  .ct.is--pre .ct__panel,
+  .ct.is--pre [data-ct-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .ct__sent {
+    animation: none;
+  }
+}

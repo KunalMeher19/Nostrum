@@ -1,0 +1,9 @@
+/* ------------------------------------------------------------------ */
+/* Contact route — dark brand page (NOSTRUM-DESIGN §7). The page shell  */
+/* only sets the canvas; all layout lives in ContactSection.            */
+/* ------------------------------------------------------------------ */
+.contact-page {
+  background-color: #14160f;
+  color: #edebe3;
+  min-height: 100svh;
+}
