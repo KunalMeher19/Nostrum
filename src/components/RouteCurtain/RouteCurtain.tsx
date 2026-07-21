@@ -279,7 +279,15 @@ export default function RouteCurtain() {
 
       e.preventDefault();
 
-      if (prefersReducedMotion || !runTransition) {
+      // Single product pages open with NO drape — the Shop flow (tile →
+      // product) should feel like instant shopping, not a scene change
+      // (§7: the Shop stays instant, never gated). Only /product/<id> is
+      // exempt; /products (the listing) and every other route keep the
+      // curtain. The page itself resets the scroll + plays its own
+      // entrance on mount (it can't ride the reveal event — none fires).
+      const isProductDetail = /^\/product\/.+/.test(url.pathname);
+
+      if (prefersReducedMotion || !runTransition || isProductDetail) {
         markClientNavigation();
         router.push(url.pathname + url.hash);
         return;

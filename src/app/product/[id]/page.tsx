@@ -6,10 +6,7 @@ import Link from "next/link";
 import "./product.css";
 import SiteFooter from "@/components/SiteFooter/SiteFooter";
 import { useCart } from "@/components/Cart/CartContext";
-import {
-  hasClientNavigated,
-  CURTAIN_REVEAL_EVENT,
-} from "@/components/RouteCurtain/curtainNav";
+import { getLenis } from "@/components/SmoothScroll/lenisStore";
 import {
   formatEuro,
   getCatalogEntry,
@@ -58,6 +55,14 @@ export default function ProductPage() {
     const root = document.documentElement;
     root.style.setProperty("--page-t", "1");
     root.style.setProperty("--nav-col", "rgb(20, 22, 15)");
+    // This route is exempt from the RouteCurtain (instant Shop flow), so the
+    // scroll reset the drape normally performs after the route settles has to
+    // happen here: snap Lenis to the top and make sure it's running (it can
+    // arrive stopped when the click came from the hero-locked landing page).
+    const lenis = getLenis();
+    lenis?.scrollTo(0, { immediate: true, force: true });
+    lenis?.start();
+    window.scrollTo(0, 0);
     return () => {
       root.style.setProperty("--page-t", "0");
       root.style.setProperty("--nav-col", "rgb(245, 245, 243)");
@@ -71,19 +76,17 @@ export default function ProductPage() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let cancelled = false;
-    let entryTimer = 0;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let ctx: any;
 
-    // Same entry contract as Contact/StoryScenes: under the RouteCurtain the
-    // choreography holds until the drape starts lifting, so the reveal and the
-    // page entrance play as one move (with a safety timeout); hard loads play
-    // right away. GSAP is imported first so "begin" can fire synchronously the
-    // moment the event lands.
-    const begin = (gsap: typeof import("gsap").gsap) => {
-      window.removeEventListener(CURTAIN_REVEAL_EVENT, onReveal);
-      window.clearTimeout(entryTimer);
+    // No curtain runs to this route (it's exempt — instant Shop flow), so the
+    // entrance plays straight away on both hard loads and client navigations.
+    // The choreography itself IS the arrival moment.
+    (async () => {
+      const gsapMod = await import("gsap");
       if (cancelled) return;
+      const gsap = gsapMod.gsap ?? gsapMod.default;
+
       ctx = gsap.context(() => {
         const tl = gsap.timeline({
           defaults: { ease: "expo.out", duration: 1.1 },
@@ -107,33 +110,10 @@ export default function ProductPage() {
             0.55
           );
       }, root);
-    };
-
-    let onReveal = () => {};
-
-    (async () => {
-      const gsapMod = await import("gsap");
-      if (cancelled) return;
-      const gsap = gsapMod.gsap ?? gsapMod.default;
-
-      // Stage the pre-state now so nothing flashes before the entrance.
-      gsap.set(root.querySelectorAll("[data-rise], [data-fade]"), {
-        autoAlpha: 0,
-      });
-
-      onReveal = () => begin(gsap);
-      if (hasClientNavigated()) {
-        window.addEventListener(CURTAIN_REVEAL_EVENT, onReveal);
-        entryTimer = window.setTimeout(onReveal, 3500); // curtain safety net
-      } else {
-        entryTimer = window.setTimeout(onReveal, 60);
-      }
     })();
 
     return () => {
       cancelled = true;
-      window.removeEventListener(CURTAIN_REVEAL_EVENT, onReveal);
-      window.clearTimeout(entryTimer);
       ctx?.revert();
     };
     // Entrance runs once per product route.
@@ -452,8 +432,6 @@ export default function ProductPage() {
           </aside>
         </div>
       </div>
-
-      <SiteFooter />
     </main>
   );
 }
