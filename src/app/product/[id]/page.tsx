@@ -60,9 +60,12 @@ export default function ProductPage() {
     // happen here: snap Lenis to the top and make sure it's running (it can
     // arrive stopped when the click came from the hero-locked landing page).
     const lenis = getLenis();
-    lenis?.scrollTo(0, { immediate: true, force: true });
+    if (sessionStorage.getItem("nostrum_fresh_nav") === "true") {
+      sessionStorage.removeItem("nostrum_fresh_nav");
+      lenis?.scrollTo(0, { immediate: true, force: true });
+      window.scrollTo(0, 0);
+    }
     lenis?.start();
-    window.scrollTo(0, 0);
     return () => {
       root.style.setProperty("--page-t", "0");
       root.style.setProperty("--nav-col", "rgb(245, 245, 243)");

@@ -289,6 +289,7 @@ export default function RouteCurtain() {
 
       if (prefersReducedMotion || !runTransition || isProductDetail) {
         markClientNavigation();
+        sessionStorage.setItem("nostrum_fresh_nav", "true");
         router.push(url.pathname + url.hash);
         return;
       }

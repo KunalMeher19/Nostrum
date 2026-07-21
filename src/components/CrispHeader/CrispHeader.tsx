@@ -164,6 +164,24 @@ export default function CrispHeader() {
         const scrollCueEl =
           container.querySelector<HTMLElement>(".crisp-header__scroll");
         if (scrollCueEl) gsap.set(scrollCueEl, { autoAlpha: 0 });
+        // Hide hero text elements (h1 words + subtitle). The STA's scrubbed
+        // timeline normally animates these away over the first ~22% of the scrub,
+        // but when entering STA from a back-navigation with the page already
+        // scrolled past the hero, the scrub is already past that point and the
+        // text stays stuck on screen. Hide them immediately so they don't
+        // overlap the frame canvas.
+        if (split && split.words && split.words.length) {
+          gsap.set(split.words, { yPercent: 110 });
+        }
+        const heroSubEl = container.querySelector<HTMLElement>(".crisp-header__p");
+        if (heroSubEl) gsap.set(heroSubEl, { autoAlpha: 0 });
+        // Also hide the slider nav thumbnails — same reason.
+        const sliderNavItems = container.querySelectorAll(
+          ".crisp-header__slider-nav > *"
+        );
+        if (sliderNavItems.length) {
+          gsap.set(sliderNavItems, { xPercent: 140, autoAlpha: 0, scale: 0.8 });
+        }
         // Slide the fixed top bar (Nostrum wordmark + menu toggle) up and out
         // as the STA entry animation. CSS on .underlay-nav__header handles the
         // motion; it stays up for the whole scrub and mirrors back down when we
@@ -193,6 +211,23 @@ export default function CrispHeader() {
         if (canvasEl) gsap.set(canvasEl, { autoAlpha: 0 });
         document.body.classList.remove("is--sta-active");
         document.body.classList.remove("is--story-revealed");
+        // Restore hero text elements that enterSta() hid. The slideshow needs
+        // them visible to display the current slide's copy.
+        if (split && split.words && split.words.length) {
+          gsap.set(split.words, { yPercent: 0 });
+        }
+        const heroSubEl = container.querySelector<HTMLElement>(".crisp-header__p");
+        if (heroSubEl) gsap.set(heroSubEl, { autoAlpha: 1 });
+        const ctaEl = container.querySelector<HTMLElement>(".crisp-header__cta");
+        if (ctaEl) gsap.set(ctaEl, { autoAlpha: 1, pointerEvents: "auto" });
+        const scrollCueEl = container.querySelector<HTMLElement>(".crisp-header__scroll");
+        if (scrollCueEl) gsap.set(scrollCueEl, { autoAlpha: 1 });
+        const sliderNavItems = container.querySelectorAll(
+          ".crisp-header__slider-nav > *"
+        );
+        if (sliderNavItems.length) {
+          gsap.set(sliderNavItems, { xPercent: 0, autoAlpha: 1, scale: 1 });
+        }
       };
 
       // Sync ScrollTrigger to Lenis' interpolated scroll, and hand control back
@@ -204,12 +239,33 @@ export default function CrispHeader() {
         if (!staArmed && e.scroll > STA_REARM_PX) staArmed = true;
         if (staArmed && e.scroll <= 0.5) enterSlides();
       };
+
+      // Handle native scroll changes (e.g., Next.js scroll restoration on Back button)
+      // If the page is scrolled down (past the top hero), ensure we are in STA mode
+      // so Lenis is started and scrolling works.
+      const onNativeScroll = () => {
+        if (phase === "slides" && window.scrollY > 10) {
+          enterSta();
+        }
+      };
+
       unsubLenis = onLenis((lenis) => {
         lenisRef = lenis;
-        lenis.stop(); // start life in slideshow mode — page locked at top
+        
+        // If we load and we're already scrolled down (or have a hash), start in STA mode
+        if (window.scrollY > 10 || window.location.hash) {
+          enterSta();
+        } else {
+          lenis.stop(); // start life in slideshow mode — page locked at top
+        }
+        
         lenis.on("scroll", onLenisScroll);
+        window.addEventListener("scroll", onNativeScroll, { passive: true });
       });
-      detachLenis = () => lenisRef?.off?.("scroll", onLenisScroll);
+      detachLenis = () => {
+        lenisRef?.off?.("scroll", onLenisScroll);
+        window.removeEventListener("scroll", onNativeScroll);
+      };
 
       // ---- Loading Animation (scoped to `container`) ----------------------
       // Loader phase is the Willem-style wordmark: NOS·[growing image]·TRUM.
@@ -225,6 +281,21 @@ export default function CrispHeader() {
         // the scroll-through arms. All while still hidden under the curtain,
         // so the reveal shows a settled hero.
         if (hasClientNavigated()) {
+          // The intro is skipped, but the split MUST still exist: enterSta(),
+          // enterSlides() and the STA scrub's word-exit all drive the heading
+          // through `split.words` and silently no-op without it — on a
+          // back-navigation restored mid-scroll that left the raw h1 painted
+          // over the frame canvas.
+          const heading = container.querySelectorAll(".crisp-header__h1");
+          if (heading.length && !split) {
+            split = new SplitText(heading, { type: "words", mask: "words" });
+          }
+          // A back/forward restore runs the mount-time enterSta() BEFORE this
+          // (fonts not ready yet), when the split didn't exist — re-apply the
+          // STA hidden state now that it does.
+          if (phase === "sta" && split && split.words && split.words.length) {
+            gsap.set(split.words, { yPercent: 110 });
+          }
           container.classList.remove("is--hidden");
           container.classList.remove("is--loading");
           heroRevealed = true;
