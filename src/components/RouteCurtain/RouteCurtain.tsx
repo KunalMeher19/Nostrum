@@ -13,6 +13,7 @@ import { getLenis } from "../SmoothScroll/lenisStore";
 const ROUTE_NAMES: Array<[prefix: string, label: string]> = [
   ["/products", "Our Products"],
   ["/product", "The Collection"],
+  ["/cart", "Cart"],
   ["/origins", "Our Origins"],
   ["/journal", "Journal"],
   ["/contact", "Contact"],

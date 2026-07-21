@@ -1,0 +1,251 @@
+/* ------------------------------------------------------------------ */
+/* Cart — LIGHT/white (§7). Same quiet Shop language as the product page. */
+/* ------------------------------------------------------------------ */
+
+.cart {
+  min-height: 100svh;
+  background-color: var(--nostrum-warm-white);
+  color: var(--nostrum-shop-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.cart__inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: clamp(7rem, 14vh, 10rem) clamp(1.5rem, 5vw, 4rem)
+    clamp(5rem, 10vh, 8rem);
+}
+
+.cart__head {
+  margin-bottom: clamp(2rem, 5vh, 3.5rem);
+}
+
+.cart__title {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+
+.cart__eyebrow {
+  margin: 0.75rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 88%, black);
+}
+
+/* ---- Empty state ----------------------------------------------------- */
+.cart__empty {
+  padding: clamp(2rem, 6vh, 4rem) 0;
+  color: var(--nostrum-shop-muted);
+  line-height: 1.7;
+}
+
+.cart__empty p {
+  margin: 0 0 2em;
+}
+
+/* ---- Line items ------------------------------------------------------- */
+.cart__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cart__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: 1.4rem 0;
+  border-top: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 35%, transparent);
+}
+
+.cart__row:last-child {
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 35%, transparent);
+}
+
+.cart__row-media {
+  width: 4.25rem;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  background-color: var(--shop-light-tile);
+  border: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 30%, transparent);
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1.4rem;
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 25%, transparent);
+  user-select: none;
+}
+
+.cart__row-name {
+  margin: 0 0 0.4em;
+  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+}
+
+.cart__row-size {
+  margin: 0 0 0.7em;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--nostrum-shop-muted);
+}
+
+.cart__row-size em {
+  font-style: normal;
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 88%, black);
+}
+
+.cart__row-remove {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--nostrum-shop-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.35em;
+  transition: color 0.4s var(--ease-lux);
+}
+
+.cart__row-remove:hover {
+  color: var(--nostrum-shop-ink);
+}
+
+/* Quantity stepper — unbounded (never limit the client) */
+.cart__row-qty {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--nostrum-shop-ink) 25%, transparent);
+}
+
+.cart__row-qty button {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--nostrum-shop-ink);
+  transition: background-color 0.3s var(--ease-lux);
+}
+
+.cart__row-qty button:hover {
+  background-color: color-mix(in srgb, var(--nostrum-shop-ink) 6%, transparent);
+}
+
+.cart__row-qty span {
+  min-width: 2.4rem;
+  text-align: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.cart__row-price {
+  margin: 0;
+  min-width: 5rem;
+  text-align: right;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1rem;
+}
+
+/* ---- Summary ------------------------------------------------------------ */
+.cart__summary {
+  margin-top: clamp(2rem, 5vh, 3rem);
+  margin-left: auto;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cart__subtotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.cart__subtotal span:last-child {
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.cart__note {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nostrum-shop-muted);
+}
+
+.cart__checkout {
+  width: 100%;
+  padding: 1.15em 1.5em;
+  border: 1px solid var(--nostrum-shop-ink);
+  background-color: var(--nostrum-shop-ink);
+  color: var(--nostrum-warm-white);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.cart__checkout:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cart__back {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--nostrum-shop-ink);
+  text-decoration: none;
+  transition: color 0.4s var(--ease-lux);
+}
+
+.cart__back:hover {
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 90%, black);
+}
+
+/* ---- Responsive ----------------------------------------------------------- */
+@media (max-width: 560px) {
+  .cart__row {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "media info"
+      "qty price";
+    row-gap: 1rem;
+  }
+
+  .cart__row-media {
+    grid-area: media;
+  }
+  .cart__row-info {
+    grid-area: info;
+  }
+  .cart__row-qty {
+    grid-area: qty;
+    justify-self: start;
+  }
+  .cart__row-price {
+    grid-area: price;
+    align-self: center;
+  }
+}

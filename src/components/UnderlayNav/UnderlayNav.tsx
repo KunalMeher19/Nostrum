@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import "./underlay-nav.css";
 import { requestSectionScroll, requestScrollTop } from "../SmoothScroll/storyScroll";
 import { onLenis, getLenis } from "../SmoothScroll/lenisStore";
+import { useCart } from "../Cart/CartContext";
 
 /* ---- Navigation data ---------------------------------------- */
 // On the landing page "Home" and "Our Story" are in-page scroll targets, not
@@ -77,6 +78,9 @@ const SOCIAL_LINKS = [
 export default function UnderlayNav() {
   const rootRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  // Live cart badge. The provider hydrates from localStorage AFTER mount, so
+  // SSR + first paint always agree (count 0 → no badge → no hydration issues).
+  const { count: cartCount } = useCart();
   // Set by the GSAP context to a routine that snaps the menu to a clean closed
   // state. The route-change effect below calls it so navigating ALWAYS lands
   // with the menu shut and the page/overlay reset — the nav stays mounted
@@ -525,10 +529,14 @@ export default function UnderlayNav() {
                 /assests, re-inked with currentColor so they ride the same
                 --nav-col auto-contrast as the wordmark + Menu toggle. */}
             <div className="underlay-nav__actions">
-              <button
-                type="button"
+              <Link
+                href="/cart"
                 className="underlay-nav__action"
-                aria-label="Shopping cart"
+                aria-label={
+                  cartCount > 0
+                    ? `Shopping cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
+                    : "Shopping cart"
+                }
               >
                 <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
                   {/* Inner group carries the hover animation (CSS transform
@@ -541,7 +549,18 @@ export default function UnderlayNav() {
                     </g>
                   </g>
                 </svg>
-              </button>
+                {/* Item-count badge. Keyed by count so the pop animation
+                    replays on every add. Hidden entirely at zero. */}
+                {cartCount > 0 && (
+                  <span
+                    key={cartCount}
+                    className="underlay-nav__cart-badge"
+                    aria-hidden="true"
+                  >
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </Link>
               <button
                 type="button"
                 className="underlay-nav__action"

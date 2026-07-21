@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import "./products-section.css";
 import { onLenis } from "../SmoothScroll/lenisStore";
+import { useCart } from "../Cart/CartContext";
+import { getCatalogEntry } from "@/lib/products";
 
 /* ------------------------------------------------------------------ */
 /* ProductsSection — the Shop, with a basicagency-style scroll invert.  */
@@ -41,6 +43,41 @@ export default function ProductsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const grainRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
+
+  // Quick add-to-cart (§7) — each tile drops its pack (×1/×2/×3 of the 5L)
+  // straight into the working cart; the button flashes "Added ✓".
+  const { addItem } = useCart();
+  const [addedId, setAddedId] = useState<string | null>(null);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const quickAdd = (id: string) => {
+    const entry = getCatalogEntry(id);
+    if (!entry) return;
+    const { product, qty } = entry;
+    const size =
+      product.sizes.find((s) => s.id === product.defaultSizeId) ??
+      product.sizes[0];
+    addItem(
+      {
+        slug: product.slug,
+        name: product.name,
+        subtitle: product.subtitle,
+        sizeId: size.id,
+        sizeLabel: size.label,
+      },
+      qty
+    );
+    setAddedId(id);
+    if (addedTimer.current) clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setAddedId(null), 1600);
+  };
+
+  useEffect(
+    () => () => {
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+    },
+    []
+  );
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -290,8 +327,12 @@ export default function ProductsSection() {
                   className="shop-card__link"
                   aria-label={`View ${product.name} — ${product.detail}`}
                 />
-                <button type="button" className="shop-card__add">
-                  Add to cart
+                <button
+                  type="button"
+                  className="shop-card__add"
+                  onClick={() => quickAdd(product.id)}
+                >
+                  {addedId === product.id ? "Added ✓" : "Add to cart"}
                 </button>
               </div>
               <div className="shop-card__meta">

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Libre_Franklin, Raleway } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
+import { CartProvider } from "@/components/Cart/CartContext";
 import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
 import RingCursor from "@/components/RingCursor/RingCursor";
 import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
@@ -97,12 +98,15 @@ export default function RootLayout({
         <SmoothScroll />
         {/* White ring pointer follower (RR-style). Self-disables on touch. */}
         <RingCursor />
-        {/* Global navigation — fixed, always on top */}
-        <UnderlayNav />
-        {/* Route-transition drape — covers, shows the section name, reveals */}
-        <RouteCurtain />
-        {/* Page content — receives [data-main] in each page component */}
-        {children}
+        {/* Working cart (localStorage) — nav badge + product/cart pages */}
+        <CartProvider>
+          {/* Global navigation — fixed, always on top */}
+          <UnderlayNav />
+          {/* Route-transition drape — covers, shows the section name, reveals */}
+          <RouteCurtain />
+          {/* Page content — receives [data-main] in each page component */}
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

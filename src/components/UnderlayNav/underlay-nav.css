@@ -203,6 +203,7 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
 }
 
 .underlay-nav__action {
+  position: relative; /* anchors the cart item-count badge */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,6 +228,46 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   height: 1.5em;
   fill: currentColor; /* re-inked from the export's hard-coded navy */
   overflow: visible; /* the cart's hover tilt swings slightly past the box */
+}
+
+/* ---- Cart item-count badge ----
+   The header difference-blends against the page (see above), so the badge
+   must paint in PURE white/black like everything else in the bar: the white
+   disc inverts per-pixel (ink disc over the light Shop, white over the dark
+   hero) and the black numerals come out as the page tone showing through —
+   always in contrast with the disc. Any brand colour here (gold/lime) would
+   render as a tinted negative. Keyed remount in React replays the pop. */
+.underlay-nav__cart-badge {
+  position: absolute;
+  top: 0.05em;
+  right: 0.05em;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.35em;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background-color: #fff;
+  color: #000;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  pointer-events: none;
+  animation: nav-badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes nav-badge-pop {
+  0% { transform: scale(0.4); }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .underlay-nav__cart-badge {
+    animation: none;
+  }
 }
 
 /* ---- Icon hover motion ----
