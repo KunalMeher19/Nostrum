@@ -60,8 +60,8 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
   // the line into the screen edges and read as chaotic. Pull it back to a
   // "mildly wild" range so it sways beside the steps instead of slamming the
   // margins. Mobile was already gentle — left as-is.
-  const ampMin = mobile ? 0.12 : 0.16;
-  const ampMax = mobile ? 0.22 : 0.3;
+  const ampMin = mobile ? 0.12 : 0.12;
+  const ampMax = mobile ? 0.22 : 0.22;
   const ampK = mobile ? 0.4 : 0.4;
 
   // A clean, 2-stroke horizontal underline sitting firmly near the baseline
