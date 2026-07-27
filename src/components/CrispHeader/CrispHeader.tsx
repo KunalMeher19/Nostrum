@@ -517,6 +517,14 @@ export default function CrispHeader() {
         // intent is remembered and enterSta() fires the moment the transition
         // completes — the hand-off feels immediate even on a fast scroll-through.
         let pendingSta = false;
+        // True while the current animation is navigating FROM a non-last slide
+        // TO the last slide. During this window, wheel/touch events with
+        // direction === 1 are residual inertia from the gesture that initiated
+        // the navigation — NOT intentional "scroll past the last slide"
+        // requests. Without this guard, `current` (already set to length-1)
+        // tricks handleWheel into setting pendingSta from inertia, which
+        // auto-fires enterSta() on animation complete.
+        let navigatingToLast = false;
         // Horizontal (side-to-side) slide transition duration.
         const animationDuration = 1.2;
 
@@ -659,6 +667,12 @@ export default function CrispHeader() {
                   ? current - 1
                   : length - 1;
 
+          // Track whether this animation is heading TO the last slide from a
+          // different slide. Wheel/touch handlers use this to ignore inertia
+          // events that would otherwise set pendingSta.
+          navigatingToLast =
+            previous !== length - 1 && current === length - 1;
+
           const currentSlide = ui.slides[previous];
           const currentInner = ui.inner[previous];
           const upcomingSlide = ui.slides[current];
@@ -676,6 +690,7 @@ export default function CrispHeader() {
               onComplete() {
                 currentSlide.classList.remove("is--current");
                 animating = false;
+                navigatingToLast = false;
                 // Honour a hand-off gesture that arrived mid-transition: the
                 // last slide has now fully settled, so dive into the pin.
                 if (pendingSta && current === length - 1 && phase === "slides") {
@@ -743,10 +758,15 @@ export default function CrispHeader() {
           if (direction === -1) pendingSta = false;
           if (current === length - 1 && direction === 1) {
             if (animating) {
-              // Slide 5's rise is still settling — don't hand off mid-wipe,
-              // but REMEMBER the intent so onComplete fires enterSta() the
-              // moment it lands (previously this gesture was just dropped,
-              // costing the user an extra scroll).
+              // If we're mid-transition TO the last slide, these wheel events
+              // are residual inertia from the gesture that triggered the
+              // navigation — swallow them but do NOT set pendingSta.
+              if (navigatingToLast) {
+                e.preventDefault();
+                return;
+              }
+              // Already ON the last slide and it's still settling — remember
+              // the intent so onComplete fires enterSta() the moment it lands.
               pendingSta = true;
               e.preventDefault();
               return;
@@ -810,7 +830,9 @@ export default function CrispHeader() {
             if (!animating) {
               isHandoffGesture = true;
               enterSta();
-            } else {
+            } else if (!navigatingToLast) {
+              // Only queue the STA hand-off if we were already on the last
+              // slide — not if we're mid-transition TO it (inertia guard).
               pendingSta = true;
             }
             return;
