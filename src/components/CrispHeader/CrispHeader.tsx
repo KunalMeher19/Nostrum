@@ -181,23 +181,31 @@ export default function CrispHeader() {
         const scrollCueEl =
           container.querySelector<HTMLElement>(".crisp-header__scroll");
         if (scrollCueEl) gsap.set(scrollCueEl, { autoAlpha: 0 });
-        // Hide hero text elements (h1 words + subtitle). The STA's scrubbed
-        // timeline normally animates these away over the first ~22% of the scrub,
-        // but when entering STA from a back-navigation with the page already
-        // scrolled past the hero, the scrub is already past that point and the
-        // text stays stuck on screen. Hide them immediately so they don't
-        // overlap the frame canvas.
-        if (split && split.words && split.words.length) {
-          gsap.set(split.words, { yPercent: 110 });
-        }
-        const heroSubEl = container.querySelector<HTMLElement>(".crisp-header__p");
-        if (heroSubEl) gsap.set(heroSubEl, { autoAlpha: 0 });
-        // Also hide the slider nav thumbnails — same reason.
-        const sliderNavItems = container.querySelectorAll(
-          ".crisp-header__slider-nav > *"
-        );
-        if (sliderNavItems.length) {
-          gsap.set(sliderNavItems, { xPercent: 140, autoAlpha: 0, scale: 0.8 });
+        // Hide hero text elements (h1 words + subtitle) and slider nav
+        // thumbnails. The scrubbed timeline in initStoryPin normally animates
+        // these away over the first ~22% of the pin. But when entering STA
+        // from a back-navigation with the page already scrolled past the hero,
+        // the scrub is already past that point and the elements stay stuck on
+        // screen. In that case, hide them immediately so they don't overlap
+        // the frame canvas / story section.
+        //
+        // At scroll position ≈ 0 (normal slideshow → STA handoff), SKIP the
+        // instant hide so the scrubbed timeline's staggered exit animation
+        // plays visibly — the user sees the thumbnails, heading words and
+        // subtitle animate out as they scroll into the pin.
+        const alreadyScrolled = window.scrollY > 10;
+        if (alreadyScrolled) {
+          if (split && split.words && split.words.length) {
+            gsap.set(split.words, { yPercent: 110 });
+          }
+          const heroSubEl = container.querySelector<HTMLElement>(".crisp-header__p");
+          if (heroSubEl) gsap.set(heroSubEl, { autoAlpha: 0 });
+          const sliderNavItems = container.querySelectorAll(
+            ".crisp-header__slider-nav > *"
+          );
+          if (sliderNavItems.length) {
+            gsap.set(sliderNavItems, { xPercent: 140, autoAlpha: 0, scale: 0.8 });
+          }
         }
         // Slide the fixed top bar (Nostrum wordmark + menu toggle) up and out
         // as the STA entry animation. CSS on .underlay-nav__header handles the
