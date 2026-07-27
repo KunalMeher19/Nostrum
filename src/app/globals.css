@@ -52,11 +52,10 @@
      a token so the pre-JS loading backdrop and the loader's own ::before bloom
      share one identical gradient and hand off with no colour pop. */
   --nostrum-load-glow: radial-gradient(
-    ellipse 72% 52% at 50% 50%,
-    rgba(74, 58, 31, 0.95) 0%,
-    rgba(51, 40, 22, 0.6) 30%,
-    rgba(20, 15, 9, 0.85) 58%,
-    #050505 82%
+    ellipse 100% 80% at 50% 50%,
+    #47371e 0%,
+    #141009 50%,
+    #050505 100%
   );
 }
 

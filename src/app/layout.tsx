@@ -66,11 +66,10 @@ main:has(.crisp-header.is--loading) { height: 100svh; overflow: hidden; }
 html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) { visibility: hidden; }
 html:has(.crisp-header.is--loading) [data-main] {
   background-image: radial-gradient(
-    ellipse 72% 52% at 50% 50%,
-    rgba(74, 58, 31, 0.95) 0%,
-    rgba(51, 40, 22, 0.6) 30%,
-    rgba(20, 15, 9, 0.85) 58%,
-    #050505 82%
+    ellipse 100% 80% at 50% 50%,
+    #47371e 0%,
+    #141009 50%,
+    #050505 100%
   );
   background-repeat: no-repeat;
   background-position: center;
