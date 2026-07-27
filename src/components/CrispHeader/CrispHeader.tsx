@@ -146,6 +146,14 @@ export default function CrispHeader() {
       // the scrub has moved past this threshold.
       const STA_REARM_PX = 60;
       let staArmed = false;
+      // Fraction of the pin distance below which the fixed top bar returns
+      // while scrolling UP. The bar used to come back only at absolute 0
+      // (enterSlides), but Lenis' deceleration means the last few hundred px
+      // crawl — the 3rd slide is visually back long before scroll numerically
+      // hits 0, and the bar looked stuck. Matching the parallax-start boundary
+      // (layers fully gone below it) brings the bar down in step with the
+      // slide's return; scrolling down past it hides the bar again.
+      const NAV_RETURN_FRACTION = 0.15;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let lenisRef: any = null;
       // Minimal imperative handle onto the slideshow, published by
@@ -247,6 +255,21 @@ export default function CrispHeader() {
         if (phase !== "sta") return;
         if (!staArmed && e.scroll > STA_REARM_PX) staArmed = true;
         if (staArmed && e.scroll <= 0.5) enterSlides();
+        // Glide the fixed top bar back down as soon as the scrub drops below
+        // the parallax boundary on the way up (the 3rd slide is back on
+        // screen there), instead of waiting for the crawl to absolute 0.
+        // Uses the pinned trigger's live start/end so it survives refreshes.
+        if (phase === "sta" && staTrigger) {
+          const pinLen = (staTrigger.end as number) - (staTrigger.start as number);
+          if (pinLen > 0) {
+            const progress =
+              (e.scroll - (staTrigger.start as number)) / pinLen;
+            document.body.classList.toggle(
+              "is--sta-active",
+              progress >= NAV_RETURN_FRACTION
+            );
+          }
+        }
       };
 
       // Handle native scroll changes (e.g., Next.js scroll restoration on Back button)
@@ -490,6 +513,12 @@ export default function CrispHeader() {
         let current = 0;
         const length = ui.slides.length;
         let animating = false;
+        // Set when the user scrolls down on the last slide WHILE its entrance
+        // transition is still running. Instead of silently eating that gesture
+        // (which forced a second scroll to actually enter the story pin), the
+        // intent is remembered and enterSta() fires the moment the transition
+        // completes — the hand-off feels immediate even on a fast scroll-through.
+        let pendingSta = false;
         // Horizontal (side-to-side) slide transition duration.
         const animationDuration = 1.2;
 
@@ -649,6 +678,14 @@ export default function CrispHeader() {
               onComplete() {
                 currentSlide.classList.remove("is--current");
                 animating = false;
+                // Honour a hand-off gesture that arrived mid-transition: the
+                // last slide has now fully settled, so dive into the pin.
+                if (pendingSta && current === length - 1 && phase === "slides") {
+                  pendingSta = false;
+                  enterSta();
+                } else {
+                  pendingSta = false;
+                }
               },
             })
             // Horizontal wipe: NEXT (direction 1, scroll down) sends the current
@@ -703,16 +740,26 @@ export default function CrispHeader() {
           if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
 
           const direction = e.deltaY > 0 ? 1 : -1;
-
-          // On the last slide (frame 001), scrolling down hands off to the
-          // scroll-through — but ONLY once the slide-5 rise has fully settled.
-          // navigate() sets `current` synchronously at the START of a
-          // transition, so without the `animating` guard a fast scroll would
-          // hand off while slide 5 is still sliding up, skipping the tail of
-          // that animation. Trap the scroll instead so slide 5 completes first.
+          // Any upward gesture cancels a queued hand-off — the user changed
+          // their mind mid-transition.
+          if (direction === -1) pendingSta = false;
           if (current === length - 1 && direction === 1) {
-            e.preventDefault();
-            if (!animating) enterSta();
+            if (animating) {
+              // Slide 5's rise is still settling — don't hand off mid-wipe,
+              // but REMEMBER the intent so onComplete fires enterSta() the
+              // moment it lands (previously this gesture was just dropped,
+              // costing the user an extra scroll).
+              pendingSta = true;
+              e.preventDefault();
+              return;
+            }
+            enterSta();
+            // Deliberately NO preventDefault here: enterSta() has already
+            // started Lenis synchronously, so this SAME wheel event bubbles up
+            // to Lenis' own wheel listener and becomes the first scroll of the
+            // pinned scrub. Before, the event was swallowed — the first
+            // gesture only flipped the phase and the page didn't move until
+            // the SECOND scroll, which read as a dead delay at the hand-off.
             return;
           }
           // Release user to scroll up (bounce) if on first slide
@@ -758,15 +805,19 @@ export default function CrispHeader() {
           const deltaY = touchStartY - touchEndY;
           const direction = deltaY > 0 ? 1 : -1;
 
-          // Hand off to the scroll-through only once slide 5 has settled.
+          // Hand off to the scroll-through only once slide 5 has settled;
+          // remember a mid-transition swipe (same pendingSta as the wheel path).
           if (current === length - 1 && direction === 1) {
             e.preventDefault();
             if (!animating) {
               isHandoffGesture = true;
               enterSta();
+            } else {
+              pendingSta = true;
             }
             return;
           }
+          if (direction === -1) pendingSta = false;
           if (current === 0 && direction === -1) return;
 
           if (Math.abs(deltaY) > 10) {
@@ -1200,13 +1251,23 @@ export default function CrispHeader() {
       // layers rise over it, landing on "Our Story" before the pin releases
       // into <StorySection/>. Much shorter than the old 3vh frame scrub, so
       // moving around stays quick.
-      const STORY_PIN_VH = 1;
-      const STORY_PIN_VH_MOBILE = 0.8;
+      // 1.8vh (was 1) — the old 1vh pin was short enough that a fast flick
+      // blew straight past it while the scrub-3 lerp was still catching up,
+      // so the whole parallax played AFTER the page had already released into
+      // <StorySection/> (i.e. you missed it). 1.8vh gives the tail real
+      // scroll room: even a hard flick spends enough distance inside the pin
+      // that the rise is always on screen. Passing through takes ~2x the
+      // scrolling — deliberate, per "longer + cinematic" direction.
+      const STORY_PIN_VH = 1.8;
+      const STORY_PIN_VH_MOBILE = 1.4;
       const storyPinVh = () =>
         window.innerWidth <= 540 ? STORY_PIN_VH_MOBILE : STORY_PIN_VH;
-      // Where in the pin (0 → 1) the parallax tail begins — the copy exit owns
-      // the first ~22%, then the slide starts its recede.
-      const STORY_PIN_PARALLAX_START = 0.3;
+      // Where in the pin (0 → 1) the parallax tail begins. 0.15 (was 0.3):
+      // the old 30% dead zone meant ~2-3 wheel notches of "nothing but the
+      // copy exit" before the layers even started — the perceived delay on
+      // entry. Now the slide recede + layer rise kick in on the first
+      // gesture, overlapping the tail of the copy exit (first ~22%).
+      const STORY_PIN_PARALLAX_START = 0.15;
 
       function initStoryPin() {
         const host = container;
