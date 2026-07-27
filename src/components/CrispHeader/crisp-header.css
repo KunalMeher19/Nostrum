@@ -56,6 +56,12 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   top: 0;
   left: 0;
   overflow: hidden;
+  /* Opaque backing of its own. During loading the dark came from the header's
+     background behind this layer, but once the sweep starts is--loading is
+     removed and the slider paints underneath — without an opaque bg here the
+     revealed hero bleeds through the drape. The warm ::before glow sits over
+     this fill, so the loader still reads as the gold-bloom surface. */
+  background-color: var(--crisp-bg);
   /* z-index: 0 creates a stacking context here so that the z-index: 1 on
      .crisp-loader__wrap (needed to keep it above the gold-bloom ::before) is
      confined INSIDE the loader's own context.  Without this, z-index: 1 leaks
@@ -117,6 +123,99 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   /* Wide tracking leaves a trailing gap after the final M — nudge the mark
      right by half a tracking unit so the word reads optically centred. */
   text-indent: 0.21em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Curtain-out reveal — the loading layer is clipped by an animated SVG */
+/* path (driven by the intro timeline) so it sweeps off the bottom like  */
+/* the RouteCurtain drape instead of a flat fade.                        */
+/* ------------------------------------------------------------------ */
+
+/* Zero-box SVG that only carries the <clipPath> definition. */
+.crisp-loader__clip-svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Clip the whole loading layer to the animated drape path during both the
+   loading phase and the sweep-out. objectBoundingBox units (0–1) so the path
+   the GSAP timeline writes maps straight onto the loader's box. */
+.crisp-header.is--loading .crisp-loader,
+.crisp-header.is--sweeping .crisp-loader {
+  clip-path: url(#crisp-loader-clip);
+  -webkit-clip-path: url(#crisp-loader-clip);
+}
+
+/* Keep the loader painting through the sweep — is--loading has already been
+   removed by the time the drape lifts, so without this the layer would blink
+   to display:none and there'd be nothing to sweep. Sits above the revealed
+   hero (which is settled underneath) until the curtain clears the viewport. */
+.crisp-header.is--sweeping .crisp-loader {
+  display: flex;
+  z-index: 40;
+}
+
+/* The corner light + sparkles must ride the same sweep, so they live INSIDE
+   .crisp-loader and inherit its clip. */
+
+/* Bottom-right golden light — mirrors RouteCurtain's warm corner so the load
+   screen and the route drape read as one continuous surface. */
+.crisp-loader__corner-light {
+  position: absolute;
+  right: -10%;
+  bottom: -10%;
+  width: 70%;
+  height: 70%;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle at bottom right,
+    rgba(230, 180, 34, 0.34) 0%,
+    rgba(230, 180, 34, 0.13) 33%,
+    rgba(230, 180, 34, 0) 68%
+  );
+}
+
+/* Gold sparkles — faint twinkling motes toward the warm corner, staggered so
+   they never all flash together (same treatment as RouteCurtain). */
+.crisp-loader__sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.crisp-loader__spark {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #e6b422;
+  box-shadow: 0 0 6px 1px rgba(230, 180, 34, 0.6);
+  opacity: 0;
+  animation: crisp-loader-twinkle 3.2s ease-in-out var(--d, 0s) infinite;
+}
+
+@keyframes crisp-loader-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crisp-loader__spark {
+    animation: none;
+    opacity: 0.4;
+  }
 }
 
 /* Per-letter overflow mask so the rise/exit is clipped — same masked-reveal

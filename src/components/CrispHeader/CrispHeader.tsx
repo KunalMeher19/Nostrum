@@ -368,6 +368,15 @@ export default function CrispHeader() {
           gsap.set(split.words, { yPercent: 110 });
         }
 
+        // Hold the hero's other UI hidden for the whole loading phase. The old
+        // reveal used `.from()` tweens whose immediateRender hid these; the
+        // curtain-out reveal settles them in a single `tl.call` under the drape
+        // instead, so nothing hides them up front — without this they bleed
+        // through the loader (subtitle, SCROLL cue, CTAs, thumb rail). The
+        // slider itself is already display:none via .is--loading CSS.
+        if (smallElements.length) gsap.set(smallElements, { autoAlpha: 0 });
+        if (sliderNav.length) gsap.set(sliderNav, { autoAlpha: 0 });
+
         const tl = gsap.timeline({
           defaults: { ease: "expo.inOut" },
           onStart: () => {
@@ -412,87 +421,76 @@ export default function CrispHeader() {
           );
         }
 
-        // The reveal's heavy beat comes FIRST now: with a text-only loader
-        // there is no fullscreen image covering the flip, so is--loading is
-        // removed the moment the wordmark has lifted away (screen shows only
-        // the glow, input still trapped by !loaderDone). This flips the slider
-        // + below-hero sections visible (full-page reflow) and arms the
-        // scroll-through — the ~200ms of synchronous layout work lands inside
-        // this quiet beat where nothing is animating.
+        // The whole loading layer (wordmark + glow + corner light + sparkles)
+        // is clipped by this path so it can be swept off the TOP like an
+        // upward-lifting curtain instead of a flat crossfade.
+        const loaderClip = container.querySelector<SVGPathElement>(
+          "[data-loader-clip]"
+        );
+
+        // Settle the hero UNDERNEATH the still-full curtain — same end-state a
+        // client-side curtain navigation lands on: slider live, rail assembled,
+        // heading words up, small text in. is--loading drops (full-page reflow,
+        // scroll-through arms) and is--sweeping takes over so the loader keeps
+        // painting while the drape lifts. All hidden under the curtain, so the
+        // reveal shows a fully settled hero — never a mid-animation frame.
         tl.call(
           function () {
-            // Pre-hide the slider so it can't pop in at full opacity on the
-            // exact frame is--loading drops (its display:none lifts here);
-            // the crossfade below then eases it in from the glow.
-            if (sliderEl.length) gsap.set(sliderEl, { autoAlpha: 0 });
+            if (sliderEl.length) gsap.set(sliderEl, { autoAlpha: 1 });
+            if (sliderNav.length)
+              gsap.set(sliderNav, { autoAlpha: 1, xPercent: 0, scale: 1 });
+            if (split && split.words.length)
+              gsap.set(split.words, { yPercent: 0 });
+            if (smallElements.length) gsap.set(smallElements, { autoAlpha: 1 });
             container.classList.remove("is--loading");
+            container.classList.add("is--sweeping");
             heroRevealed = true;
             maybeInitScrollThrough();
+            document.body.classList.remove("is--intro-active");
           },
           undefined,
           "+=0.05"
         );
 
-        // First slide fades in from the glow — the seam the fullscreen zoom
-        // used to provide, now a quiet cinematic crossfade.
-        if (sliderEl.length) {
-          tl.fromTo(
-            sliderEl,
-            { autoAlpha: 0 },
-            { autoAlpha: 1, ease: "power1.inOut", duration: 1.1 },
-            "+=0.05"
-          );
-        }
-
-        // Reveal the (now vertical, right-edge) rail: each thumb slides in from
-        // off-screen right with a soft fade + slight scale, staggered top-to-
-        // bottom so the column assembles downward as the hero settles.
-        if (sliderNav.length) {
-          tl.from(
-            sliderNav,
-            {
-              xPercent: 140,
-              opacity: 0,
-              scale: 0.8,
-              stagger: 0.08,
-              ease: "expo.out",
-              duration: 1.1,
-            },
-            "-=0.7"
-          );
-        }
-
-        tl.call(
-          () => {
-            document.body.classList.remove("is--intro-active");
-          },
-          undefined,
-          "-=0.9"
-        );
-
-        if (split && split.words.length) {
+        // ---- Curtain-out sweep — same drape math + timing/easing as
+        //      RouteCurtain.closeCurtain, normalised to the clip's
+        //      objectBoundingBox (0–1), but re-anchored to the TOP edge so the
+        //      loader lifts UPWARD (area ABOVE the curve is curtain). yEdge
+        //      starts full (1) and travels past 0 to a negative EXIT; as it
+        //      passes the top the loader clears the viewport and the hero shows.
+        //      The mid control point leads past the corners then settles back —
+        //      the sag that reads as cloth rather than a flat wipe.
+        if (loaderClip) {
+          const drape = { yEdge: 1, yMid: 1 };
+          const drawSweep = () =>
+            loaderClip.setAttribute(
+              "d",
+              `M0,0 L1,0 L1,${drape.yEdge} Q0.5,${drape.yMid} 0,${drape.yEdge} Z`
+            );
+          drawSweep();
+          const EXIT = -0.18; // past the top edge — mirror of RouteCurtain EXIT/100
           tl.to(
-            split.words,
-            { yPercent: 0, stagger: 0.075, ease: "expo.out", duration: 1 },
-            "< 0.1"
-          );
+            drape,
+            { yEdge: EXIT, duration: 0.95, ease: "power3.inOut", onUpdate: drawSweep },
+            "+=0.05"
+          )
+            .to(
+              drape,
+              { yMid: EXIT - 0.25, duration: 0.55, ease: "power2.in", onUpdate: drawSweep },
+              "<"
+            )
+            .to(
+              drape,
+              { yMid: EXIT, duration: 0.4, ease: "power2.out", onUpdate: drawSweep },
+              "<0.55"
+            );
         }
 
-        if (smallElements.length) {
-          tl.from(
-            smallElements,
-            { opacity: 0, ease: "power1.inOut", duration: 0.2 },
-            "< 0.15"
-          );
-        }
-
-        tl.call(
-          function () {
-            loaderDone = true;
-          },
-          undefined,
-          "+=0.4"
-        );
+        tl.call(function () {
+          // Curtain has cleared the viewport — retire the loader layer.
+          container.classList.remove("is--sweeping");
+          loaderDone = true;
+        });
       };
 
       // ---- Slideshow (verbatim logic, scoped to `container`) ---------------
@@ -1517,7 +1515,35 @@ export default function CrispHeader() {
           the STA is on, the slideshow pane otherwise (see initStoryPin). */}
       <StoryParallaxOverlay />
 
+      {/* The whole loading layer is clipped by an animated SVG path so it can
+          sweep off the bottom exactly like the RouteCurtain "curtain-out"
+          reveal (same quadratic drape + timing/easing) instead of a flat fade.
+          data-loader-clip's `d` is driven by the intro timeline. */}
+      <svg className="crisp-loader__clip-svg" aria-hidden="true">
+        <defs>
+          <clipPath id="crisp-loader-clip" clipPathUnits="objectBoundingBox">
+            <path data-loader-clip d="M0,0 L1,0 L1,1 L0,1 Z" />
+          </clipPath>
+        </defs>
+      </svg>
+
       <div className="crisp-loader">
+        {/* Bottom-right golden light — the same warm corner glow the route
+            curtain carries, so the load screen and the drape read as one
+            continuous surface. Swept away with the curtain on reveal. */}
+        {/* <div className="crisp-loader__corner-light" aria-hidden="true" /> */}
+
+        {/* Gold sparkles — faint twinkling motes clustered toward the warm
+            corner, matching RouteCurtain. Staggered CSS twinkle. */}
+        <div className="crisp-loader__sparkles" aria-hidden="true">
+          <span className="crisp-loader__spark" style={{ top: "62%", left: "78%", ["--d" as string]: "0s" }} />
+          <span className="crisp-loader__spark" style={{ top: "74%", left: "88%", ["--d" as string]: "0.9s" }} />
+          <span className="crisp-loader__spark" style={{ top: "83%", left: "70%", ["--d" as string]: "1.6s" }} />
+          <span className="crisp-loader__spark" style={{ top: "55%", left: "90%", ["--d" as string]: "0.4s" }} />
+          <span className="crisp-loader__spark" style={{ top: "90%", left: "84%", ["--d" as string]: "2.1s" }} />
+          <span className="crisp-loader__spark" style={{ top: "70%", left: "64%", ["--d" as string]: "1.2s" }} />
+        </div>
+
         {/* Simple loader (client feedback 1.0) — a single tracked-out NOSTRUM
             wordmark over the warm glow. Each letter sits in its own overflow-
             hidden mask so the rise/exit reads as a clean editorial reveal. */}
