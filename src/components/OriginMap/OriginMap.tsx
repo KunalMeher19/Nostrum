@@ -113,7 +113,10 @@ export default function OriginMap() {
           viewBox="0 0 640 520"
           aria-hidden="true"
         >
-          {/* Stylised Catalan coast, NE (Cap de Creus) → SW (Ebre delta).
+          {/* Stylised Catalan coast, NE (Cap de Creus) → SW past the EBRE
+              DELTA — the arrow-shaped lobe that pushes out into the sea
+              (client feedback 1.0: represent the delta accurately; the
+              factory sits on the river just NW of it, marked below).
               pathLength=1 so the draw is a simple 1→0 dashoffset. */}
           <path
             className="origin-map__coast"
@@ -128,19 +131,23 @@ export default function OriginMap() {
                C 404 237, 392 252, 374 262
                C 354 273, 344 288, 326 298
                C 306 309, 296 322, 278 332
-               C 262 341, 252 354, 236 362
-               C 224 368, 218 380, 226 390
-               C 236 402, 224 410, 208 406
-               C 190 401, 178 408, 168 420
-               C 156 434, 142 442, 126 448"
+               C 262 341, 252 354, 240 360
+               C 254 362, 286 366, 312 380
+               C 330 390, 342 400, 336 408
+               C 330 416, 314 420, 296 426
+               C 276 432, 252 430, 236 420
+               C 228 415, 220 412, 208 414
+               C 190 417, 178 422, 166 432
+               C 154 442, 140 446, 126 450"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
           />
 
-          {/* The grove — Baix Ebre, by the delta. Bloom + rings via CSS. */}
-          <g className="origin-map__marker" transform="translate(214, 396)">
+          {/* The factory — on the Ebre, just NW of the delta (client's pin).
+              Bloom + rings via CSS. */}
+          <g className="origin-map__marker" transform="translate(206, 392)">
             <circle className="origin-map__marker-ring" r="16" />
             <circle className="origin-map__marker-ring origin-map__marker-ring--late" r="16" />
             <circle className="origin-map__marker-dot" r="5" />
@@ -151,7 +158,7 @@ export default function OriginMap() {
             <path
               className="origin-map__note-line"
               pathLength={1}
-              d="M360 330 C 322 336, 272 352, 240 384"
+              d="M350 322 C 312 330, 262 352, 232 380"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.6"
@@ -160,7 +167,7 @@ export default function OriginMap() {
             <path
               className="origin-map__note-head"
               pathLength={1}
-              d="M254 370 L 240 384 L 258 388"
+              d="M246 366 L 232 380 L 250 384"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.6"

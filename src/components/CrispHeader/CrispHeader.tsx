@@ -46,6 +46,15 @@ const staScrollVh = () =>
 // that feels the same as active scrolling. Nudge up for more drift, down for a
 // tighter, more 1:1 chase.
 const STA_SCRUB = 3;
+// ---- STA kill-switch (client feedback 1.0, 2026-07) -------------------------
+// The client asked to DELETE the bottle scroll-animation from the home page —
+// the pinned 240-frame scrub made moving around the site take too long, and
+// the bottle isn't their real product. The whole STA machine (preload, canvas,
+// pinned ScrollTrigger, story-parallax tail) is kept intact behind this flag
+// so it can be reused elsewhere later; with it off the hero releases into
+// plain page scroll after the last slide and the "Our Story" beat lives in
+// the normal-flow <StoryIntro/> section below the hero instead.
+const STA_ENABLED: boolean = false;
 const staFramePath = (i: number) =>
   `/frames/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
 
@@ -251,14 +260,14 @@ export default function CrispHeader() {
 
       unsubLenis = onLenis((lenis) => {
         lenisRef = lenis;
-        
+
         // If we load and we're already scrolled down (or have a hash), start in STA mode
         if (window.scrollY > 10 || window.location.hash) {
           enterSta();
         } else {
           lenis.stop(); // start life in slideshow mode — page locked at top
         }
-        
+
         lenis.on("scroll", onLenisScroll);
         window.addEventListener("scroll", onNativeScroll, { passive: true });
       });
@@ -268,11 +277,12 @@ export default function CrispHeader() {
       };
 
       // ---- Loading Animation (scoped to `container`) ----------------------
-      // Loader phase is the Willem-style wordmark: NOS·[growing image]·TRUM.
-      // The reveal phase that follows (slider-nav, h1 word-reveal, small text
-      // fade, hand-off to the slideshow) is unchanged from the original crisp
-      // build — the growing image simply reaches fullscreen where the old
-      // scale-up used to, so the two phases splice together at the same beat.
+      // Loader phase (client feedback 1.0): a single tracked-out "NOSTRUM"
+      // wordmark over the warm load glow — masked letters rise in with a
+      // stagger while the tracking breathes open (pensioperello-style, text
+      // only), hold a beat, then lift away as the first slide fades in
+      // underneath. The reveal phase that follows (slider-nav, h1 word-reveal,
+      // small text fade, hand-off to the slideshow) is unchanged.
       const initCrispLoadingAnimation = () => {
         // Client-side arrival (RouteCurtain navigation): the drape was the
         // loader — the hero's long cinematic intro is a FIRST-LOAD experience
@@ -305,15 +315,11 @@ export default function CrispHeader() {
         }
 
         const heading = container.querySelectorAll(".crisp-header__h1");
-        // Willem loader parts
-        const loadingLetter = container.querySelectorAll(".willem__letter");
-        const box = container.querySelectorAll(".willem-loader__box");
-        const growingImage = container.querySelectorAll(".willem__growing-image");
-        const headingStart = container.querySelectorAll(".willem__h1-start");
-        const headingEnd = container.querySelectorAll(".willem__h1-end");
-        const coverImageExtra = container.querySelectorAll(
-          ".willem__cover-image-extra"
-        );
+        // Simple-loader parts — the tracked-out NOSTRUM letters.
+        const loadingLetter = container.querySelectorAll(".nostrum-loader__letter");
+        const loaderMark = container.querySelector<HTMLElement>(".nostrum-loader__mark");
+        // The slideshow layer — crossfaded in from the glow at the hand-off.
+        const sliderEl = container.querySelectorAll(".crisp-header__slider");
         // Reveal-phase parts (unchanged)
         const smallElements = container.querySelectorAll(
           ".crisp-header__top, .crisp-header__p, .crisp-header__cta, .crisp-header__scroll"
@@ -324,16 +330,15 @@ export default function CrispHeader() {
 
         // Mirror the original vanilla-JS approach exactly:
         //
-        // 1. While the section is still display:none (is--hidden), run
-        //    SplitText and set yPercent:110 on the words.
+        // 1. While the section is still display:none (is--hidden), set
+        //    yPercent:110 on the masked letters.
         //    Because `transform: translateY(110%)` is a CSS *percentage*,
         //    the browser resolves it relative to the element's own height at
         //    **render time** — so the value is correct even though the element
         //    has no box yet.
         // 2. The GSAP timeline's onStart callback removes is--hidden.
-        //    At that exact first rendered frame the heading is already
-        //    translateY(110%) and sits below the SplitText overflow-hidden
-        //    mask → no flash, no jump.
+        //    At that exact first rendered frame the letters are already
+        //    translateY(110%) below their overflow-hidden masks → no flash.
 
         if (heading.length) {
           split = new SplitText(heading, { type: "words", mask: "words" });
@@ -348,79 +353,72 @@ export default function CrispHeader() {
           },
         });
 
-        // --- Willem loader: letters rise, then the box+image grow between the
-        //     two halves of the wordmark, then the image expands to fullscreen.
+        // --- Simple loader: masked letters rise in with a stagger while the
+        //     wordmark's tracking breathes open — text only, over the glow.
         if (loadingLetter.length) {
           tl.from(loadingLetter, {
-            yPercent: 100,
-            stagger: 0.025,
-            duration: 1.25,
+            yPercent: 110,
+            autoAlpha: 0,
+            stagger: 0.055,
+            ease: "expo.out",
+            duration: 1.3,
           });
         }
-
-        if (box.length) {
+        if (loaderMark) {
           tl.fromTo(
-            box,
-            { width: "0em" },
-            { width: "1em", duration: 1.25 },
-            "< 1.25"
+            loaderMark,
+            { letterSpacing: "0.18em" },
+            { letterSpacing: "0.42em", ease: "power2.out", duration: 2.1 },
+            0
           );
         }
 
-        if (growingImage.length) {
-          tl.fromTo(
-            growingImage,
-            { width: "0%" },
-            { width: "100%", duration: 1.25 },
-            "<"
-          );
-        }
-
-        if (headingStart.length) {
-          tl.fromTo(
-            headingStart,
-            { x: "0em" },
-            { x: "-0.05em", duration: 1.25 },
-            "<"
-          );
-        }
-
-        if (headingEnd.length) {
-          tl.fromTo(
-            headingEnd,
-            { x: "0em" },
-            { x: "0.05em", duration: 1.25 },
-            "<"
-          );
-        }
-
-        // Cycle the stacked images one by one as the wordmark splits: each
-        // extra fades out to reveal the one beneath (4 → 3 → 5 → 1 → 2). The
-        // stagger is tuned so the final fade lands ~as the fullscreen zoom
-        // begins, leaving 2.png settled and ready to grow. (4 extras × 0.4s
-        // fits the ~1.25s window before the zoom; the original 0.5s would
-        // overrun it and fade the last image mid-zoom.)
-        if (coverImageExtra.length) {
-          tl.fromTo(
-            coverImageExtra,
-            { opacity: 1 },
-            { opacity: 0, duration: 0.05, ease: "none", stagger: 0.4 },
-            "-=0.05"
-          );
-        }
-
-        // Image expands to fullscreen — the hand-off beat where the old
-        // scale-up used to land, so the reveal phase below is untouched.
-        if (growingImage.length) {
+        // Hold a quiet beat on the settled wordmark, then lift it away —
+        // letters exit upward through their masks in the same order they came.
+        if (loadingLetter.length) {
           tl.to(
-            growingImage,
-            { width: "100vw", height: "100svh", duration: 2 },
-            "< 1.25"
+            loadingLetter,
+            {
+              yPercent: -110,
+              autoAlpha: 0,
+              stagger: 0.035,
+              ease: "expo.in",
+              duration: 0.8,
+            },
+            "+=0.55"
           );
         }
 
-        if (box.length) {
-          tl.to(box, { width: "110vw", duration: 2 }, "<");
+        // The reveal's heavy beat comes FIRST now: with a text-only loader
+        // there is no fullscreen image covering the flip, so is--loading is
+        // removed the moment the wordmark has lifted away (screen shows only
+        // the glow, input still trapped by !loaderDone). This flips the slider
+        // + below-hero sections visible (full-page reflow) and arms the
+        // scroll-through — the ~200ms of synchronous layout work lands inside
+        // this quiet beat where nothing is animating.
+        tl.call(
+          function () {
+            // Pre-hide the slider so it can't pop in at full opacity on the
+            // exact frame is--loading drops (its display:none lifts here);
+            // the crossfade below then eases it in from the glow.
+            if (sliderEl.length) gsap.set(sliderEl, { autoAlpha: 0 });
+            container.classList.remove("is--loading");
+            heroRevealed = true;
+            maybeInitScrollThrough();
+          },
+          undefined,
+          "+=0.05"
+        );
+
+        // First slide fades in from the glow — the seam the fullscreen zoom
+        // used to provide, now a quiet cinematic crossfade.
+        if (sliderEl.length) {
+          tl.fromTo(
+            sliderEl,
+            { autoAlpha: 0 },
+            { autoAlpha: 1, ease: "power1.inOut", duration: 1.1 },
+            "+=0.05"
+          );
         }
 
         // Reveal the (now vertical, right-edge) rail: each thumb slides in from
@@ -437,7 +435,7 @@ export default function CrispHeader() {
               ease: "expo.out",
               duration: 1.1,
             },
-            "-=0.9"
+            "-=0.7"
           );
         }
 
@@ -464,32 +462,6 @@ export default function CrispHeader() {
             "< 0.15"
           );
         }
-
-        // The reveal's heavy tail is split into two beats so the main-thread
-        // cost never lands on the frame the user gains control:
-        //
-        //  1. "+=0.05" — the intro's last tween has just settled (screen is
-        //     visually still, input is still trapped by !loaderDone). Remove
-        //     is--loading NOW: this flips the below-hero sections visible
-        //     (full-page reflow) and arms the scroll-through, whose
-        //     ScrollTrigger.refresh() must measure that fresh layout —
-        //     ~200ms of synchronous layout/measure work on a low-end frame.
-        //     Paying it here hides it inside the quiet beat where nothing is
-        //     animating and the user can't interact yet.
-        //  2. "+=0.4" — the same absolute moment the loader used to finish
-        //     (0.05 + 0.4 = the original +=0.45): unlock input. Everything is
-        //     already measured, so control arrives with zero jank.
-        tl.call(
-          function () {
-            container.classList.remove("is--loading");
-            // Hero is revealed — arm the scroll-through (waits on frame
-            // preload too). Input stays trapped until loaderDone below.
-            heroRevealed = true;
-            maybeInitScrollThrough();
-          },
-          undefined,
-          "+=0.05"
-        );
 
         tl.call(
           function () {
@@ -928,6 +900,15 @@ export default function CrispHeader() {
       registerStoryScroll({ toSection: scrollToSection, toTop: scrollToTop });
 
       const maybeInitScrollThrough = () => {
+        // STA disabled (no frame scrub): the pinned hand-off still exists —
+        // it's the story pin riding the last SLIDE (initStoryPin) — it just
+        // doesn't wait on any frame preload.
+        if (!STA_ENABLED) {
+          if (staStarted || !heroRevealed || prefersReducedMotion) return;
+          staStarted = true;
+          initStoryPin();
+          return;
+        }
         if (staStarted || !framesReady || !heroRevealed || prefersReducedMotion) {
           return;
         }
@@ -936,6 +917,7 @@ export default function CrispHeader() {
       };
 
       const preloadFrames = () => {
+        if (!STA_ENABLED) return; // no scrub → don't fetch 239 frames
         const needed = STA_FRAME_COUNT - STA_START_FRAME + 1;
         let loaded = 0;
         const tick = () => {
@@ -1021,21 +1003,21 @@ export default function CrispHeader() {
           let pos = frameState.i;
           if (pos < STA_START_FRAME) pos = STA_START_FRAME;
           else if (pos > STA_FRAME_COUNT) pos = STA_FRAME_COUNT;
-          
+
           if (pos === lastRendered) return;
           lastRendered = pos;
-          
+
           const baseFrame = Math.floor(pos);
           const nextFrame = Math.min(baseFrame + 1, STA_FRAME_COUNT);
           const fraction = pos - baseFrame;
-          
+
           cctx.clearRect(0, 0, canvas.width, canvas.height);
           blitFrame(baseFrame, 1);
-          
+
           if (fraction > 0) {
             blitFrame(nextFrame, fraction);
             // Reset alpha so other drawing operations aren't affected
-            cctx.globalAlpha = 1; 
+            cctx.globalAlpha = 1;
           }
         };
 
@@ -1208,6 +1190,152 @@ export default function CrispHeader() {
         }
       }
 
+      // ---- Story pin (STA disabled) ---------------------------------------
+      // The pinned "Our Story" hand-off, rebuilt on the SLIDESHOW itself.
+      // Client feedback 1.0 deleted the 240-frame bottle scrub, but the
+      // closing parallax the client liked stays: entering the pin from the
+      // last slide, the hero copy exits exactly as before, the SLIDE pane
+      // recedes + fades exactly as the frame canvas used to (same tween, new
+      // subject — see initStoryParallax's `canvas` arg), and the brand-colour
+      // layers rise over it, landing on "Our Story" before the pin releases
+      // into <StorySection/>. Much shorter than the old 3vh frame scrub, so
+      // moving around stays quick.
+      const STORY_PIN_VH = 1;
+      const STORY_PIN_VH_MOBILE = 0.8;
+      const storyPinVh = () =>
+        window.innerWidth <= 540 ? STORY_PIN_VH_MOBILE : STORY_PIN_VH;
+      // Where in the pin (0 → 1) the parallax tail begins — the copy exit owns
+      // the first ~22%, then the slide starts its recede.
+      const STORY_PIN_PARALLAX_START = 0.3;
+
+      function initStoryPin() {
+        const host = container;
+        if (!host) return;
+        const sliderPane = host.querySelector<HTMLElement>(
+          ".crisp-header__slider"
+        );
+        if (!sliderPane) return;
+
+        // Stable viewport height — same mobile address-bar guard as the STA.
+        let stableVh = window.innerHeight;
+
+        const pEl = host.querySelector(".crisp-header__p");
+        const navChildren = host.querySelectorAll(
+          ".crisp-header__slider-nav > *"
+        );
+
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: host,
+            start: "top top",
+            end: () => "+=" + stableVh * storyPinVh(),
+            pin: true,
+            pinSpacing: true,
+            scrub: STA_SCRUB,
+            invalidateOnRefresh: true,
+            // Same pinType rationale as the STA: UnderlayNav transforms
+            // [data-main], which breaks position:fixed pinning.
+            pinType: "transform",
+            anticipatePin: 1,
+            onLeave: () => document.body.classList.add("is--story-revealed"),
+            onEnterBack: () =>
+              document.body.classList.remove("is--story-revealed"),
+          },
+        });
+        staTrigger = tl.scrollTrigger;
+
+        // Span the timeline to duration 1 so initStoryParallax's fractional
+        // `start` positions land as fractions of the whole pin (the old frame
+        // tween used to provide this span).
+        tl.to({}, { duration: 1 }, 0);
+
+        // Copy exits over the first ~22% of the pin — identical proxy to the
+        // old STA scrub (reads the CURRENT split.words every update, since the
+        // slideshow rebuilds `split` on each slide change).
+        const wordExit = { p: 0 };
+        tl.to(
+          wordExit,
+          {
+            p: 1,
+            ease: "power2.in",
+            duration: 0.22,
+            onUpdate() {
+              const w = split && split.words ? split.words : null;
+              if (!w || !w.length) return;
+              const n = w.length;
+              const spread = 0.35;
+              for (let k = 0; k < n; k++) {
+                const start = n > 1 ? (k / (n - 1)) * spread : 0;
+                const local = Math.min(
+                  1,
+                  Math.max(0, (wordExit.p - start) / (1 - spread))
+                );
+                gsap.set(w[k], { yPercent: 110 * local });
+              }
+            },
+          },
+          0
+        );
+        if (pEl) {
+          tl.to(pEl, { autoAlpha: 0, duration: 0.15 }, 0);
+        }
+        if (navChildren.length) {
+          tl.to(
+            navChildren,
+            {
+              xPercent: 140,
+              autoAlpha: 0,
+              scale: 0.8,
+              stagger: 0.03,
+              ease: "power2.in",
+              duration: 0.22,
+            },
+            0
+          );
+        }
+
+        // The closing parallax — the exact tail the client approved, with the
+        // slideshow pane as the receding subject instead of the frame canvas.
+        // hideSlider MUST be false: the pane IS the subject here.
+        initStoryParallax({
+          gsap,
+          tl,
+          host,
+          canvas: sliderPane,
+          start: STORY_PIN_PARALLAX_START,
+          hideSlider: false,
+        });
+
+        let lastWidth = window.innerWidth;
+        const handleResize = () => {
+          // Ignore height-only resizes (mobile address bar) — same guard as
+          // the STA's resize handler.
+          if (window.innerWidth === lastWidth) return;
+          lastWidth = window.innerWidth;
+          stableVh = window.innerHeight;
+          ScrollTrigger.refresh();
+        };
+        window.addEventListener("resize", handleResize);
+
+        // Sections became visible on the same beat this ran — measure now.
+        ScrollTrigger.refresh();
+
+        staCleanup = () => {
+          window.removeEventListener("resize", handleResize);
+          tl.scrollTrigger?.kill();
+          tl.kill();
+        };
+
+        // A section scroll was requested while the loader was still running —
+        // the pin distances are now measured, so it's safe to dive.
+        if (pendingSection) {
+          const selector = pendingSection;
+          pendingSection = null;
+          runSectionScroll(selector);
+        }
+      }
+
       preloadFrames();
 
       ctx = gsap.context(() => {
@@ -1313,68 +1441,32 @@ export default function CrispHeader() {
         </div>
       </div>
 
-      {/* Scroll-through canvas — frames 002→240 scrub over this as the hero
-          pins and the copy above it fades away. Continues seamlessly from the
-          frame-001 slide behind it. */}
-      <canvas ref={frameCanvasRef} className="crisp-header__frames" aria-hidden="true" />
+      {/* Scroll-through canvas — STA-only, kept behind the flag for reuse
+          elsewhere (client feedback 1.0 removed the pinned bottle scrub). */}
+      {STA_ENABLED && (
+        <canvas
+          ref={frameCanvasRef}
+          className="crisp-header__frames"
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Closing transition — rises over the receding frame canvas in the last
-          ~14% of the scrub and hands off to the Story section (see
-          initStoryParallax, wired into the STA timeline below). */}
+      {/* Closing transition — rises over the receding subject in the pin's
+          tail and hands off to the Story section. Subject = frame canvas when
+          the STA is on, the slideshow pane otherwise (see initStoryPin). */}
       <StoryParallaxOverlay />
 
       <div className="crisp-loader">
-        <div className="willem-loader">
-          <div className="willem__h1">
-            <div className="willem__h1-start">
-              <span className="willem__letter">N</span>
-              <span className="willem__letter">o</span>
-              <span className="willem__letter">s</span>
-              <span className="willem__letter">t</span>
-            </div>
-            <div className="willem-loader__box">
-              <div className="willem-loader__box-inner">
-                <div className="willem__growing-image">
-                  <div className="willem__growing-image-wrap">
-                    <img
-                      className="willem__cover-image-extra is--1"
-                      src="/images/4.png"
-                      loading="eager"
-                      alt="Close-up of the glossy surface of extra virgin olive oil, its golden-green ripples catching soft amber light."
-                    />
-                    <img
-                      className="willem__cover-image-extra is--2"
-                      src="/images/3.png"
-                      loading="eager"
-                      alt="Close-up of the curved shoulder of a dark amber glass olive oil bottle, reflecting a thin streak of gold light on a black background."
-                    />
-                    <img
-                      className="willem__cover-image-extra is--3"
-                      src="/images/5.png"
-                      loading="eager"
-                      alt="Close-up of a silvery-green olive leaf showing its fine veins and matte texture, separated from a black background by warm gold backlight."
-                    />
-                    <img
-                      className="willem__cover-image-extra is--4"
-                      src="/images/1.png"
-                      loading="eager"
-                      alt="Extreme close-up of a ripe green olive, focusing on its dimpled skin texture and stem scar under warm golden light."
-                    />
-                    <img
-                      className="willem__cover-image"
-                      src="/images/2.png"
-                      loading="eager"
-                      alt="Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light."
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="willem__h1-end">
-              <span className="willem__letter">r</span>
-              <span className="willem__letter">u</span>
-              <span className="willem__letter">m</span>
-            </div>
+        {/* Simple loader (client feedback 1.0) — a single tracked-out NOSTRUM
+            wordmark over the warm glow. Each letter sits in its own overflow-
+            hidden mask so the rise/exit reads as a clean editorial reveal. */}
+        <div className="nostrum-loader" aria-label="Nostrum">
+          <div className="nostrum-loader__mark">
+            {"NOSTRUM".split("").map((ch, i) => (
+              <span key={i} className="nostrum-loader__mask" aria-hidden="true">
+                <span className="nostrum-loader__letter">{ch}</span>
+              </span>
+            ))}
           </div>
         </div>
       </div>

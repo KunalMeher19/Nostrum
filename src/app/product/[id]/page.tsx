@@ -44,7 +44,6 @@ export default function ProductPage() {
   const [sizeId, setSizeId] = useState(product?.defaultSizeId ?? "");
   const [qty, setQty] = useState(entry?.qty ?? 1);
   const [customQty, setCustomQty] = useState(false);
-  const [view, setView] = useState(0);
   const [added, setAdded] = useState(false);
 
   const rootRef = useRef<HTMLElement>(null);
@@ -195,38 +194,18 @@ export default function ProductPage() {
         </nav>
 
         <div className="pdp__grid">
-          {/* ---- Gallery — big tile + thumbnails --------------------- */}
-          <section className="pdp__gallery" aria-label="Product images">
+          {/* ---- Gallery — one photo per product (client feedback 1.0:
+                  thumbnail row below the main image removed) ------------ */}
+          <section className="pdp__gallery" aria-label="Product image">
             <div className="pdp__media" data-unveil>
-              {/* Placeholder tiles (Collection-style N monogram) — real
-                  photography drops straight in here later. Keyed so each
-                  view swap re-runs the crossfade. */}
-              <div className="pdp__media-tile" key={view}>
+              {/* Placeholder tile (Collection-style N monogram) — the real
+                  product photo drops straight in here later. */}
+              <div className="pdp__media-tile">
                 <span className="pdp__media-mark" aria-hidden="true">
                   N
                 </span>
-                <span className="pdp__media-view">{product.views[view]}</span>
+                <span className="pdp__media-view">{product.views[0]}</span>
               </div>
-            </div>
-            <div
-              className="pdp__thumbs"
-              role="tablist"
-              aria-label="Gallery views"
-              data-fade
-            >
-              {product.views.map((label, i) => (
-                <button
-                  key={label}
-                  type="button"
-                  role="tab"
-                  aria-selected={view === i}
-                  aria-label={label}
-                  className={`pdp__thumb${view === i ? " is--active" : ""}`}
-                  onClick={() => setView(i)}
-                >
-                  <span aria-hidden="true">N</span>
-                </button>
-              ))}
             </div>
           </section>
 

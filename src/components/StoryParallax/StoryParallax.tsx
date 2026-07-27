@@ -51,10 +51,16 @@ const STORY_PARALLAX_START = 0.86;
 // rises slowest and ends full-bleed (yPercent 0, scale 1) so it becomes the
 // clean backdrop the title sits on and the Story section continues from.
 type LayerSpec = { layer: string; y: number; from: number; scale: number };
+// Settle scales are ALL 1.0 now (client feedback 1.0): the olive/bark glow
+// planes used to land at 0.92/0.86, which shrank their painted box and left
+// the bloom floating as a rectangle shy of the viewport borders. Full-bleed
+// at rest, the radial gradients inside fade out on their own — the depth
+// separation still reads via the differential y offsets and the oversized
+// `from` scale each layer shrinks down from during the rise.
 const LAYERS: LayerSpec[] = [
   { layer: "1", y: 0, from: 118, scale: 1.0 }, // ink base — covers at the end
-  { layer: "2", y: -6, from: 128, scale: 0.92 }, // deep-olive plane
-  { layer: "3", y: -11, from: 138, scale: 0.86 }, // bark-brown plane
+  { layer: "2", y: -6, from: 128, scale: 1.0 }, // deep-olive plane
+  { layer: "3", y: -11, from: 138, scale: 1.0 }, // bark-brown plane
   { layer: "4", y: 0, from: 122, scale: 1.0 }, // title
 ];
 
@@ -64,8 +70,15 @@ interface InitArgs {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tl: any; // the STA timeline (gsap.timeline bound to the pinned ScrollTrigger)
   host: HTMLElement; // the pinned hero; the overlay is queried from within it
-  canvas: HTMLCanvasElement; // the STA frame canvas — recedes + fades here
+  /* The receding subject. Historically the STA frame canvas; with the frame
+     scrub removed (feedback 1.0) the pinned hand-off passes the SLIDESHOW
+     pane here instead — same exit choreography, different element. */
+  canvas: HTMLElement;
   start?: number;
+  /* Hide the slideshow pane the instant the tail starts (the old ghost-bottle
+     fix, see below). MUST be false when `canvas` IS the slideshow pane —
+     otherwise the subject would vanish instead of receding. */
+  hideSlider?: boolean;
 }
 
 /**
@@ -87,6 +100,7 @@ export function initStoryParallax({
   host,
   canvas,
   start = STORY_PARALLAX_START,
+  hideSlider = true,
 }: InitArgs) {
   const root = host.querySelector<HTMLElement>(".story-parallax");
   if (!root) return;
@@ -143,7 +157,7 @@ export function initStoryParallax({
   // scrub runs back up. This only touches the pinned tail timeline, so the
   // slideshow's own use of the slider is unaffected.
   const slider = host.querySelector<HTMLElement>(".crisp-header__slider");
-  if (slider) {
+  if (slider && hideSlider) {
     tl.set(slider, { autoAlpha: 0 }, start);
   }
 

@@ -85,13 +85,12 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Willem-style loader — NOS·[growing image]·TRUM.                     */
-/* The wordmark splits apart while an image grows between the halves,  */
-/* then that image expands to fullscreen and hands off to the reveal.  */
-/* Themed dark + gold to match the rest of the header (was light in    */
-/* the original Willem source).                                        */
+/* Simple loader (client feedback 1.0) — a single tracked-out NOSTRUM  */
+/* wordmark over the warm load glow. Text only: masked letters rise in  */
+/* with a stagger while the tracking breathes open, hold, then lift     */
+/* away. Replaces the Willem NOS·[image]·TRUM split-wordmark loader.    */
 /* ------------------------------------------------------------------ */
-.willem-loader {
+.nostrum-loader {
   color: var(--crisp-fg);
   z-index: 1; /* keep the wordmark above the gold bloom (::before) */
   justify-content: center;
@@ -105,124 +104,32 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   overflow: hidden;
 }
 
-.willem__h1 {
+.nostrum-loader__mark {
+  display: flex;
   white-space: nowrap;
-  justify-content: center;
-  /* Match Willem's clean grotesk (site sans = Inter), not the serif display. */
-  font-family: var(--font-sans), Arial, sans-serif;
-  /* Smaller + fluidly responsive. The "small box" is 1em of this size, so a
-     smaller wordmark makes the box genuinely small — restoring the original
-     "small box grows, then expands to fit" read (at 12.5vw the box was so big
-     the image looked like it just appeared). clamp() also removes the need for
-     the old fixed-em breakpoints: it scales smoothly from mobile to desktop. */
-  font-size: clamp(2.5rem, 7.5vw, 7rem);
-  font-weight: 500;
-  line-height: .75;
-  display: flex;
-  position: relative;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: clamp(1.6rem, 4.2vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+  /* GSAP animates this open (0.18em → 0.42em) as the letters rise. */
+  letter-spacing: 0.42em;
+  /* Wide tracking leaves a trailing gap after the final M — nudge the mark
+     right by half a tracking unit so the word reads optically centred. */
+  text-indent: 0.21em;
 }
 
-/* Both halves MUST share ONE equal, fixed width — this is what keeps the
-   growing box (and the image inside it) dead-centre on the viewport.
-   "Nost" (4 letters) and "rum" (3 letters) have different NATURAL widths, so
-   `width: auto` makes the box sit off-centre and the image drifts sideways as
-   it zooms to fullscreen. With equal widths the row is symmetric → the box is
-   centred. Each half justifies its letters toward the box (start → flex-end,
-   end → flex-start), so both words hug the image on the inner side and any
-   slack falls to the outer edges (invisible black background).
-   --willem-half is sized to fit the WIDER half ("Nost") without clipping;
-   if you change the loader word, set this to the wider half's width. */
-.willem__h1 {
-  --willem-half: 2.5em;
-}
-
-.willem__h1-start {
-  justify-content: flex-end;
-  width: var(--willem-half);
-  display: flex;
-  overflow: hidden;
-}
-
-.willem__h1-end {
-  justify-content: flex-start;
-  width: var(--willem-half);
-  display: flex;
-  overflow: hidden;
-}
-
-.willem__letter {
+/* Per-letter overflow mask so the rise/exit is clipped — same masked-reveal
+   language as the hero h1 word split. */
+.nostrum-loader__mask {
   display: block;
-  position: relative;
-}
-
-.willem-loader__box {
-  flex-flow: column;
-  justify-content: center;
-  align-items: center;
-  width: 0;
-  display: flex;
-  position: relative;
-}
-
-.willem-loader__box-inner {
-  justify-content: center;
-  align-items: center;
-  min-width: 1em;
-  /* Increased from 95% to 110% so the image height slightly exceeds the text height */
-  height: 110%;
-  display: flex;
-  position: relative;
-}
-
-.willem__growing-image {
-  justify-content: center;
-  align-items: center;
-  width: 0%;
-  height: 100%;
-  display: flex;
-  position: absolute;
   overflow: hidden;
-  border-radius: .04em;
+  padding: 0.08em 0; /* keep ascender/descender pixels inside the clip */
 }
 
-.willem__growing-image-wrap {
-  width: 100%;
-  min-width: 1em;
-  height: 100%;
-  position: absolute;
-}
-
-.willem__cover-image,
-.willem__cover-image-extra {
-  pointer-events: none;
-  object-fit: cover;
-  -webkit-user-select: none;
-  user-select: none;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-/* Stacking order for the one-by-one reveal. Each extra sits above the base
-   image (.willem__cover-image = /images/2.png, no z-index). They fade out top
-   to bottom (is--1 first), so the images appear one by one: 4 → 3 → 5 → 1 → 2,
-   ending on 2.png which the first slider slide also opens on (seamless hand-off). */
-.willem__cover-image-extra.is--1 {
-  z-index: 4;
-}
-
-.willem__cover-image-extra.is--2 {
-  z-index: 3;
-}
-
-.willem__cover-image-extra.is--3 {
-  z-index: 2;
-}
-
-.willem__cover-image-extra.is--4 {
-  z-index: 1;
+.nostrum-loader__letter {
+  display: block;
+  will-change: transform, opacity;
 }
 
 .crisp-loader__cover-img {
@@ -239,8 +146,6 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
    photography, warm-desaturate them into a muted amber monochrome so the
    loader stays on-brand. Delete this filter when real imagery lands. */
 .crisp-loader__cover-img,
-.willem__cover-image,
-.willem__cover-image-extra,
 .crisp-header__slider-slide-inner {
   filter: grayscale(0.35) sepia(0.42) saturate(0.95) brightness(0.82)
     contrast(1.04);
@@ -613,6 +518,12 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   height: 100%;
   display: flex;
   position: absolute;
+  /* The story pin (initStoryPin) scales this pane down and lifts it up and
+     out through the top as it fades — exactly the old frame-canvas exit.
+     Anchor the shrink to the upper area so it reads as pulling toward the
+     top, not the centre (same origin the canvas used). */
+  transform-origin: center 25%;
+  will-change: transform;
 }
 
 .crisp-header__slider-slide {

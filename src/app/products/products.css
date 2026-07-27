@@ -1,85 +1,280 @@
 /* ------------------------------------------------------------------ */
-/* Products route — dark, editorial, matching the hero system.          */
-/* Empty state for now; the grid styles are stubbed for later.          */
+/* Products route — the Shop's LIGHT mode (§7): warm white, whitespace, */
+/* big product tiles, quick add-to-cart. Mirrors the home Collection     */
+/* section pinned to its light phase, per the client's mock.             */
 /* ------------------------------------------------------------------ */
 .products {
+  /* Light-phase tokens (the shop-card family's --_fg/--_bg, resolved). */
+  --p-bg: #faf8f2; /* nostrum warm-white */
+  --p-fg: #14160f; /* ink */
+  --p-muted: color-mix(in srgb, #14160f 55%, transparent);
+  --p-tile: #f1ede2; /* warm tile fill */
+  --p-gold: var(--nostrum-gold-metal, #b98a2e);
+
   min-height: 100svh;
-  background-color: var(--nostrum-black);
-  color: var(--nostrum-white);
+  background-color: var(--p-bg);
+  color: var(--p-fg);
   display: flex;
   justify-content: center;
-  padding: clamp(6rem, 12vh, 10rem) 1.5rem clamp(4rem, 8vh, 7rem);
+  padding: clamp(6.5rem, 14vh, 10rem) clamp(1.5rem, 5vw, 5rem)
+    clamp(4rem, 8vh, 7rem);
 }
 
 .products__inner {
   width: 100%;
-  max-width: 72rem;
+  max-width: 84rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+/* ---- Head row: title/eyebrow left, B2B button right ----------------- */
+.products__head-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .products__head {
-  margin-bottom: clamp(3rem, 8vh, 6rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .products__eyebrow {
-  margin: 0 0 1em;
+  margin: 0.75rem 0 0;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.35em;
-  text-indent: 0.35em;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
   text-transform: uppercase;
-  color: var(--nostrum-gold);
+  color: var(--p-gold);
 }
 
 .products__title {
   margin: 0;
   font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
   font-weight: 400;
-  font-size: clamp(2.75rem, 8vw, 6rem);
-  line-height: 0.95;
+  font-size: clamp(2.25rem, 6vw, 4.5rem);
+  line-height: 0.98;
   letter-spacing: -0.03em;
 }
 
-/* Empty state — centred, quiet, on-brand. */
-.products__empty {
-  border-top: 1px solid color-mix(in srgb, var(--nostrum-white) 12%, transparent);
-  padding-top: clamp(3rem, 8vh, 6rem);
-  max-width: 34rem;
-}
-
-.products__empty-line {
-  margin: 0 0 0.75em;
-  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
-  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
-  line-height: 1.15;
-  font-weight: 400;
-}
-
-.products__empty-sub {
-  margin: 0 0 2.5em;
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--nostrum-soft-grey);
-}
-
-.products__back {
-  display: inline-block;
+/* ---- B2B pill — hairline gold border, gold fill on hover ------------ */
+.products__b2b {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85em;
+  padding: 0.95em 1.6em;
+  border: 1px solid var(--p-gold);
+  border-radius: 999px;
+  overflow: hidden;
+  text-decoration: none;
+  white-space: nowrap;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   letter-spacing: 0.22em;
   text-indent: 0.22em;
   text-transform: uppercase;
-  color: var(--nostrum-white);
-  text-decoration: none;
-  transition: color 0.4s var(--ease-lux);
+  color: var(--p-fg);
+  transition: color 0.35s var(--ease-lux), box-shadow 0.4s var(--ease-lux);
 }
 
-.products__back:hover {
-  color: var(--nostrum-gold);
+.products__b2b::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, var(--p-gold), #f2c94c 55%, var(--p-gold));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s var(--ease-lux);
 }
 
-/* Grid — stubbed for when products land (§5). */
+.products__b2b:hover,
+.products__b2b:focus-visible {
+  color: #16180f;
+  box-shadow: 0 10px 30px -14px
+    color-mix(in srgb, var(--p-gold) 75%, transparent);
+}
+
+.products__b2b:hover::before,
+.products__b2b:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.products__b2b-arrow {
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.45s var(--ease-lux);
+}
+
+.products__b2b:hover .products__b2b-arrow {
+  transform: translateX(4px);
+}
+
+/* ---- Grid ----------------------------------------------------------- */
 .products__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: clamp(1.5rem, 3vw, 3rem);
+}
+
+/* ---- Card (light-phase shop-card) ------------------------------------ */
+.pcard {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 1.6vw, 1.5rem);
+}
+
+.pcard__media {
+  position: relative;
+  aspect-ratio: 3 / 3.8;
+  overflow: hidden;
+  background-color: var(--p-tile);
+  border: 1px solid color-mix(in srgb, var(--p-gold) 45%, transparent);
+  transition: transform 0.7s var(--ease-lux), filter 0.7s var(--ease-lux),
+    border-color 0.6s var(--ease-lux), box-shadow 0.6s var(--ease-lux);
+}
+
+.pcard:hover .pcard__media {
+  transform: scale(1.012);
+  filter: brightness(1.03);
+  border-color: var(--p-gold);
+  box-shadow: 0 18px 46px -30px
+    color-mix(in srgb, var(--p-gold) 70%, transparent);
+}
+
+.pcard__media::after {
+  /* faint centred monogram — the product slot until photography lands */
+  content: "N";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: clamp(3.5rem, 7vw, 6rem);
+  color: color-mix(in srgb, var(--p-gold) 22%, transparent);
+  pointer-events: none;
+}
+
+.pcard__link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.pcard__add {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  padding: 0.85em 1em;
+  border: 0;
+  border-radius: 2px;
+  background-color: var(--p-fg);
+  color: var(--p-bg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity 0.5s var(--ease-lux), transform 0.5s var(--ease-lux),
+    background-color 0.3s ease, color 0.3s ease;
+}
+
+.pcard:hover .pcard__add,
+.pcard__add:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pcard__add:hover {
+  background-color: var(--p-gold);
+  color: #16180f;
+}
+
+/* ---- Card meta ------------------------------------------------------- */
+.pcard__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.pcard__name {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.pcard__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pcard__detail {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-muted);
+}
+
+.pcard__price {
+  margin: 0;
+  flex: none;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1.05rem;
+}
+
+/* ---- Note ------------------------------------------------------------ */
+.products__note {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--p-muted);
+}
+
+/* ---- Responsive ------------------------------------------------------ */
+@media (max-width: 960px) {
+  .products__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .products__grid {
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 8vw, 3rem);
+  }
+  .pcard__media {
+    aspect-ratio: 3 / 3.6;
+  }
+  /* Touch: no hover, so keep the add button visible */
+  .pcard__add {
+    opacity: 1;
+    transform: none;
+  }
 }

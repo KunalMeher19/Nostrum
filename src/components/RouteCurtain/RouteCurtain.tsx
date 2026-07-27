@@ -152,9 +152,9 @@ export default function RouteCurtain() {
             drape.yMid = 0;
             gsap
               .timeline({ onUpdate: draw, onComplete: resolve })
-              .to(drape, { yEdge: COVERED, duration: 1.2, ease: "power3.inOut" }, 0)
-              .to(drape, { yMid: COVERED + 25, duration: 0.7, ease: "power2.in" }, 0)
-              .to(drape, { yMid: COVERED, duration: 0.5, ease: "power2.out" }, 0.7);
+              .to(drape, { yEdge: COVERED, duration: 0.95, ease: "power3.inOut" }, 0)
+              .to(drape, { yMid: COVERED + 25, duration: 0.55, ease: "power2.in" }, 0)
+              .to(drape, { yMid: COVERED, duration: 0.4, ease: "power2.out" }, 0.55);
           });
 
         const closeCurtain = () =>
@@ -164,9 +164,9 @@ export default function RouteCurtain() {
             drape.yMid = 0;
             gsap
               .timeline({ onUpdate: draw, onComplete: resolve })
-              .to(drape, { yEdge: EXIT, duration: 1.2, ease: "power3.inOut" }, 0)
-              .to(drape, { yMid: EXIT + 25, duration: 0.7, ease: "power2.in" }, 0)
-              .to(drape, { yMid: EXIT, duration: 0.5, ease: "power2.out" }, 0.7);
+              .to(drape, { yEdge: EXIT, duration: 0.95, ease: "power3.inOut" }, 0)
+              .to(drape, { yMid: EXIT + 25, duration: 0.55, ease: "power2.in" }, 0)
+              .to(drape, { yMid: EXIT, duration: 0.4, ease: "power2.out" }, 0.55);
           });
 
         /* ---- Label ------------------------- */
@@ -178,7 +178,7 @@ export default function RouteCurtain() {
               .fromTo(
                 [eyebrowEl, labelEl],
                 { autoAlpha: 0, y: 20 },
-                { autoAlpha: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.1 },
+                { autoAlpha: 1, y: 0, duration: 0.65, ease: "power3.out", stagger: 0.08 },
                 0
               );
           });
@@ -190,7 +190,7 @@ export default function RouteCurtain() {
               .to([eyebrowEl, labelEl], {
                 autoAlpha: 0,
                 y: -20,
-                duration: 0.6,
+                duration: 0.45,
                 ease: "power2.in",
                 stagger: 0.05,
               });
@@ -233,7 +233,7 @@ export default function RouteCurtain() {
             if (path !== "/") lenis?.start();
             window.scrollTo(0, 0);
 
-            await wait(400); // slightly longer beat since everything is slower
+            await wait(250); // a short hold on the name — trimmed per feedback 1.0
             await hideLabel();
             // The reveal sweep starts NOW — let the destination page begin its
             // own entry choreography in sync with the drape lifting.
