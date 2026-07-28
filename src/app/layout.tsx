@@ -6,6 +6,7 @@ import { CartProvider } from "@/components/Cart/CartContext";
 import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
 import RingCursor from "@/components/RingCursor/RingCursor";
 import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
+import NewsletterModal from "@/components/NewsletterModal/NewsletterModal";
 
 // Clean, quiet sans for UI/body (§4 — client-approved type direction)
 const sans = Libre_Franklin({
@@ -105,6 +106,9 @@ export default function RootLayout({
           <RouteCurtain />
           {/* Page content — receives [data-main] in each page component */}
           {children}
+          {/* "The Nostrum Journal" invitation — 5s after the loader, once
+              per session. Renders nothing until it opens. */}
+          <NewsletterModal />
         </CartProvider>
       </body>
     </html>
