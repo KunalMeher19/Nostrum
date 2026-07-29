@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import "./products-section.css";
 import { onLenis } from "../SmoothScroll/lenisStore";
 import { useCart } from "../Cart/CartContext";
 import { getCatalogEntry } from "@/lib/products";
+import { useLocale } from "../LocaleContext/LocaleContext";
+import { LocaleLink } from "../LocaleContext/LocaleLink";
 
 /* ------------------------------------------------------------------ */
 /* ProductsSection — the Shop, with a basicagency-style scroll invert.  */
@@ -25,24 +26,24 @@ import { getCatalogEntry } from "@/lib/products";
 
 type Product = {
   id: string;
-  name: string;
-  detail: string;
+  nameKey: string;
+  detailKey: string;
   price: string;
 };
 
 // x1 / x2 / x3 of the 5L bottle (§7 — mainly 5L, sold as packs; ~€35/5L,
-// price not final). Placeholder tiles for now; real product photography
-// drops straight into .shop-card__media later.
+// price not final). Names/details are i18n keys resolved via t() at render.
 const PRODUCTS: Product[] = [
-  { id: "single", name: "Single", detail: "5L · Extra Virgin", price: "€35" },
-  { id: "duo", name: "Duo", detail: "2 × 5L", price: "€66" },
-  { id: "trio", name: "Trio", detail: "3 × 5L", price: "€95" },
+  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35" },
+  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66" },
+  { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio", price: "€95" },
 ];
 
 export default function ProductsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const grainRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
+  const { t } = useLocale();
 
   // Quick add-to-cart (§7) — each tile drops its pack (×1/×2/×3 of the 5L)
   // straight into the working cart; the button flashes "Added ✓".
@@ -297,13 +298,13 @@ export default function ProductsSection() {
       <div className="shop__inner">
         <div className="shop__head-row">
           <header className="shop__head">
-            <h2 className="shop__title">The Collection</h2>
-            <p className="shop__eyebrow">Shop</p>
+            <h2 className="shop__title">{t("shop.title")}</h2>
+            <p className="shop__eyebrow">{t("shop.eyebrow")}</p>
           </header>
 
-          <Link ref={ctaRef} href="/products" className="shop__cta">
+          <LocaleLink ref={ctaRef} href="/products" className="shop__cta">
             <span className="shop__cta-fill" aria-hidden="true" />
-            <span className="shop__cta-label">Explore more products</span>
+            <span className="shop__cta-label">{t("shop.cta")}</span>
             <span className="shop__cta-arrow" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
                 <path
@@ -315,30 +316,30 @@ export default function ProductsSection() {
                 />
               </svg>
             </span>
-          </Link>
+          </LocaleLink>
         </div>
 
         <ul className="shop__grid">
           {PRODUCTS.map((product) => (
             <li key={product.id} className="shop-card">
               <div className="shop-card__media">
-                <Link
+                <LocaleLink
                   href={`/product/${product.id}`}
                   className="shop-card__link"
-                  aria-label={`View ${product.name} — ${product.detail}`}
+                  aria-label={`${t(product.nameKey)} — ${t(product.detailKey)}`}
                 />
                 <button
                   type="button"
                   className="shop-card__add"
                   onClick={() => quickAdd(product.id)}
                 >
-                  {addedId === product.id ? "Added ✓" : "Add to cart"}
+                  {addedId === product.id ? t("shop.added") : t("shop.add")}
                 </button>
               </div>
               <div className="shop-card__meta">
-                <h3 className="shop-card__name">{product.name}</h3>
+                <h3 className="shop-card__name">{t(product.nameKey)}</h3>
                 <div className="shop-card__line">
-                  <p className="shop-card__detail">{product.detail}</p>
+                  <p className="shop-card__detail">{t(product.detailKey)}</p>
                   <p className="shop-card__price">{product.price}</p>
                 </div>
               </div>
@@ -346,9 +347,7 @@ export default function ProductsSection() {
           ))}
         </ul>
 
-        <p className="shop__note">
-          Cold-pressed · bottled to order · shipped across Spain &amp; the EU
-        </p>
+        <p className="shop__note">{t("shop.note")}</p>
       </div>
     </section>
   );

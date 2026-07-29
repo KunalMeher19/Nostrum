@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./underlay-nav.css";
 import { requestSectionScroll, requestScrollTop } from "../SmoothScroll/storyScroll";
 import { onLenis, getLenis } from "../SmoothScroll/lenisStore";
 import { useCart } from "../Cart/CartContext";
+import { LOCALES, LOCALE_META, isValidLocale, type Locale } from "@/lib/i18n";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ---- Navigation data ---------------------------------------- */
 // On the landing page "Home" and "Our Story" are in-page scroll targets, not
@@ -19,28 +21,32 @@ import { useCart } from "../Cart/CartContext";
 // render as an indented sub-link with an elbow connector: collapsed by
 // default, smoothly revealed on hover/focus of the parent item, and pinned
 // open (+ gold highlight) while their route is the current page.
+// hrefs here are LOCALE-FREE — they're the canonical identity used for
+// active-state comparisons (against pathnameWithoutLocale / the spy values).
+// Labels are i18n keys resolved via t() at render. The rendered <Link> href
+// gets the current locale prefixed (see localize() in the component).
 const NAV_LINKS: {
   href: string;
-  label: string;
+  labelKey: string;
   top?: boolean;
   section?: string;
-  children?: { href: string; label: string }[];
+  children?: { href: string; labelKey: string }[];
 }[] = [
-  { href: "/", label: "Home", top: true },
+  { href: "/", labelKey: "nav.home", top: true },
   {
     href: "/#story",
-    label: "Our Story",
+    labelKey: "nav.story",
     section: "#story",
-    children: [{ href: "/origins", label: "Origins" }],
+    children: [{ href: "/origins", labelKey: "nav.origins" }],
   },
   {
     href: "/#products",
-    label: "Collections",
+    labelKey: "nav.collections",
     section: "#products",
-    children: [{ href: "/products", label: "Products" }],
+    children: [{ href: "/products", labelKey: "nav.products" }],
   },
-  { href: "/journal", label: "Journal" },
-  { href: "/contact", label: "Contact" },
+  { href: "/journal", labelKey: "nav.journal" },
+  { href: "/contact", labelKey: "nav.contact" },
 ];
 
 // The section ids the scroll-spy watches, in document order. Home is "active"
@@ -89,15 +95,36 @@ export default function UnderlayNav() {
   // slid-open overlay onto the next route.
   const closeMenuRef = useRef<(() => void) | null>(null);
 
+  // Translations — UnderlayNav renders inside LocaleProvider (locale layout).
+  const { t } = useLocale();
+
+  // Derive current locale and the path without its locale prefix. ALL active
+  // state comparisons work on locale-free paths ("/", "/origins", "/#story");
+  // only the rendered <Link> hrefs carry the /{locale} prefix.
+  const pathParts = pathname.split('/');
+  const currentLocale = isValidLocale(pathParts[1]) ? (pathParts[1] as Locale) : 'en';
+  const rawRemainder = isValidLocale(pathParts[1])
+    ? '/' + pathParts.slice(2).join('/')
+    : pathname;
+  const pathnameWithoutLocale = rawRemainder === '' ? '/' : rawRemainder;
+
+  // Prefix a locale-free path with the current locale for rendering.
+  const localize = (href: string) =>
+    href === '/' ? `/${currentLocale}` : `/${currentLocale}${href}`;
+
   // Which nav link gets the gold is--current highlight. On the landing page a
   // scroll-spy tracks the section you're actually in: "Home" at the top hero,
   // flipping through Our Story → Products → … as each crosses the spy line.
-  // On any other route the active link simply matches the URL.
-  const [activeHref, setActiveHref] = useState<string>(pathname);
+  // On any other route the active link simply matches the URL (locale-free).
+  const [activeHref, setActiveHref] = useState<string>(pathnameWithoutLocale);
+
+  function setLocaleCookie(locale: Locale) {
+    document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+  }
 
   useEffect(() => {
-    if (pathname !== "/") {
-      setActiveHref(pathname);
+    if (pathnameWithoutLocale !== "/") {
+      setActiveHref(pathnameWithoutLocale);
       return;
     }
 
@@ -497,7 +524,7 @@ export default function UnderlayNav() {
         <div className="underlay-nav__bar">
           <div className="underlay-nav__container">
             <Link
-              href="/"
+              href={localize("/")}
               className="underlay-nav__logo"
               aria-label="Nostrum home"
               data-home-link=""
@@ -530,7 +557,7 @@ export default function UnderlayNav() {
                 --nav-col auto-contrast as the wordmark + Menu toggle. */}
             <div className="underlay-nav__actions">
               <Link
-                href="/cart"
+                href={localize("/cart")}
                 className="underlay-nav__action"
                 aria-label={
                   cartCount > 0
@@ -619,7 +646,7 @@ export default function UnderlayNav() {
           aria-label="Main navigation"
         >
           <ul className="underlay-nav__list">
-            {NAV_LINKS.map(({ href, label, section, top, children }) => {
+            {NAV_LINKS.map(({ href, labelKey, section, top, children }) => {
               const isActive = href === activeHref;
               // A child route being current pins its sub-link open (no hover
               // needed) — e.g. /origins under Our Story, /products under
@@ -627,27 +654,27 @@ export default function UnderlayNav() {
               const activeChild = children?.some((c) => c.href === activeHref);
               return (
                 <li
-                  key={label}
+                  key={labelKey}
                   data-reveal-l
                   className={`underlay-nav__item${children ? " has--sub" : ""}${activeChild ? " is--sub-active" : ""}`}
                 >
                   <Link
-                    href={href}
+                    href={localize(href)}
                     className={`underlay-nav__link-large${isActive ? " is--current" : ""}`}
                     aria-current={isActive ? "page" : undefined}
                     {...(section ? { "data-section-link": section } : {})}
                     {...(top ? { "data-home-link": "" } : {})}
                   >
-                    <span className="underlay-nav__link-label">{label}</span>
+                    <span className="underlay-nav__link-label">{t(labelKey)}</span>
                   </Link>
                   {children && (
                     <ul className="underlay-nav__sublist">
                       {children.map((child) => {
                         const childActive = child.href === activeHref;
                         return (
-                          <li key={child.label}>
+                          <li key={child.labelKey}>
                             <Link
-                              href={child.href}
+                              href={localize(child.href)}
                               className={`underlay-nav__sublink${childActive ? " is--current" : ""}`}
                               aria-current={childActive ? "page" : undefined}
                             >
@@ -657,7 +684,7 @@ export default function UnderlayNav() {
                                 aria-hidden="true"
                               />
                               <span className="underlay-nav__sublink-label">
-                                {child.label}
+                                {t(child.labelKey)}
                               </span>
                             </Link>
                           </li>
@@ -669,6 +696,26 @@ export default function UnderlayNav() {
               );
             })}
           </ul>
+
+          {/* ---- Language switcher ---------------------------------- */}
+          <div className="underlay-nav__lang" data-reveal-l>
+            {LOCALES.map((l, i) => (
+              <Fragment key={l}>
+                {i > 0 && (
+                  <span className="underlay-nav__lang-dot" aria-hidden="true">·</span>
+                )}
+                <Link
+                  href={`/${l}${pathnameWithoutLocale === '/' ? '' : pathnameWithoutLocale}`}
+                  className={`underlay-nav__lang-link${l === currentLocale ? ' is--active' : ''}`}
+                  aria-current={l === currentLocale ? 'true' : undefined}
+                  aria-label={LOCALE_META[l].nativeName}
+                  onClick={() => setLocaleCookie(l)}
+                >
+                  {l.toUpperCase()}
+                </Link>
+              </Fragment>
+            ))}
+          </div>
         </nav>
       </div>
 

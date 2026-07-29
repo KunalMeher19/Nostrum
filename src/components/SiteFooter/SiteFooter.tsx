@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
 import "./site-footer.css";
 import { getLenis, onLenis } from "../SmoothScroll/lenisStore";
 import PressureWordmark from "./PressureWordmark";
+import { useLocale } from "../LocaleContext/LocaleContext";
+import { LocaleLink } from "../LocaleContext/LocaleLink";
 
 /* ------------------------------------------------------------------ */
 /* SiteFooter — sits below the light Shop and drives --page-t back to  */
@@ -12,12 +13,13 @@ import PressureWordmark from "./PressureWordmark";
 /* Same hysteresis ScrollTrigger, same shared --page-t + --nav-col.   */
 /* ------------------------------------------------------------------ */
 
+// Labels are i18n keys resolved via t() at render.
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/products", label: "Shop" },
-  { href: "/history", label: "History" },
-  { href: "/b2b", label: "B2B" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", labelKey: "footer.home" },
+  { href: "/products", labelKey: "footer.shop" },
+  { href: "/history", labelKey: "footer.history" },
+  { href: "/b2b", labelKey: "footer.b2b" },
+  { href: "/contact", labelKey: "footer.contact" },
 ];
 
 const SOCIALS = [
@@ -29,6 +31,7 @@ const SOCIALS = [
 export default function SiteFooter() {
   const sectionRef = useRef<HTMLElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const { t } = useLocale();
 
   // Mirror of ProductsSection's theme flip — but reversed: drives --page-t
   // back to 0 (dark) as you scroll into the footer, so the whole viewport
@@ -146,11 +149,11 @@ export default function SiteFooter() {
     <footer ref={sectionRef} className="nf" aria-label="Site footer">
       {/* ── Head row: tagline + back-to-top ── */}
       <div className="nf__head">
-        <p className="nf__tagline">From the land. For the table.</p>
+        <p className="nf__tagline">{t("footer.tagline")}</p>
         <button
           ref={btnRef}
           className="nf__top-btn"
-          aria-label="Back to top"
+          aria-label={t("footer.back_to_top")}
           onClick={scrollTop}
         >
           <svg
@@ -200,18 +203,18 @@ export default function SiteFooter() {
         </div>
 
         <nav className="nf__col" aria-label="Footer navigation">
-          <h4 className="nf__col-title">Navigation</h4>
+          <h4 className="nf__col-title">{t("footer.navigation")}</h4>
           <ul className="nf__nav">
-            {NAV_LINKS.map(({ href, label }) => (
+            {NAV_LINKS.map(({ href, labelKey }) => (
               <li key={href}>
-                <Link href={href}>{label}</Link>
+                <LocaleLink href={href}>{t(labelKey)}</LocaleLink>
               </li>
             ))}
           </ul>
         </nav>
 
         <div className="nf__col">
-          <h4 className="nf__col-title">Follow</h4>
+          <h4 className="nf__col-title">{t("footer.follow")}</h4>
           <ul className="nf__socials">
             {SOCIALS.map(({ href, label }) => (
               <li key={label}>
@@ -232,17 +235,17 @@ export default function SiteFooter() {
         <span className="nf__origin">
           ©{new Date().getFullYear()} Nostrum
           <span className="nf__origin-dot" aria-hidden="true" />
-          Origen Cataluña, España
+          {t("footer.origin")}
         </span>
         <ul className="nf__gdpr">
           <li>
-            <Link href="/privacy">Privacy</Link>
+            <LocaleLink href="/privacy">{t("footer.privacy")}</LocaleLink>
           </li>
           <li>
-            <Link href="/cookies">Cookies</Link>
+            <LocaleLink href="/cookies">{t("footer.cookies")}</LocaleLink>
           </li>
           <li>
-            <Link href="/legal">Legal</Link>
+            <LocaleLink href="/legal">{t("footer.legal")}</LocaleLink>
           </li>
         </ul>
       </div>

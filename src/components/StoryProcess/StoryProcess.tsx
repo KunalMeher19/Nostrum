@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import "./story-process.css";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ------------------------------------------------------------------ */
 /* StoryProcess                                                        */
@@ -127,36 +128,36 @@ type Step = {
 const STEPS: Step[] = [
   {
     num: "01",
-    title: "Harvest",
-    copy: "Hand-picked at first light, at the peak of ripeness.",
+    title: "process.step1_title",
+    copy: "process.step1_copy",
     img: "/images/1.png",
     alt: "Ripe olives on the branch",
   },
   {
     num: "02",
-    title: "Wash & Sort",
-    copy: "Leaves and stems away — only clean fruit remains.",
+    title: "process.step2_title",
+    copy: "process.step2_copy",
     img: "/images/5.png",
     alt: "Olive leaves and fruit",
   },
   {
     num: "03",
-    title: "Crush & Malaxation",
-    copy: "Stone-milled to a paste, slowly kneaded to free the oil.",
+    title: "process.step3_title",
+    copy: "process.step3_copy",
     img: "/images/4.png",
     alt: "Olive oil surface",
   },
   {
     num: "04",
-    title: "Cold Extraction",
-    copy: "Separated below 27°C, so nothing of the fruit is lost.",
+    title: "process.step4_title",
+    copy: "process.step4_copy",
     img: "/images/2.png",
     alt: "Oil drawn from the press",
   },
   {
     num: "05",
-    title: "Bottling",
-    copy: "Sealed fresh from the mill — first cold pressing only.",
+    title: "process.step5_title",
+    copy: "process.step5_copy",
     img: "/images/3.png",
     alt: "Bottle shoulder reflection",
   },
@@ -164,6 +165,7 @@ const STEPS: Step[] = [
 
 export default function StoryProcess() {
   const rootRef = useRef<HTMLElement | null>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     const root = rootRef.current;
@@ -483,7 +485,7 @@ export default function StoryProcess() {
     <section
       className="story-process"
       ref={rootRef}
-      aria-label="How our olive oil is made"
+      aria-label={t("process.aria")}
     >
       <div className="story-process__track">
         {/* THE STROKE — a wild, hand-drawn line built procedurally from the
@@ -506,8 +508,8 @@ export default function StoryProcess() {
 
         <div className="story-process__intro">
           <div className="story-process__title-wrap">
-            <h2 className="story-process__intro-title">How it is made</h2>
-            <p className="story-process__intro-eyebrow">From grove to bottle</p>
+            <h2 className="story-process__intro-title">{t("process.title")}</h2>
+            <p className="story-process__intro-eyebrow">{t("process.eyebrow")}</p>
           </div>
         </div>
 
@@ -532,9 +534,11 @@ export default function StoryProcess() {
                 </span>
               </div>
               <div className="story-process__text">
-                <span className="story-process__num">Step {step.num}</span>
-                <h3 className="story-process__step-title">{step.title}</h3>
-                <p className="story-process__copy">{step.copy}</p>
+                <span className="story-process__num">
+                  {t("process.step")} {step.num}
+                </span>
+                <h3 className="story-process__step-title">{t(step.title)}</h3>
+                <p className="story-process__copy">{t(step.copy)}</p>
               </div>
             </article>
           ))}

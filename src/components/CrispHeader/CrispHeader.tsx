@@ -10,6 +10,7 @@ import {
   StoryParallaxOverlay,
   initStoryParallax,
 } from "../StoryParallax/StoryParallax";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ---- Scroll-through animation (STA) config ------------------------------- */
 // Frames live in /public/frames as ezgif-frame-001.jpg … ezgif-frame-240.jpg.
@@ -64,10 +65,13 @@ const staFramePath = (i: number) =>
 // slide change the outgoing copy exits and the incoming slide's copy enters,
 // mirroring the vertical wipe direction. Slide 0's copy is the static markup
 // in the JSX below (revealed by the loader intro); the array drives the swaps.
-const HERO_COPY = [
-  { h1: "Not simply olive oil", sub: "Extra virgin olive oil" },
-  { h1: "Liquid gold, poured", sub: "Cold-pressed, first harvest" },
-  { h1: "Bottled with intent", sub: "Nostrum estate reserve" },
+// i18n keys per slide — resolved via t() inside the component so each locale
+// gets its own copy. (A locale switch remounts the page, so the GSAP effect
+// re-captures the resolved strings on every language change.)
+const HERO_KEYS = [
+  { h1: "hero.slide0_h1", sub: "hero.slide0_sub" },
+  { h1: "hero.slide1_h1", sub: "hero.slide1_sub" },
+  { h1: "hero.slide2_h1", sub: "hero.slide2_sub" },
 ] as const;
 
 /**
@@ -85,6 +89,12 @@ export default function CrispHeader() {
   // Populated by the effect once the scroll-through machine is wired. The
   // slide-0 "View our story" CTA calls this to dive down to the Story section.
   const scrollToStoryRef = useRef<(() => void) | null>(null);
+
+  // Localized hero copy. A locale switch is a route navigation that remounts
+  // this component, so the effect below re-captures the fresh strings — a ref
+  // isn't needed.
+  const { t, locale } = useLocale();
+  const heroCopy = HERO_KEYS.map((k) => ({ h1: t(k.h1), sub: t(k.sub) }));
 
   useEffect(() => {
     const container = rootRef.current;
@@ -562,7 +572,7 @@ export default function CrispHeader() {
 
         function transitionText(index: number, direction: number) {
           if (!headingEl) return;
-          const copy = HERO_COPY[index] ?? HERO_COPY[0];
+          const copy = heroCopy[index] ?? heroCopy[0];
           const tl = gsap.timeline();
 
           // The CTAs belong to slide 0 only: fade/lift out when leaving it,
@@ -1591,8 +1601,8 @@ export default function CrispHeader() {
       <div className="crisp-header__content">
         <div className="crisp-header__center">
           <div className="crisp-header__title-wrap">
-            <h1 className="crisp-header__h1">Not simply olive oil</h1>
-            <p className="crisp-header__p">Extra virgin olive oil</p>
+            <h1 className="crisp-header__h1">{heroCopy[0].h1}</h1>
+            <p className="crisp-header__p">{heroCopy[0].sub}</p>
           </div>
         </div>
         <div className="crisp-header__bottom">
@@ -1630,10 +1640,13 @@ export default function CrispHeader() {
               change (and on STA entry) alongside the hero copy. */}
           <div className="crisp-header__cta">
             <LuxButton
-              label="View our story"
+              label={t("hero.view_story")}
               onClick={() => scrollToStoryRef.current?.()}
             />
-            <LuxButton label="Explore products" href="/products" />
+            <LuxButton
+              label={t("hero.explore_products")}
+              href={`/${locale}/products`}
+            />
           </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import "./origin-map.css";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ------------------------------------------------------------------ */
 /* OriginMap                                                           */
@@ -24,6 +25,7 @@ import "./origin-map.css";
 
 export default function OriginMap() {
   const rootRef = useRef<HTMLElement | null>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     const root = rootRef.current;
@@ -100,11 +102,11 @@ export default function OriginMap() {
     <section
       className="origin-map"
       ref={rootRef}
-      aria-label="Where the grove is"
+      aria-label={t("map.aria")}
     >
       <div className="origin-map__head">
-        <p className="origin-map__eyebrow">The place</p>
-        <h2 className="origin-map__title">Here — nowhere else.</h2>
+        <p className="origin-map__eyebrow">{t("map.eyebrow")}</p>
+        <h2 className="origin-map__title">{t("map.title")}</h2>
       </div>
 
       <div className="origin-map__stage">
@@ -179,11 +181,11 @@ export default function OriginMap() {
 
         {/* Label lives in HTML (not SVG text) for crisp type + easy i18n. */}
         <p className="origin-map__label">
-          the grove — Baix Ebre,
+          {t("map.label1")}
           <br />
-          Catalunya
+          {t("map.label2")}
         </p>
-        <p className="origin-map__sea">Mar Mediterrània</p>
+        <p className="origin-map__sea">{t("map.sea")}</p>
       </div>
     </section>
   );

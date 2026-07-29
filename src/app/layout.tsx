@@ -3,7 +3,6 @@ import { Libre_Franklin, Raleway } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
 import { CartProvider } from "@/components/Cart/CartContext";
-import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
 import RingCursor from "@/components/RingCursor/RingCursor";
 import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
 import NewsletterModal from "@/components/NewsletterModal/NewsletterModal";
@@ -100,8 +99,6 @@ export default function RootLayout({
         <RingCursor />
         {/* Working cart (localStorage) — nav badge + product/cart pages */}
         <CartProvider>
-          {/* Global navigation — fixed, always on top */}
-          <UnderlayNav />
           {/* Route-transition drape — covers, shows the section name, reveals */}
           <RouteCurtain />
           {/* Page content — receives [data-main] in each page component */}

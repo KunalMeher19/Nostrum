@@ -507,6 +507,52 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   transition: color 0.25s ease;
 }
 
+/* ---- Language switcher ---- */
+.underlay-nav__lang {
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  margin-top: clamp(2em, 5vh, 3.5em);
+  padding-top: clamp(1.5em, 3vh, 2.5em);
+  border-top: 1px solid rgba(245, 245, 243, 0.08);
+  pointer-events: auto;
+}
+
+.underlay-nav__lang-link {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.65rem, 0.8vw, 0.75rem);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.4);
+  transition:
+    color 0.3s ease,
+    letter-spacing 0.4s cubic-bezier(0.625, 0.05, 0, 1);
+  padding: 0.3em 0;
+}
+
+.underlay-nav__lang-link:hover {
+  color: var(--nav-accent);
+  letter-spacing: 0.24em;
+}
+
+.underlay-nav__lang-link.is--active {
+  color: var(--nav-accent);
+  font-weight: 600;
+}
+
+.underlay-nav__lang-dot {
+  color: rgba(245, 245, 243, 0.15);
+  font-size: 0.5em;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .underlay-nav__lang-link {
+    transition: color 0.3s ease;
+  }
+}
+
 /* ---- Mobile ---- */
 @media screen and (max-width: 767px) {
   .underlay-nav__container {

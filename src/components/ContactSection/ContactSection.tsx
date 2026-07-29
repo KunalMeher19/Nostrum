@@ -6,6 +6,7 @@ import {
   CURTAIN_REVEAL_EVENT,
 } from "../RouteCurtain/curtainNav";
 import "./contact-section.css";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ------------------------------------------------------------------ */
 /* ContactSection — the /contact split (NOSTRUM-DESIGN §7 "Contact").   */
@@ -39,10 +40,11 @@ const SOCIALS = [
   { href: "https://linkedin.com", label: "LinkedIn" },
 ];
 
+// Labels are i18n keys resolved via t() at render.
 const TOPICS = [
-  { value: "general", label: "General" },
-  { value: "professional", label: "Professional · B2B" },
-  { value: "press", label: "Press" },
+  { value: "general", labelKey: "contact.topic_general" },
+  { value: "professional", labelKey: "contact.topic_professional" },
+  { value: "press", labelKey: "contact.topic_press" },
 ];
 
 type SendState = "idle" | "sending" | "sent";
@@ -51,6 +53,7 @@ export default function ContactSection() {
   const rootRef = useRef<HTMLElement>(null);
   const [topic, setTopic] = useState("general");
   const [sendState, setSendState] = useState<SendState>("idle");
+  const { t } = useLocale();
 
   // Curtain-aware entry: hold the staged pre-state until the RouteCurtain
   // starts revealing the page, then release — the settle plays AS the drape
@@ -111,27 +114,22 @@ export default function ContactSection() {
         <div className="ct__panel-grain" aria-hidden="true" />
 
         <div className="ct__panel-head" data-ct-reveal>
-          <p className="ct__eyebrow">Contact</p>
+          <p className="ct__eyebrow">{t("contact.eyebrow")}</p>
           <h1 id="ct-title" className="ct__headline">
-            Let&rsquo;s
-            <br />
-            talk.
+            {t("contact.headline")}
           </h1>
-          <p className="ct__lede">
-            An order, a question, a professional kitchen — write to us. We
-            answer personally.
-          </p>
+          <p className="ct__lede">{t("contact.lede")}</p>
         </div>
 
         <div className="ct__channels" data-ct-reveal>
           <div className="ct__channel">
-            <span className="ct__channel-label">Email</span>
+            <span className="ct__channel-label">{t("contact.email_label")}</span>
             <a className="ct__channel-value" href={`mailto:${CONTACT.email}`}>
               {CONTACT.email}
             </a>
           </div>
           <div className="ct__channel">
-            <span className="ct__channel-label">Phone</span>
+            <span className="ct__channel-label">{t("contact.phone_label")}</span>
             <a
               className="ct__channel-value"
               href={`tel:${CONTACT.phone.replace(/\s/g, "")}`}
@@ -140,7 +138,7 @@ export default function ContactSection() {
             </a>
           </div>
           <div className="ct__channel">
-            <span className="ct__channel-label">Estate</span>
+            <span className="ct__channel-label">{t("contact.estate_label")}</span>
             <address className="ct__channel-value ct__address">
               {CONTACT.address[0]}
               <br />
@@ -155,7 +153,7 @@ export default function ContactSection() {
             href={CONTACT.whatsapp}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Chat with Nostrum on WhatsApp"
+            aria-label={t("contact.whatsapp_label")}
           >
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
               <path
@@ -201,20 +199,17 @@ export default function ContactSection() {
                 />
               </svg>
             </span>
-            <h2 className="ct__sent-title">Received.</h2>
-            <p className="ct__sent-line">
-              Thank you for writing. We read everything ourselves — expect a
-              reply within a day or two.
-            </p>
+            <h2 className="ct__sent-title">{t("contact.sent_title")}</h2>
+            <p className="ct__sent-line">{t("contact.sent_line")}</p>
           </div>
         ) : (
           <form className="ct__form" onSubmit={onSubmit} noValidate={false}>
             <p className="ct__form-eyebrow" data-ct-reveal>
-              Write to us
+              {t("contact.form_eyebrow")}
             </p>
 
             <div className="ct__field" data-ct-reveal>
-              <label htmlFor="ct-name">Your name</label>
+              <label htmlFor="ct-name">{t("contact.field_name")}</label>
               <input
                 id="ct-name"
                 name="name"
@@ -227,7 +222,7 @@ export default function ContactSection() {
             </div>
 
             <div className="ct__field" data-ct-reveal>
-              <label htmlFor="ct-email">Your email</label>
+              <label htmlFor="ct-email">{t("contact.field_email")}</label>
               <input
                 id="ct-email"
                 name="email"
@@ -242,9 +237,9 @@ export default function ContactSection() {
             {/* Topic — segmented radios; "Professional · B2B" is the chef/
                 distributor lead path (§7 B2B). */}
             <fieldset className="ct__topics" data-ct-reveal>
-              <legend>What is it about?</legend>
+              <legend>{t("contact.field_topic")}</legend>
               <div className="ct__topics-row" role="radiogroup">
-                {TOPICS.map(({ value, label }) => (
+                {TOPICS.map(({ value, labelKey }) => (
                   <label
                     key={value}
                     className={`ct__topic${topic === value ? " is--on" : ""}`}
@@ -256,22 +251,22 @@ export default function ContactSection() {
                       checked={topic === value}
                       onChange={() => setTopic(value)}
                     />
-                    <span>{label}</span>
+                    <span>{t(labelKey)}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
 
             <div className="ct__field" data-ct-reveal>
-              <label htmlFor="ct-message">Your message</label>
+              <label htmlFor="ct-message">{t("contact.field_message")}</label>
               <textarea
                 id="ct-message"
                 name="message"
                 rows={4}
                 placeholder={
                   topic === "professional"
-                    ? "Tell us about your kitchen or business…"
-                    : "A few words is enough…"
+                    ? t("contact.placeholder_professional")
+                    : t("contact.placeholder_general")
                 }
                 required
               />
@@ -286,10 +281,10 @@ export default function ContactSection() {
               >
                 <span className="ct__submit-label">
                   <span className="ct__submit-inner">
-                    {sendState === "sending" ? "Sending…" : "Send message"}
+                    {sendState === "sending" ? t("contact.sending") : t("contact.send")}
                   </span>
                   <span className="ct__submit-inner is--dup" aria-hidden="true">
-                    {sendState === "sending" ? "Sending…" : "Send message"}
+                    {sendState === "sending" ? t("contact.sending") : t("contact.send")}
                   </span>
                 </span>
                 <span className="ct__submit-arrow" aria-hidden="true">
@@ -297,10 +292,7 @@ export default function ContactSection() {
                 </span>
                 <span className="ct__submit-line" aria-hidden="true" />
               </button>
-              <p className="ct__gdpr">
-                By sending you agree to our{" "}
-                <a href="/privacy">privacy policy</a>.
-              </p>
+              <p className="ct__gdpr">{t("contact.gdpr")}</p>
             </div>
           </form>
         )}

@@ -8,6 +8,7 @@ import {
 } from "../RouteCurtain/curtainNav";
 import { getLenis } from "../SmoothScroll/lenisStore";
 import "./story-scenes.css";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ------------------------------------------------------------------ */
 /* StoryScenes                                                         */
@@ -60,14 +61,14 @@ type Scene = {
 // craft warmth (NOSTRUM-DESIGN motion ideas), gold ink, few words.
 const SCENES: Scene[] = [
   {
-    eyebrow: "The land",
-    title: "Where it begins",
-    copy: "A single grove on the Mediterranean coast. Old trees, patient soil, salt in the air.",
+    eyebrow: "scenes.s0_eyebrow",
+    title: "scenes.s0_title",
+    copy: "scenes.s0_copy",
     img: "/images/origin_1.png",
     alt: "Ancient olive tree above the Mediterranean coast at golden hour",
     callouts: [
       {
-        label: "two centuries old",
+        label: "scenes.s0_c1",
         labelX: "47%",
         labelY: "36%",
         arrowX: "56%",
@@ -76,7 +77,7 @@ const SCENES: Scene[] = [
         delay: 0,
       },
       {
-        label: "salt in the air",
+        label: "scenes.s0_c2",
         labelX: "20%",
         labelY: "18%",
         arrowX: "12%",
@@ -88,14 +89,14 @@ const SCENES: Scene[] = [
     ],
   },
   {
-    eyebrow: "The family",
-    title: "The same hands",
-    copy: "Four generations, one grove. Nothing here is rushed, and nothing is left to chance.",
+    eyebrow: "scenes.s1_eyebrow",
+    title: "scenes.s1_title",
+    copy: "scenes.s1_copy",
     img: "/images/origin_2.png",
     alt: "Weathered hands passing fresh olives to a younger hand",
     callouts: [
       {
-        label: "grandfather's harvest",
+        label: "scenes.s1_c1",
         labelX: "50%",
         labelY: "20%",
         arrowX: "58%",
@@ -104,7 +105,7 @@ const SCENES: Scene[] = [
         delay: 0,
       },
       {
-        label: "the next pair",
+        label: "scenes.s1_c2",
         labelX: "43%",
         labelY: "82%",
         arrowX: "50%",
@@ -115,14 +116,14 @@ const SCENES: Scene[] = [
     ],
   },
   {
-    eyebrow: "The harvest",
-    title: "When the fruit decides",
-    copy: "Picked at first light, at the peak of ripeness — then pressed the very same day.",
+    eyebrow: "scenes.s2_eyebrow",
+    title: "scenes.s2_title",
+    copy: "scenes.s2_copy",
     img: "/images/origin_3.png",
     alt: "Olives pouring from a wooden harvest crate at sunrise",
     callouts: [
       {
-        label: "crate by crate, by hand",
+        label: "scenes.s2_c1",
         labelX: "48%",
         labelY: "18%",
         arrowX: "56%",
@@ -131,7 +132,7 @@ const SCENES: Scene[] = [
         delay: 0,
       },
       {
-        label: "hours from the press",
+        label: "scenes.s2_c2",
         labelX: "56%",
         labelY: "68%",
         arrowX: "63%",
@@ -175,6 +176,7 @@ function SketchArrow({ style }: { style: React.CSSProperties }) {  return (
 
 export default function StoryScenes() {
   const rootRef = useRef<HTMLElement | null>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     const root = rootRef.current;
@@ -515,7 +517,7 @@ export default function StoryScenes() {
     <section
       className="story-scenes"
       ref={rootRef}
-      aria-label="The Nostrum story"
+      aria-label={t("scenes.aria")}
       style={{ "--scene-count": SCENES.length } as React.CSSProperties}
     >
       <div className="story-scenes__stage">
@@ -554,7 +556,7 @@ export default function StoryScenes() {
                   className="story-scenes__callout-label"
                   style={{ left: c.labelX, top: c.labelY }}
                 >
-                  {c.label}
+                  {t(c.label)}
                 </span>
                 <SketchArrow
                   style={{
@@ -569,9 +571,9 @@ export default function StoryScenes() {
             ))}
 
             <div className="story-scenes__caption">
-              <p className="story-scenes__eyebrow">{s.eyebrow}</p>
-              <h2 className="story-scenes__title">{s.title}</h2>
-              <p className="story-scenes__copy">{s.copy}</p>
+              <p className="story-scenes__eyebrow">{t(s.eyebrow)}</p>
+              <h2 className="story-scenes__title">{t(s.title)}</h2>
+              <p className="story-scenes__copy">{t(s.copy)}</p>
             </div>
           </div>
         ))}

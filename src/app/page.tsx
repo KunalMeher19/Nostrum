@@ -1,15 +1,7 @@
-import CrispHeader from "@/components/CrispHeader/CrispHeader";
-import StorySection from "@/components/StoryParallax/StoryParallax";
-import ProductsSection from "@/components/ProductsSection/ProductsSection";
-import SiteFooter from "@/components/SiteFooter/SiteFooter";
+import { redirect } from "next/navigation";
+import { DEFAULT_LOCALE } from "@/lib/i18n";
 
-export default function Home() {
-  return (
-    <main data-main>
-      <CrispHeader />
-      <StorySection />
-      <ProductsSection />
-      <SiteFooter />
-    </main>
-  );
+// Middleware handles all locale redirects. This is a safety fallback only.
+export default function RootPage() {
+  redirect(`/${DEFAULT_LOCALE}`);
 }

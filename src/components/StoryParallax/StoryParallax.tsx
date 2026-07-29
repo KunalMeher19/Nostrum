@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "./story-parallax.css";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ------------------------------------------------------------------ */
 /* StoryParallax                                                       */
@@ -22,6 +23,7 @@ import "./story-parallax.css";
  * pointer events) until the STA scrub reveals it near the end.
  */
 export function StoryParallaxOverlay() {
+  const { t } = useLocale();
   return (
     <div className="story-parallax" data-story-parallax aria-hidden="true">
       <div className="story-parallax__layer is--base" data-parallax-layer="1" />
@@ -30,8 +32,8 @@ export function StoryParallaxOverlay() {
       <div className="story-parallax__fade" />
       <div className="story-parallax__layer is--title" data-parallax-layer="4">
         <div className="story-parallax__title-wrap">
-          <h2 className="story-parallax__title">Our Story</h2>
-          <p className="story-parallax__eyebrow">From the land</p>
+          <h2 className="story-parallax__title">{t("story.title")}</h2>
+          <p className="story-parallax__eyebrow">{t("story.eyebrow")}</p>
         </div>
       </div>
     </div>
@@ -230,6 +232,7 @@ const SPOTLIGHT_STICKY_TOP = 96;
  */
 export default function StorySection() {
   const rootRef = useRef<HTMLElement>(null);
+  const { t, locale } = useLocale();
 
   // Three scroll behaviours, one effect. Same conventions as the rest of the
   // file's consumers: dynamic gsap import, context, reduced-motion = static.
@@ -371,18 +374,18 @@ export default function StorySection() {
         <div className="story-spotlight__col is--text">
           <div className="story-spotlight__sticky">
             <h2 className="story-spotlight__quote">
-              Nostrum is born of the grove{" "}
+              {t("story.quote")}{" "}
               <span className="story-spotlight__dot" aria-hidden="true">
                 ●
               </span>{" "}
-              pressed within hours
+              {t("story.quote2")}
             </h2>
             <p className="story-spotlight__label">
-              The grove <strong>Mediterranean coast</strong>
+              {t("story.label_pre")} <strong>{t("story.label")}</strong>
             </p>
             <p className="story-spotlight__cta-row">
-              <Link href="/origins" className="story-spotlight__pill">
-                Our origins
+              <Link href={`/${locale}/origins`} className="story-spotlight__pill">
+                {t("story.pill")}
               </Link>
             </p>
           </div>
