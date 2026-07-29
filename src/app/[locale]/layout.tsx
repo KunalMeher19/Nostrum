@@ -3,6 +3,7 @@ import { LOCALES, isValidLocale, getMessages, type Locale } from "@/lib/i18n";
 import { LocaleProvider } from "@/components/LocaleContext/LocaleContext";
 import HtmlLang from "@/components/HtmlLang/HtmlLang";
 import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
+import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -22,6 +23,7 @@ export default async function LocaleLayout({
     <LocaleProvider locale={locale as Locale} messages={messages}>
       <HtmlLang lang={locale} />
       <UnderlayNav />
+      <RouteCurtain />
       {children}
     </LocaleProvider>
   );

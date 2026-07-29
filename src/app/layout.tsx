@@ -4,7 +4,6 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
 import { CartProvider } from "@/components/Cart/CartContext";
 import RingCursor from "@/components/RingCursor/RingCursor";
-import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
 import NewsletterModal from "@/components/NewsletterModal/NewsletterModal";
 
 // Clean, quiet sans for UI/body (§4 — client-approved type direction)
@@ -99,9 +98,9 @@ export default function RootLayout({
         <RingCursor />
         {/* Working cart (localStorage) — nav badge + product/cart pages */}
         <CartProvider>
-          {/* Route-transition drape — covers, shows the section name, reveals */}
-          <RouteCurtain />
-          {/* Page content — receives [data-main] in each page component */}
+          {/* Page content — receives [data-main] in each page component.
+              UnderlayNav + RouteCurtain render inside the [locale] layout so
+              they can read the locale context. */}
           {children}
           {/* "The Nostrum Journal" invitation — 5s after the loader, once
               per session. Renders nothing until it opens. */}

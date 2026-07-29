@@ -96,6 +96,13 @@ export default function CrispHeader() {
   const { t, locale } = useLocale();
   const heroCopy = HERO_KEYS.map((k) => ({ h1: t(k.h1), sub: t(k.sub) }));
 
+  // Longer languages (ES/CA/IT) blow the display size out of the viewport —
+  // scale the hero type down proportionally to the longest headline, using
+  // the English "Not simply olive oil" (~21 chars) as the size=1 reference.
+  // Clamped at 0.62 so it never becomes timid; below-reference stays 1.
+  const longestH1 = Math.max(...heroCopy.map((c) => c.h1.length));
+  const heroScale = Math.max(0.62, Math.min(1, 21 / longestH1));
+
   useEffect(() => {
     const container = rootRef.current;
     if (!container) return;
@@ -1504,6 +1511,7 @@ export default function CrispHeader() {
       ref={rootRef}
       data-slideshow="wrap"
       className="crisp-header is--loading is--hidden"
+      style={{ "--hero-scale": heroScale } as React.CSSProperties}
     >
       <div className="crisp-header__slider">
         <div className="crisp-header__slider-list">
@@ -1655,7 +1663,7 @@ export default function CrispHeader() {
             loader reveal (part of the smallElements group) and lifts/fades out
             on any slide change or STA entry, mirroring the CTA. */}
         <div className="crisp-header__scroll" aria-hidden="true">
-          <span className="crisp-header__scroll-label">Scroll</span>
+          <span className="crisp-header__scroll-label">{t("hero.scroll")}</span>
           <span className="crisp-header__scroll-line">
             <span className="crisp-header__scroll-comet" />
           </span>

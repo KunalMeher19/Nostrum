@@ -5,28 +5,43 @@ import { usePathname, useRouter } from "next/navigation";
 import "./route-curtain.css";
 import { markClientNavigation, CURTAIN_REVEAL_EVENT } from "./curtainNav";
 import { getLenis } from "../SmoothScroll/lenisStore";
+import { isValidLocale } from "@/lib/i18n";
+import { useLocale } from "../LocaleContext/LocaleContext";
 
 /* ---- Route → display name ------------------------------------ */
-// The label shown mid-transition. Longest-prefix match so dynamic
-// segments (/product/[id]) resolve too; unknown routes fall back to a
-// title-cased first segment so new pages never show a blank curtain.
-const ROUTE_NAMES: Array<[prefix: string, label: string]> = [
-  ["/products", "Our Products"],
-  ["/product", "The Collection"],
-  ["/cart", "Cart"],
-  ["/origins", "Our Origins"],
-  ["/journal", "Journal"],
-  ["/contact", "Contact"],
-  ["/", "Home"],
+// The label shown mid-transition, as i18n keys (resolved via t() at call
+// time). Longest-prefix match on the LOCALE-STRIPPED path so dynamic
+// segments (/es/product/[id]) resolve too; unknown routes fall back to a
+// title-cased first segment (passed through t() unchanged) so new pages
+// never show a blank curtain.
+const ROUTE_NAMES: Array<[prefix: string, labelKey: string]> = [
+  ["/products", "curtain.products"],
+  ["/product", "curtain.product"],
+  ["/cart", "curtain.cart"],
+  ["/origins", "curtain.origins"],
+  ["/journal", "curtain.journal"],
+  ["/contact", "curtain.contact"],
+  ["/", "curtain.home"],
 ];
 
+// "/es/products" → "/products"; "/es" → "/"; non-locale paths pass through.
+function stripLocale(pathname: string): string {
+  const first = pathname.split("/")[1];
+  if (isValidLocale(first)) {
+    const rest = "/" + pathname.split("/").slice(2).join("/");
+    return rest === "/" || rest === "" ? "/" : rest;
+  }
+  return pathname;
+}
+
 function routeNameFor(pathname: string): string {
-  for (const [prefix, label] of ROUTE_NAMES) {
-    if (prefix === "/" ? pathname === "/" : pathname.startsWith(prefix)) {
-      return label;
+  const path = stripLocale(pathname);
+  for (const [prefix, labelKey] of ROUTE_NAMES) {
+    if (prefix === "/" ? path === "/" : path.startsWith(prefix)) {
+      return labelKey;
     }
   }
-  const seg = pathname.split("/").filter(Boolean)[0] ?? "Home";
+  const seg = path.split("/").filter(Boolean)[0] ?? "Home";
   return seg.charAt(0).toUpperCase() + seg.slice(1);
 }
 
@@ -72,6 +87,13 @@ export default function RouteCurtain() {
   const rootRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Translate curtain labels. Kept in a ref so the [] click-handler effect
+  // below always reads the CURRENT locale's t — the component doesn't remount
+  // on a locale switch (the [locale] layout reconciles in place).
+  const { t } = useLocale();
+  const tRef = useRef(t);
+  tRef.current = t;
 
   // Live pathname + a resolver armed by the transition sequence: the
   // pathname effect below settles the promise the moment the destination
@@ -268,7 +290,7 @@ export default function RouteCurtain() {
 
       const isSectionLink =
         a.hasAttribute("data-section-link") || a.hasAttribute("data-home-link");
-      if (isSectionLink && pathnameRef.current === "/") return;
+      if (isSectionLink && stripLocale(pathnameRef.current) === "/") return;
 
       if (url.pathname === pathnameRef.current) return;
 
@@ -285,7 +307,7 @@ export default function RouteCurtain() {
       // exempt; /products (the listing) and every other route keep the
       // curtain. The page itself resets the scroll + plays its own
       // entrance on mount (it can't ride the reveal event — none fires).
-      const isProductDetail = /^\/product\/.+/.test(url.pathname);
+      const isProductDetail = /^\/product\/.+/.test(stripLocale(url.pathname));
 
       if (prefersReducedMotion || !runTransition || isProductDetail) {
         markClientNavigation();
@@ -294,7 +316,7 @@ export default function RouteCurtain() {
         return;
       }
 
-      runTransition(url.pathname, routeNameFor(url.pathname));
+      runTransition(url.pathname, tRef.current(routeNameFor(url.pathname)));
     };
 
     document.addEventListener("click", onClick, true);

@@ -601,10 +601,14 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   text-align: right;
   margin-top: 1.25em;
   margin-bottom: 0;
-  font-size: 0.8em;
+  /* Rides the same locale scale as the h1 (see .crisp-header__h1) so long
+     translated subtitles wrap/fit instead of running under the thumb rail. */
+  font-size: calc(0.8em * var(--hero-scale, 1));
   text-transform: uppercase;
   letter-spacing: 0.35em;
   color: var(--crisp-accent);
+  max-width: 100%;
+  text-wrap: balance;
 }
 
 .crisp-header__slider {
@@ -662,9 +666,13 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   margin-top: 0;
   margin-bottom: .125em;
   font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
-  font-size: calc(4vw + 4dvh);
+  /* --hero-scale (set inline by CrispHeader) shrinks the display size for
+     locales whose headline runs longer than the English reference, so long
+     lines (ES/CA/IT) stay inside the viewport instead of clipping. */
+  font-size: calc((4vw + 4dvh) * var(--hero-scale, 1));
   font-weight: 400;
   line-height: .95;
+  text-wrap: balance;
 }
 
 .crisp-header__h1 > * {
@@ -698,13 +706,14 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   }
 
   .crisp-header__h1 {
-    /* Cap the fluid size so "Not simply olive oil" reads as a tidy two
-       lines instead of a wrapping block that reaches the rail. */
-    font-size: clamp(2rem, 9.5vw, 2.6rem);
+    /* Cap the fluid size so the headline reads as a tidy two lines instead
+       of a wrapping block that reaches the rail; --hero-scale keeps longer
+       locales inside the frame here too. */
+    font-size: calc(clamp(2rem, 9.5vw, 2.6rem) * var(--hero-scale, 1));
   }
 
   .crisp-header__p {
-    font-size: 0.7em;
+    font-size: calc(0.7em * var(--hero-scale, 1));
     letter-spacing: 0.3em;
     margin-top: 0.9em;
   }

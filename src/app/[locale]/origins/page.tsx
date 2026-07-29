@@ -1,5 +1,5 @@
 import { generateLocalizedMetadata } from "@/lib/metadata";
-import { getMessages, isValidLocale, type Locale } from "@/lib/i18n";
+import { getMessages, isValidLocale, t, type Locale } from "@/lib/i18n";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import StoryScenes from "@/components/StoryScenes/StoryScenes";
@@ -17,7 +17,10 @@ export async function generateMetadata({ params }: Props) {
   return generateLocalizedMetadata(locale as Locale, messages, "origins", "/origins");
 }
 
-export default function OriginsPage() {
+export default async function OriginsPage({ params }: Props) {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) notFound();
+  const messages = await getMessages(locale as Locale);
   return (
     <main data-main className="origins">
       <OriginThread />
@@ -31,8 +34,8 @@ export default function OriginsPage() {
         <OriginMap />
       </div>
       <section className="origins__outro" aria-label="Continue to the shop">
-        <Link href="/products" className="origins__cta">
-          <span>Shop the collection</span>
+        <Link href={`/${locale}/products`} className="origins__cta">
+          <span>{t(messages, "origins.cta")}</span>
           <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
             <path d="M1 13 13 1M4 1h9v9" fill="none" stroke="currentColor" strokeWidth="1.4" />
           </svg>

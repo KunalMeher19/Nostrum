@@ -540,8 +540,8 @@ export default function UnderlayNav() {
             >
               {/* Text flips between "Menu" and "Close" via yPercent animation */}
               <span className="underlay-nav__toggle-text">
-                <span className="underlay-nav__toggle-label">Menu</span>
-                <span className="underlay-nav__toggle-label">Close</span>
+                <span className="underlay-nav__toggle-label">{t("nav.menu")}</span>
+                <span className="underlay-nav__toggle-label">{t("nav.close")}</span>
               </span>
               {/* Two bars that cross into an ✕ */}
               <span className="underlay-nav__toggle-icon">
