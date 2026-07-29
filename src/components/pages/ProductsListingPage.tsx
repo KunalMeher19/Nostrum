@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
+import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import "./products.css";
 import { useCart } from "@/components/Cart/CartContext";
 import { getCatalogEntry } from "@/lib/products";
@@ -19,20 +21,21 @@ import { CURTAIN_REVEAL_EVENT } from "@/components/RouteCurtain/curtainNav";
 
 type Tile = {
   id: string;
-  name: string;
-  detail: string;
+  nameKey: string;
+  detailKey: string;
   price: string;
 };
 
 // Same trio as the home Collection teaser (§7 — ×1/×2/×3 of the 5L,
 // placeholder prices per the brief).
 const TILES: Tile[] = [
-  { id: "single", name: "Single", detail: "5L · Extra Virgin", price: "€35" },
-  { id: "duo", name: "Duo", detail: "2 × 5L", price: "€66" },
-  { id: "trio", name: "Trio", detail: "3 × 5L", price: "€95" },
+  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35" },
+  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66" },
+  { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio", price: "€95" },
 ];
 
 export default function ProductsPage() {
+  const { t } = useLocale();
   const rootRef = useRef<HTMLElement>(null);
 
   const { addItem } = useCart();
@@ -142,13 +145,13 @@ export default function ProductsPage() {
       <div className="products__inner">
         <div className="products__head-row" data-rise>
           <header className="products__head">
-            <h1 className="products__title">The Collection</h1>
-            <p className="products__eyebrow">Shop</p>
+            <h1 className="products__title">{t("shop.title")}</h1>
+            <p className="products__eyebrow">{t("shop.eyebrow")}</p>
           </header>
 
           {/* B2B — bulk / trade enquiries route to the contact page. */}
-          <Link href="/contact" className="products__b2b">
-            <span className="products__b2b-label">B2B enquiries</span>
+          <LocaleLink href="/contact" className="products__b2b">
+            <span className="products__b2b-label">{t("shop.b2b")}</span>
             <span className="products__b2b-arrow" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
                 <path
@@ -160,30 +163,30 @@ export default function ProductsPage() {
                 />
               </svg>
             </span>
-          </Link>
+          </LocaleLink>
         </div>
 
         <ul className="products__grid">
           {TILES.map((tile) => (
             <li key={tile.id} className="pcard" data-tile>
               <div className="pcard__media">
-                <Link
+                <LocaleLink
                   href={`/product/${tile.id}`}
                   className="pcard__link"
-                  aria-label={`View ${tile.name} — ${tile.detail}`}
+                  aria-label={`${t(tile.nameKey)} — ${t(tile.detailKey)}`}
                 />
                 <button
                   type="button"
                   className="pcard__add"
                   onClick={() => quickAdd(tile.id)}
                 >
-                  {addedId === tile.id ? "Added ✓" : "Add to cart"}
+                  {addedId === tile.id ? t("shop.added") : t("shop.add")}
                 </button>
               </div>
               <div className="pcard__meta">
-                <h2 className="pcard__name">{tile.name}</h2>
+                <h2 className="pcard__name">{t(tile.nameKey)}</h2>
                 <div className="pcard__line">
-                  <p className="pcard__detail">{tile.detail}</p>
+                  <p className="pcard__detail">{t(tile.detailKey)}</p>
                   <p className="pcard__price">{tile.price}</p>
                 </div>
               </div>
@@ -192,7 +195,7 @@ export default function ProductsPage() {
         </ul>
 
         <p className="products__note" data-rise>
-          Cold-pressed · bottled to order · shipped across Spain &amp; the EU
+          {t("shop.note")}
         </p>
       </div>
     </main>

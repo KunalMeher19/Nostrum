@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import "./product.css";
+import "./product.css"; // Styles for the product detail page
 import SiteFooter from "@/components/SiteFooter/SiteFooter";
 import { useCart } from "@/components/Cart/CartContext";
 import { getLenis } from "@/components/SmoothScroll/lenisStore";
+import { useLocale } from "@/components/LocaleContext/LocaleContext";
+import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
 import {
   formatEuro,
   getCatalogEntry,
@@ -29,12 +30,13 @@ import {
 /* clip-path unveil on the hero tile; reduced-motion skips it all.      */
 /* ------------------------------------------------------------------ */
 
-const TABS = ["Description", "Details", "Shipping"] as const;
-type Tab = (typeof TABS)[number];
+const TAB_KEYS = ["tab_description", "tab_details", "tab_shipping"] as const;
+type TabKey = (typeof TAB_KEYS)[number];
 
 export default function ProductPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const { t, locale } = useLocale();
   const id = params?.id ?? "";
   const entry = getCatalogEntry(id);
   const product = entry?.product ?? null;
@@ -129,7 +131,7 @@ export default function ProductPage() {
     []
   );
 
-  const [tab, setTab] = useState<Tab>("Description");
+  const [tab, setTab] = useState<TabKey>("tab_description");
 
   const size = useMemo(
     () => product?.sizes.find((s) => s.id === sizeId) ?? product?.sizes[0],
@@ -140,14 +142,14 @@ export default function ProductPage() {
     return (
       <main data-main className="pdp pdp--missing">
         <div className="pdp-missing">
-          <p className="pdp-missing__eyebrow">Shop</p>
-          <h1 className="pdp-missing__title">Not part of the collection</h1>
+          <p className="pdp-missing__eyebrow">{t("product.missing_eyebrow")}</p>
+          <h1 className="pdp-missing__title">{t("product.missing_title")}</h1>
           <p className="pdp-missing__note">
-            This product doesn&rsquo;t exist — or isn&rsquo;t bottled yet.
+            {t("product.missing_note")}
           </p>
-          <Link href="/#products" className="pdp-missing__back">
-            ← Back to the collection
-          </Link>
+          <LocaleLink href="/#products" className="pdp-missing__back">
+            {t("product.missing_back")}
+          </LocaleLink>
         </div>
       </main>
     );
@@ -161,7 +163,7 @@ export default function ProductPage() {
       {
         slug: product.slug,
         name: product.name,
-        subtitle: product.subtitle,
+        subtitle: t("product.subtitle"),
         sizeId: size.id,
         sizeLabel: size.label,
       },
@@ -178,17 +180,35 @@ export default function ProductPage() {
 
   const handleBuyNow = () => {
     doAdd();
-    router.push("/cart");
+    router.push(`/${locale}/cart`);
   };
+
+  /* Translated product data — pulled from the "product" translation section */
+  const descriptions = [t("product.desc_1"), t("product.desc_2")];
+  const details = [
+    { label: t("product.detail_variety"), value: t("product.detail_variety_value") },
+    { label: t("product.detail_extraction"), value: t("product.detail_extraction_value") },
+    { label: t("product.detail_acidity"), value: t("product.detail_acidity_value") },
+    { label: t("product.detail_origin"), value: t("product.detail_origin_value") },
+    { label: t("product.detail_keep"), value: t("product.detail_keep_value") },
+  ];
+  const shippingLines = [t("product.shipping_1"), t("product.shipping_2"), t("product.shipping_3")];
+  const highlights = [
+    t("product.highlight_1"),
+    t("product.highlight_2"),
+    t("product.highlight_3"),
+    t("product.highlight_4"),
+    t("product.highlight_5"),
+  ];
 
   return (
     <main data-main className="pdp" ref={rootRef}>
       <div className="pdp__inner">
         {/* ---- Breadcrumb ------------------------------------------- */}
         <nav className="pdp__crumb" aria-label="Breadcrumb" data-rise>
-          <Link href="/#products">Shop</Link>
+          <LocaleLink href="/#products">{t("product.breadcrumb_shop")}</LocaleLink>
           <span aria-hidden="true">/</span>
-          <span>{product.category}</span>
+          <span>{t("product.category")}</span>
           <span aria-hidden="true">/</span>
           <span aria-current="page">{size.label}</span>
         </nav>
@@ -204,7 +224,7 @@ export default function ProductPage() {
                 <span className="pdp__media-mark" aria-hidden="true">
                   N
                 </span>
-                <span className="pdp__media-view">{product.views[0]}</span>
+                <span className="pdp__media-view">{t("product.view_bottle")}</span>
               </div>
             </div>
           </section>
@@ -213,18 +233,18 @@ export default function ProductPage() {
           <section className="pdp__panel" aria-label="Product details">
             <header className="pdp__head" data-rise>
               <h1 className="pdp__name">{product.name}</h1>
-              <p className="pdp__subtitle">{product.subtitle}</p>
+              <p className="pdp__subtitle">{t("product.subtitle")}</p>
             </header>
 
             <p className="pdp__price" data-rise>
               <span className="pdp__price-value">{formatEuro(size.price)}</span>
-              <span className="pdp__price-note">+ shipping</span>
+              <span className="pdp__price-note">{t("product.plus_shipping")}</span>
             </p>
 
             {/* ---- Size — segmented (premium over a native dropdown) --- */}
             <fieldset className="pdp__field" data-rise>
-              <legend className="pdp__label">Size</legend>
-              <div className="pdp__segments" role="radiogroup" aria-label="Size">
+              <legend className="pdp__label">{t("product.size")}</legend>
+              <div className="pdp__segments" role="radiogroup" aria-label={t("product.size")}>
                 {product.sizes.map((s) => (
                   <button
                     key={s.id}
@@ -242,11 +262,11 @@ export default function ProductPage() {
 
             {/* ---- Quantity — ×1/×2/×3 tiers + free custom amount ------ */}
             <fieldset className="pdp__field" data-rise>
-              <legend className="pdp__label">Quantity</legend>
+              <legend className="pdp__label">{t("product.quantity")}</legend>
               <div
                 className="pdp__segments"
                 role="radiogroup"
-                aria-label="Quantity"
+                aria-label={t("product.quantity")}
               >
                 {product.packs.map((p) => {
                   const active = !customQty && qty === p.qty;
@@ -276,13 +296,13 @@ export default function ProductPage() {
                   className={`pdp__segment pdp__segment--pack${customQty ? " is--active" : ""}`}
                   onClick={() => setCustomQty(true)}
                 >
-                  Custom
+                  {t("product.custom")}
                 </button>
               </div>
               {customQty && (
                 <div className="pdp__custom">
                   <label className="pdp__custom-label" htmlFor="pdp-qty">
-                    Amount
+                    {t("product.amount")}
                   </label>
                   <input
                     id="pdp-qty"
@@ -300,7 +320,7 @@ export default function ProductPage() {
                   />
                   {tier.discount > 0 && (
                     <span className="pdp__custom-tier">
-                      −{Math.round(tier.discount * 100)}% applied
+                      −{Math.round(tier.discount * 100)}% {t("product.discount_applied")}
                     </span>
                   )}
                 </div>
@@ -316,14 +336,14 @@ export default function ProductPage() {
               >
                 <span className="pdp__add-fill" aria-hidden="true" />
                 <span className="pdp__add-label">
-                  {added ? "Added to cart" : "Add to cart"}
+                  {added ? t("product.added_to_cart") : t("product.add_to_cart")}
                 </span>
                 <span className="pdp__add-price">
                   {added ? "✓" : formatEuro(total)}
                 </span>
               </button>
               <button type="button" className="pdp__buy" onClick={handleBuyNow}>
-                Buy now
+                {t("product.buy_now")}
               </button>
             </div>
 
@@ -336,8 +356,8 @@ export default function ProductPage() {
                   <circle cx="17.5" cy="18.5" r="1.8" />
                 </svg>
                 <span>
-                  Fast shipping
-                  <small>2–4 days</small>
+                  {t("product.fast_shipping")}
+                  <small>{t("product.fast_shipping_detail")}</small>
                 </span>
               </li>
               <li>
@@ -346,8 +366,8 @@ export default function ProductPage() {
                   <path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9" />
                 </svg>
                 <span>
-                  Secure payment
-                  <small>SSL encrypted</small>
+                  {t("product.secure_payment")}
+                  <small>{t("product.secure_payment_detail")}</small>
                 </span>
               </li>
               <li>
@@ -356,8 +376,8 @@ export default function ProductPage() {
                   <path d="M4 4.5V9h4.5" />
                 </svg>
                 <span>
-                  14-day returns
-                  <small>Money back</small>
+                  {t("product.returns")}
+                  <small>{t("product.returns_detail")}</small>
                 </span>
               </li>
             </ul>
@@ -368,25 +388,25 @@ export default function ProductPage() {
         <div className="pdp__below" data-fade>
           <section className="pdp__tabs-block" aria-label="More information">
             <div className="pdp__tabs" role="tablist">
-              {TABS.map((t) => (
+              {TAB_KEYS.map((k) => (
                 <button
-                  key={t}
+                  key={k}
                   type="button"
                   role="tab"
-                  aria-selected={tab === t}
-                  className={`pdp__tab${tab === t ? " is--active" : ""}`}
-                  onClick={() => setTab(t)}
+                  aria-selected={tab === k}
+                  className={`pdp__tab${tab === k ? " is--active" : ""}`}
+                  onClick={() => setTab(k)}
                 >
-                  {t}
+                  {t(`product.${k}`)}
                 </button>
               ))}
             </div>
             <div className="pdp__tabpanel" role="tabpanel" key={tab}>
-              {tab === "Description" &&
-                product.description.map((p) => <p key={p}>{p}</p>)}
-              {tab === "Details" && (
+              {tab === "tab_description" &&
+                descriptions.map((p) => <p key={p}>{p}</p>)}
+              {tab === "tab_details" && (
                 <dl className="pdp__details">
-                  {product.details.map((d) => (
+                  {details.map((d) => (
                     <div key={d.label}>
                       <dt>{d.label}</dt>
                       <dd>{d.value}</dd>
@@ -394,15 +414,15 @@ export default function ProductPage() {
                   ))}
                 </dl>
               )}
-              {tab === "Shipping" &&
-                product.shipping.map((p) => <p key={p}>{p}</p>)}
+              {tab === "tab_shipping" &&
+                shippingLines.map((p) => <p key={p}>{p}</p>)}
             </div>
           </section>
 
-          <aside className="pdp__highlights" aria-label="Product highlights">
-            <h2 className="pdp__label">Product highlights</h2>
+          <aside className="pdp__highlights" aria-label={t("product.highlights_title")}>
+            <h2 className="pdp__label">{t("product.highlights_title")}</h2>
             <ul>
-              {product.highlights.map((h) => (
+              {highlights.map((h) => (
                 <li key={h}>
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M4.5 12.5l5 5 10-11" />
