@@ -1,7 +1,7 @@
 import { generateLocalizedMetadata } from "@/lib/metadata";
 import { getMessages, isValidLocale, type Locale } from "@/lib/i18n";
 import { notFound } from "next/navigation";
-import CartPage from "@/app/cart/page";
+import CartPage from "@/components/pages/CartPage";
 
 type Props = { params: Promise<{ locale: string }> };
 
