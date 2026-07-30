@@ -123,7 +123,14 @@
   font-size: clamp(0.7rem, 1vw, 0.9rem);
   font-weight: 500;
   margin: 0;
-  margin-top: 1rem;
+  /* Clear the title's "y" descender: at line-height 0.95 the descender of a
+     clamp(3rem,12vw,12rem) display face overflows its line box by well over
+     1rem, so the old fixed `margin-top: 1rem` let the "y" collide with the
+     eyebrow. Scale the gap with the same viewport unit the title scales with,
+     and lift the eyebrow onto its own layer so it always paints on top. */
+  margin-top: clamp(1.25rem, 2.6vw, 2.75rem);
+  position: relative;
+  z-index: 1;
 }
 
 .story-parallax__title {

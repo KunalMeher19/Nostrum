@@ -443,6 +443,48 @@ Proposed store if custom: **Postgres (Neon/Supabase)** + Prisma/Drizzle. Keep PI
 - Content: **Sanity.** Media: **Cloudinary.** Email: **Resend.**
 - WhatsApp number & prefills configurable via CMS/env, **not hardcoded.** No keys in the repo; per-env secrets.
 
+### 19.1 Backend — Node.js + Express (separate deploy)
+
+The backend lives in **`/backend`** at the repo root and is deployed **separately** from the Next.js front-end (its own host — e.g. Render/Railway/Fly — while the front-end stays on Vercel). It is plain **Node.js + Express** (CommonJS, JavaScript).
+
+**Folder structure (MUST follow — mirror this for every new feature):**
+
+```
+backend/
+├── __tests__/                      # Jest test files (*.test.js)
+│   └── health.test.js
+├── node_modules/
+├── src/
+│   ├── broker/                     # message broker / queues (emails, order events)
+│   │   └── broker.js
+│   ├── controllers/                # request handlers — one per domain
+│   │   └── <name>.controller.js
+│   ├── db/                         # data-layer clients
+│   │   ├── db.js                   # Postgres (Neon/Supabase) connection
+│   │   └── redis.js                # Redis (sessions/cache/rate-limit)
+│   ├── middlewares/                # Express middlewares
+│   │   ├── auth.middleware.js
+│   │   └── validator.middleware.js
+│   ├── models/                     # data models (§15 entities)
+│   │   └── <name>.model.js
+│   ├── routes/                     # Express routers — one per domain
+│   │   └── <name>.routes.js
+│   └── app.js                      # Express app: middleware + route mounting (no listen)
+├── test/
+│   └── setup.js                    # global Jest setup (NODE_ENV=test)
+├── .env                            # per-env secrets (gitignored); .env.example committed
+├── jest.config.js
+├── package.json
+└── server.js                       # entrypoint — loads env, starts app.listen
+```
+
+**Conventions:**
+- Naming: `<domain>.controller.js` / `<domain>.routes.js` / `<domain>.model.js` / `<domain>.middleware.js` — one domain per file trio (e.g. `auth`, `product`, `order`).
+- `app.js` builds & exports the Express app **without** listening (so Supertest can import it); `server.js` is the only place that calls `listen`.
+- Routes mount under `/api/<domain>`; routes stay thin — logic lives in controllers.
+- Tests: **Jest + Supertest** in `__tests__/`, run with `npm test`.
+- CORS restricted to the front-end origin via `CORS_ORIGIN` env; secrets only via `.env` (never committed) — keys listed in `.env.example`.
+
 ---
 
 ## 20. Open Items — pending on the CLIENT (from the brief)

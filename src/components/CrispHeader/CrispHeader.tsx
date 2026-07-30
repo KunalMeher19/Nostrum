@@ -412,20 +412,22 @@ export default function CrispHeader() {
 
         // --- Simple loader: masked letters rise in with a stagger while the
         //     wordmark's tracking breathes open — text only, over the glow.
+        //     Timings tightened (client feedback 2.x): the whole intro should
+        //     read as a beat, not a wait.
         if (loadingLetter.length) {
           tl.from(loadingLetter, {
             yPercent: 110,
             autoAlpha: 0,
-            stagger: 0.055,
+            stagger: 0.04,
             ease: "expo.out",
-            duration: 1.3,
+            duration: 0.9,
           });
         }
         if (loaderMark) {
           tl.fromTo(
             loaderMark,
             { letterSpacing: "0.18em" },
-            { letterSpacing: "0.42em", ease: "power2.out", duration: 2.1 },
+            { letterSpacing: "0.42em", ease: "power2.out", duration: 1.4 },
             0
           );
         }
@@ -438,11 +440,11 @@ export default function CrispHeader() {
             {
               yPercent: -110,
               autoAlpha: 0,
-              stagger: 0.035,
+              stagger: 0.025,
               ease: "expo.in",
-              duration: 0.8,
+              duration: 0.6,
             },
-            "+=0.55"
+            "+=0.25"
           );
         }
 
@@ -496,18 +498,18 @@ export default function CrispHeader() {
           const EXIT = -0.18; // past the top edge — mirror of RouteCurtain EXIT/100
           tl.to(
             drape,
-            { yEdge: EXIT, duration: 0.95, ease: "power3.inOut", onUpdate: drawSweep },
+            { yEdge: EXIT, duration: 0.75, ease: "power3.inOut", onUpdate: drawSweep },
             "+=0.05"
           )
             .to(
               drape,
-              { yMid: EXIT - 0.25, duration: 0.55, ease: "power2.in", onUpdate: drawSweep },
+              { yMid: EXIT - 0.25, duration: 0.45, ease: "power2.in", onUpdate: drawSweep },
               "<"
             )
             .to(
               drape,
-              { yMid: EXIT, duration: 0.4, ease: "power2.out", onUpdate: drawSweep },
-              "<0.55"
+              { yMid: EXIT, duration: 0.3, ease: "power2.out", onUpdate: drawSweep },
+              "<0.45"
             );
         }
 
