@@ -150,7 +150,7 @@
   position: absolute;
   /* Sits by the annotation's tail (viewBox 730×1000 → % of the stage). */
   left: 63%;
-  top: 60%;
+  top: 47%;
   margin: 0;
   text-align: left;
   font-family: var(--font-display), "Segoe UI", Arial, sans-serif;

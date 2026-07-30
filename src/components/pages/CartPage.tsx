@@ -102,7 +102,7 @@ export default function CartPage() {
               </div>
               <p className="cart__note">Shipping calculated at checkout.</p>
               <button type="button" className="cart__checkout" disabled>
-                Checkout — coming soon
+                Checkout · coming soon
               </button>
               <Link href="/#products" className="cart__back">
                 ← Continue shopping

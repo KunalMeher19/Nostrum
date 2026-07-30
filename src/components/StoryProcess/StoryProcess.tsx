@@ -65,21 +65,16 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
   const ampMax = mobile ? 0.22 : 0.22;
   const ampK = mobile ? 0.4 : 0.4;
 
-  // A clean, 2-stroke horizontal underline sitting firmly near the baseline
-  // (a0.y). Client feedback 1.0: the TOP stroke is dead straight, and the
-  // return stroke stays shallow + parallel (no odd angles) — just a quiet
-  // hand-drawn double underline.
-  let d = `M ${f(a0.x - 90)} ${f(a0.y - 2)}`;
-  // Stroke 1: straight left → right.
-  d += ` L ${f(a0.x + 90)} ${f(a0.y - 2)}`;
-  // Stroke 2: loop back left, a touch lower, staying near-parallel — only a
-  // couple of px of vertical drift so the angles read intentional, not bent.
-  d += ` C ${f(a0.x + 96)} ${f(a0.y + 1)}, ${f(a0.x + 40)} ${f(a0.y + 3)}, ${f(a0.x - 20)} ${f(a0.y + 3)}`;
-  d += ` L ${f(a0.x - 50)} ${f(a0.y + 3)}`;
-  // Final exit: a smooth vertical-tangent plunge down into the first step —
-  // leaves the underline horizontally, turns once, and arrives at the node
-  // vertically (matching the leg joins below), so no kinked angle.
-  d += ` C ${f(a0.x - 110)} ${f(a0.y + 3)}, ${f(a1.x)} ${f(a1.y - (a1.y - a0.y) * 0.55)}, ${f(a1.x)} ${f(a1.y)}`;
+  // Client feedback 2.0: "Put a straight line" — the underline is ONE dead
+  // straight stroke, no return loop. Left → right, then a single smooth
+  // vertical-tangent plunge down into the first step.
+  let d = `M ${f(a0.x - 90)} ${f(a0.y)}`;
+  // The straight underline.
+  d += ` L ${f(a0.x + 90)} ${f(a0.y)}`;
+  // Exit: leaves the underline horizontally from its right end, turns once,
+  // and arrives at the first node vertically (matching the leg joins below),
+  // so no kinked angle.
+  d += ` C ${f(a0.x + 150)} ${f(a0.y)}, ${f(a1.x)} ${f(a1.y - (a1.y - a0.y) * 0.55)}, ${f(a1.x)} ${f(a1.y)}`;
 
   for (let i = 2; i < nodes.length; i++) {
     const a = nodes[i - 1];

@@ -54,7 +54,7 @@
   "contact": {
     "eyebrow": "Contacto",
     "headline": "Hablemos.",
-    "lede": "Un pedido, una pregunta, una cocina profesional — escríbenos. Respondemos personalmente.",
+    "lede": "Un pedido, una pregunta, una cocina profesional, escríbenos. Respondemos personalmente.",
     "email_label": "Email",
     "phone_label": "Teléfono",
     "estate_label": "Finca",
@@ -71,7 +71,7 @@
     "send": "Enviar mensaje",
     "sending": "Enviando…",
     "sent_title": "Recibido.",
-    "sent_line": "Gracias por escribir. Lo leemos todo nosotros mismos — espera una respuesta en un día o dos.",
+    "sent_line": "Gracias por escribir. Lo leemos todo nosotros mismos, espera una respuesta en un día o dos.",
     "gdpr": "Al enviar aceptas nuestra política de privacidad.",
     "whatsapp_label": "Habla con Nostrum por WhatsApp"
   },
@@ -98,7 +98,7 @@
     "s1_c2": "el siguiente par",
     "s2_eyebrow": "La cosecha",
     "s2_title": "Cuando el fruto decide",
-    "s2_copy": "Recogido al amanecer, en plena madurez — y prensado el mismo día.",
+    "s2_copy": "Recogido al amanecer, en plena madurez, y prensado el mismo día.",
     "s2_c1": "caja a caja, a mano",
     "s2_c2": "a horas de la prensa"
   },
@@ -110,19 +110,19 @@
     "step1_title": "Cosecha",
     "step1_copy": "Recogido a mano al amanecer, en plena madurez.",
     "step2_title": "Lavado y selección",
-    "step2_copy": "Fuera hojas y tallos — solo queda fruto limpio.",
+    "step2_copy": "Fuera hojas y tallos, solo queda fruto limpio.",
     "step3_title": "Molienda y batido",
     "step3_copy": "Molido a la piedra hasta una pasta, amasado lentamente para liberar el aceite.",
     "step4_title": "Extracción en frío",
     "step4_copy": "Separado por debajo de 27°C, para que nada del fruto se pierda.",
     "step5_title": "Embotellado",
-    "step5_copy": "Sellado recién salido del molino — solo primera prensada en frío."
+    "step5_copy": "Sellado recién salido del molino, solo primera prensada en frío."
   },
   "map": {
     "aria": "Dónde está el olivar",
     "eyebrow": "El lugar",
-    "title": "Aquí — en ningún otro sitio.",
-    "label1": "el olivar — Baix Ebre,",
+    "title": "Aquí, en ningún otro sitio.",
+    "label1": "el olivar, Baix Ebre,",
     "label2": "Catalunya",
     "sea": "Mar Mediterrània"
   },
@@ -151,7 +151,7 @@
     "highlights_title": "Destacados del producto",
     "missing_eyebrow": "Tienda",
     "missing_title": "No forma parte de la colección",
-    "missing_note": "Este producto no existe — o aún no está embotellado.",
+    "missing_note": "Este producto no existe, o aún no está embotellado.",
     "missing_back": "← Volver a la colección",
     "desc_1": "Elaborado con aceitunas de cosecha temprana, extraído en frío en horas para conservar el máximo sabor, aroma y nutrientes.",
     "desc_2": "Suave, equilibrado y verde. Para cocinar a diario, aliños y acabados.",
@@ -167,7 +167,7 @@
     "detail_keep_value": "Fresco y oscuro, lejos de la luz",
     "shipping_1": "Envíos a España y la UE en 2–4 días laborables.",
     "shipping_2": "Embotellado bajo pedido y embalado en packaging protector y reciclable.",
-    "shipping_3": "Devoluciones de 14 días en botellas sin abrir — reembolso completo.",
+    "shipping_3": "Devoluciones de 14 días en botellas sin abrir, reembolso completo.",
     "highlight_1": "100% Aceite de Oliva Virgen Extra",
     "highlight_2": "Extracción en frío",
     "highlight_3": "Cosecha temprana",
@@ -191,17 +191,17 @@
     "contact": "Contacto"
   },
   "meta": {
-    "home_title": "Nostrum — Aceite de Oliva",
-    "home_description": "Nostrum no es simplemente aceite de oliva. Una experiencia de marca de lujo — la historia primero, el producto después.",
-    "contact_title": "Contacto — Nostrum",
-    "contact_description": "Escribe a Nostrum. Para pedidos, consultas profesionales o cualquier otra cosa — respondemos personalmente.",
-    "origins_title": "Orígenes — Nostrum",
+    "home_title": "Nostrum · Aceite de Oliva",
+    "home_description": "Nostrum no es simplemente aceite de oliva. Una experiencia de marca de lujo, la historia primero, el producto después.",
+    "contact_title": "Contacto · Nostrum",
+    "contact_description": "Escribe a Nostrum. Para pedidos, consultas profesionales o cualquier otra cosa, respondemos personalmente.",
+    "origins_title": "Orígenes · Nostrum",
     "origins_description": "Donde comienza Nostrum. El olivar, la familia y cómo se elabora el aceite.",
-    "products_title": "Productos — Nostrum",
+    "products_title": "Productos · Nostrum",
     "products_description": "La colección Nostrum. Aceite de oliva virgen extra premium de Cataluña.",
-    "cart_title": "Carrito — Nostrum",
+    "cart_title": "Carrito · Nostrum",
     "cart_description": "Tu selección Nostrum.",
-    "journal_title": "Diario — Nostrum",
+    "journal_title": "Diario · Nostrum",
     "journal_description": "Historias del olivar. El diario Nostrum."
   }
 }

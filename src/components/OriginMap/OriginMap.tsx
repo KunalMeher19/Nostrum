@@ -51,9 +51,10 @@ export default function OriginMap() {
     const applyProgress = (p: number) => {
       // Coast draws over the first 70% of the travel…
       coast.style.strokeDashoffset = `${1 - clamp01(p / 0.7)}`;
-      // …the marker blooms + annotation sketches once the ink reaches the
-      // delta (class-driven CSS transitions, same as the scene callouts).
-      root.classList.toggle("is--marked", p >= 0.62);
+      // …the marker blooms + annotation sketches once the ink passes the
+      // grove (moved up-coast, feedback 2.0 — so earlier in the draw);
+      // class-driven CSS transitions, same as the scene callouts.
+      root.classList.toggle("is--marked", p >= 0.45);
       // Headline/eyebrow ride the same scrub, early.
       const head = clamp01(p / 0.35);
       const headEls = root.querySelectorAll<HTMLElement>(
@@ -173,20 +174,24 @@ export default function OriginMap() {
             strokeLinejoin="round"
           />
 
-          {/* The factory — on the Ebre, just NW of the delta (client's pin).
+          {/* The factory — client feedback 2.0 moved the pin UP the coast:
+              his arrow tip lands just INLAND (west) of the bend above the
+              hooked spit, so the dot sits off the coast stroke, not on it.
               Bloom + rings via CSS. */}
-          <g className="origin-map__marker" transform="translate(340, 650)">
+          <g className="origin-map__marker" transform="translate(285, 420)">
             <circle className="origin-map__marker-ring" r="16" />
             <circle className="origin-map__marker-ring origin-map__marker-ring--late" r="16" />
             <circle className="origin-map__marker-dot" r="5" />
           </g>
 
-          {/* Esbozo annotation — same hand as the StoryScenes callouts. */}
+          {/* Esbozo annotation — same hand as the StoryScenes callouts.
+              Feedback 2.0: redrawn to the new pin; the head's two strokes are
+              symmetric about the line's end tangent so it reads clean. */}
           <g className="origin-map__note">
             <path
               className="origin-map__note-line"
               pathLength={1}
-              d="M490 596 C 448 608, 402 622, 366 640"
+              d="M470 485 C 430 470, 380 448, 322 428"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.6"
@@ -195,7 +200,7 @@ export default function OriginMap() {
             <path
               className="origin-map__note-head"
               pathLength={1}
-              d="M379 628 L 366 640 L 384 645"
+              d="M336.1 427 L 322 428 L 332.5 437.4"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.6"

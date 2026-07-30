@@ -54,7 +54,7 @@
   "contact": {
     "eyebrow": "Contacte",
     "headline": "Parlem.",
-    "lede": "Una comanda, una pregunta, una cuina professional — escriu-nos. Responem personalment.",
+    "lede": "Una comanda, una pregunta, una cuina professional, escriu-nos. Responem personalment.",
     "email_label": "Email",
     "phone_label": "Telèfon",
     "estate_label": "Finca",
@@ -71,7 +71,7 @@
     "send": "Enviar missatge",
     "sending": "Enviant…",
     "sent_title": "Rebut.",
-    "sent_line": "Gràcies per escriure. Ho llegim tot nosaltres mateixos — espera una resposta en un dia o dos.",
+    "sent_line": "Gràcies per escriure. Ho llegim tot nosaltres mateixos, espera una resposta en un dia o dos.",
     "gdpr": "En enviar acceptes la nostra política de privacitat.",
     "whatsapp_label": "Parla amb Nostrum per WhatsApp"
   },
@@ -98,7 +98,7 @@
     "s1_c2": "el següent parell",
     "s2_eyebrow": "La collita",
     "s2_title": "Quan el fruit decideix",
-    "s2_copy": "Collit a primera hora, en plena maduresa — i premsat el mateix dia.",
+    "s2_copy": "Collit a primera hora, en plena maduresa, i premsat el mateix dia.",
     "s2_c1": "caixa a caixa, a mà",
     "s2_c2": "a hores de la premsa"
   },
@@ -110,19 +110,19 @@
     "step1_title": "Collita",
     "step1_copy": "Collit a mà a primera hora, en plena maduresa.",
     "step2_title": "Rentat i selecció",
-    "step2_copy": "Fora fulles i tiges — només queda fruit net.",
+    "step2_copy": "Fora fulles i tiges, només queda fruit net.",
     "step3_title": "Mòlta i batut",
     "step3_copy": "Mòlt a la pedra fins a una pasta, pastat lentament per alliberar l'oli.",
     "step4_title": "Extracció en fred",
     "step4_copy": "Separat per sota de 27°C, perquè res del fruit no es perdi.",
     "step5_title": "Embotellament",
-    "step5_copy": "Segellat acabat de sortir del molí — només primera premsada en fred."
+    "step5_copy": "Segellat acabat de sortir del molí, només primera premsada en fred."
   },
   "map": {
     "aria": "On és l'oliverar",
     "eyebrow": "El lloc",
-    "title": "Aquí — enlloc més.",
-    "label1": "l'oliverar — Baix Ebre,",
+    "title": "Aquí, enlloc més.",
+    "label1": "l'oliverar, Baix Ebre,",
     "label2": "Catalunya",
     "sea": "Mar Mediterrània"
   },
@@ -151,7 +151,7 @@
     "highlights_title": "Destacats del producte",
     "missing_eyebrow": "Botiga",
     "missing_title": "No forma part de la col·lecció",
-    "missing_note": "Aquest producte no existeix — o encara no està embotellat.",
+    "missing_note": "Aquest producte no existeix, o encara no està embotellat.",
     "missing_back": "← Tornar a la col·lecció",
     "desc_1": "Elaborat amb olives de collita primerenca, extret en fred en hores per conservar el màxim sabor, aroma i nutrients.",
     "desc_2": "Suau, equilibrat i verd. Per cuinar cada dia, amaniments i acabats.",
@@ -167,7 +167,7 @@
     "detail_keep_value": "Fresc i fosc, lluny de la llum",
     "shipping_1": "Enviaments a Espanya i la UE en 2–4 dies laborables.",
     "shipping_2": "Embotellat sota comanda i embalet en packaging protector i reciclable.",
-    "shipping_3": "Devolucions de 14 dies en ampolles sense obrir — reemborsament complet.",
+    "shipping_3": "Devolucions de 14 dies en ampolles sense obrir, reemborsament complet.",
     "highlight_1": "100% Oli d'Oliva Verge Extra",
     "highlight_2": "Extracció en fred",
     "highlight_3": "Collita primerenca",
@@ -191,17 +191,17 @@
     "contact": "Contacte"
   },
   "meta": {
-    "home_title": "Nostrum — Oli d'Oliva",
-    "home_description": "Nostrum no és simplement oli d'oliva. Una experiència de marca de luxe — la història primer, el producte després.",
-    "contact_title": "Contacte — Nostrum",
-    "contact_description": "Escriu a Nostrum. Per a comandes, consultes professionals o qualsevol altra cosa — responem personalment.",
-    "origins_title": "Orígens — Nostrum",
+    "home_title": "Nostrum · Oli d'Oliva",
+    "home_description": "Nostrum no és simplement oli d'oliva. Una experiència de marca de luxe, la història primer, el producte després.",
+    "contact_title": "Contacte · Nostrum",
+    "contact_description": "Escriu a Nostrum. Per a comandes, consultes professionals o qualsevol altra cosa, responem personalment.",
+    "origins_title": "Orígens · Nostrum",
     "origins_description": "On comença Nostrum. L'oliverar, la família i com s'elabora l'oli.",
-    "products_title": "Productes — Nostrum",
+    "products_title": "Productes · Nostrum",
     "products_description": "La col·lecció Nostrum. Oli d'oliva verge extra premium de Catalunya.",
-    "cart_title": "Cistell — Nostrum",
+    "cart_title": "Cistell · Nostrum",
     "cart_description": "La teva selecció Nostrum.",
-    "journal_title": "Diari — Nostrum",
+    "journal_title": "Diari · Nostrum",
     "journal_description": "Històries de l'oliverar. El diari Nostrum."
   }
 }

@@ -54,7 +54,7 @@
   "contact": {
     "eyebrow": "Contact",
     "headline": "Let's talk.",
-    "lede": "An order, a question, a professional kitchen — write to us. We answer personally.",
+    "lede": "An order, a question, a professional kitchen, write to us. We answer personally.",
     "email_label": "Email",
     "phone_label": "Phone",
     "estate_label": "Estate",
@@ -71,7 +71,7 @@
     "send": "Send message",
     "sending": "Sending…",
     "sent_title": "Received.",
-    "sent_line": "Thank you for writing. We read everything ourselves — expect a reply within a day or two.",
+    "sent_line": "Thank you for writing. We read everything ourselves, expect a reply within a day or two.",
     "gdpr": "By sending you agree to our privacy policy.",
     "whatsapp_label": "Chat with Nostrum on WhatsApp"
   },
@@ -98,7 +98,7 @@
     "s1_c2": "the next pair",
     "s2_eyebrow": "The harvest",
     "s2_title": "When the fruit decides",
-    "s2_copy": "Picked at first light, at the peak of ripeness — then pressed the very same day.",
+    "s2_copy": "Picked at first light, at the peak of ripeness, then pressed the very same day.",
     "s2_c1": "crate by crate, by hand",
     "s2_c2": "hours from the press"
   },
@@ -110,19 +110,19 @@
     "step1_title": "Harvest",
     "step1_copy": "Hand-picked at first light, at the peak of ripeness.",
     "step2_title": "Wash & Sort",
-    "step2_copy": "Leaves and stems away — only clean fruit remains.",
+    "step2_copy": "Leaves and stems away, only clean fruit remains.",
     "step3_title": "Crush & Malaxation",
     "step3_copy": "Stone-milled to a paste, slowly kneaded to free the oil.",
     "step4_title": "Cold Extraction",
     "step4_copy": "Separated below 27°C, so nothing of the fruit is lost.",
     "step5_title": "Bottling",
-    "step5_copy": "Sealed fresh from the mill — first cold pressing only."
+    "step5_copy": "Sealed fresh from the mill, first cold pressing only."
   },
   "map": {
     "aria": "Where the grove is",
     "eyebrow": "The place",
-    "title": "Here — nowhere else.",
-    "label1": "the grove — Baix Ebre,",
+    "title": "Here, nowhere else.",
+    "label1": "the grove, Baix Ebre,",
     "label2": "Catalunya",
     "sea": "Mar Mediterrània"
   },
@@ -191,17 +191,17 @@
     "contact": "Contact"
   },
   "meta": {
-    "home_title": "Nostrum — Olive Oil",
-    "home_description": "Nostrum is not simply olive oil. A luxury brand experience — story first, product second.",
-    "contact_title": "Contact — Nostrum",
-    "contact_description": "Write to Nostrum. For orders, professional enquiries or anything else — we answer personally.",
-    "origins_title": "Origins — Nostrum",
+    "home_title": "Nostrum · Olive Oil",
+    "home_description": "Nostrum is not simply olive oil. A luxury brand experience, story first, product second.",
+    "contact_title": "Contact · Nostrum",
+    "contact_description": "Write to Nostrum. For orders, professional enquiries or anything else, we answer personally.",
+    "origins_title": "Origins · Nostrum",
     "origins_description": "Where Nostrum begins. The grove, the family, and how the oil is made.",
-    "products_title": "Products — Nostrum",
+    "products_title": "Products · Nostrum",
     "products_description": "The Nostrum collection. Premium extra virgin olive oil from Catalonia.",
-    "cart_title": "Cart — Nostrum",
+    "cart_title": "Cart · Nostrum",
     "cart_description": "Your Nostrum selection.",
-    "journal_title": "Journal — Nostrum",
+    "journal_title": "Journal · Nostrum",
     "journal_description": "Stories from the grove. The Nostrum journal."
   }
 }

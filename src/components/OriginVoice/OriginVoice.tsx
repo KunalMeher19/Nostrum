@@ -20,8 +20,8 @@ import "./origin-voice.css";
 // Placeholder line in the brief's voice — the client may supply the real
 // family quote (and attribution) when copy arrives.
 const QUOTE =
-  "My grandfather said the tree decides — we only listen.";
-const ATTRIBUTION = "— the Nostrum family";
+  "My grandfather said the tree decides. We only listen.";
+const ATTRIBUTION = "the Nostrum family";
 
 export default function OriginVoice() {
   const rootRef = useRef<HTMLElement | null>(null);

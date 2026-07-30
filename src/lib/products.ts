@@ -69,7 +69,7 @@ const OLIVE_OIL: Product = {
   shipping: [
     "Shipped across Spain and the EU in 2–4 working days.",
     "Bottled to order and packed in protective, recyclable packaging.",
-    "14-day returns on unopened bottles — money back.",
+    "14-day returns on unopened bottles, money back.",
   ],
   highlights: [
     "100% Extra Virgin Olive Oil",

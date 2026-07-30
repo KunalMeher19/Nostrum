@@ -173,7 +173,7 @@ export default function ProductsPage() {
                 <LocaleLink
                   href={`/product/${tile.id}`}
                   className="pcard__link"
-                  aria-label={`${t(tile.nameKey)} — ${t(tile.detailKey)}`}
+                  aria-label={`${t(tile.nameKey)}, ${t(tile.detailKey)}`}
                 />
                 <button
                   type="button"

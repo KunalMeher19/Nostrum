@@ -29,9 +29,9 @@ import { useLocale } from "../LocaleContext/LocaleContext";
 const CONTACT = {
   email: "hola@nostrum.com",
   phone: "+34 600 000 000",
-  address: ["Olive Groves, Catalonia", "Spain — EU"],
+  address: ["Olive Groves, Catalonia", "Spain, EU"],
   whatsapp:
-    "https://wa.me/34600000000?text=Hola%20Nostrum%20—%20me%20gustar%C3%ADa%20hablar%20con%20vosotros.",
+    "https://wa.me/34600000000?text=Hola%20Nostrum%2C%20me%20gustar%C3%ADa%20hablar%20con%20vosotros.",
 };
 
 const SOCIALS = [

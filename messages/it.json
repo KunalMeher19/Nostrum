@@ -54,7 +54,7 @@
   "contact": {
     "eyebrow": "Contatti",
     "headline": "Parliamo.",
-    "lede": "Un ordine, una domanda, una cucina professionale — scrivici. Rispondiamo personalmente.",
+    "lede": "Un ordine, una domanda, una cucina professionale, scrivici. Rispondiamo personalmente.",
     "email_label": "Email",
     "phone_label": "Telefono",
     "estate_label": "Tenuta",
@@ -71,7 +71,7 @@
     "send": "Invia messaggio",
     "sending": "Invio…",
     "sent_title": "Ricevuto.",
-    "sent_line": "Grazie per averci scritto. Leggiamo tutto personalmente — aspettati una risposta entro un giorno o due.",
+    "sent_line": "Grazie per averci scritto. Leggiamo tutto personalmente, aspettati una risposta entro un giorno o due.",
     "gdpr": "Inviando accetti la nostra informativa sulla privacy.",
     "whatsapp_label": "Parla con Nostrum su WhatsApp"
   },
@@ -98,7 +98,7 @@
     "s1_c2": "il prossimo paio",
     "s2_eyebrow": "Il raccolto",
     "s2_title": "Quando il frutto decide",
-    "s2_copy": "Raccolto alle prime luci, al culmine della maturazione — e spremuto lo stesso giorno.",
+    "s2_copy": "Raccolto alle prime luci, al culmine della maturazione, e spremuto lo stesso giorno.",
     "s2_c1": "cassetta per cassetta, a mano",
     "s2_c2": "a ore dalla pressa"
   },
@@ -110,19 +110,19 @@
     "step1_title": "Raccolta",
     "step1_copy": "Raccolto a mano alle prime luci, al culmine della maturazione.",
     "step2_title": "Lavaggio e selezione",
-    "step2_copy": "Via foglie e rametti — resta solo frutto pulito.",
+    "step2_copy": "Via foglie e rametti, resta solo frutto pulito.",
     "step3_title": "Frangitura e gramolatura",
     "step3_copy": "Macinato a pietra in pasta, gramolato lentamente per liberare l'olio.",
     "step4_title": "Estrazione a freddo",
     "step4_copy": "Separato sotto i 27°C, perché nulla del frutto vada perso.",
     "step5_title": "Imbottigliamento",
-    "step5_copy": "Sigillato appena uscito dal frantoio — solo prima spremitura a freddo."
+    "step5_copy": "Sigillato appena uscito dal frantoio, solo prima spremitura a freddo."
   },
   "map": {
     "aria": "Dove si trova l'uliveto",
     "eyebrow": "Il luogo",
-    "title": "Qui — in nessun altro posto.",
-    "label1": "l'uliveto — Baix Ebre,",
+    "title": "Qui, in nessun altro posto.",
+    "label1": "l'uliveto, Baix Ebre,",
     "label2": "Catalunya",
     "sea": "Mar Mediterrània"
   },
@@ -151,7 +151,7 @@
     "highlights_title": "Caratteristiche del prodotto",
     "missing_eyebrow": "Shop",
     "missing_title": "Non fa parte della collezione",
-    "missing_note": "Questo prodotto non esiste — o non è ancora imbottigliato.",
+    "missing_note": "Questo prodotto non esiste, o non è ancora imbottigliato.",
     "missing_back": "← Torna alla collezione",
     "desc_1": "Prodotto con olive di raccolta precoce, estratto a freddo in poche ore per conservare il massimo sapore, aroma e nutrienti.",
     "desc_2": "Morbido, equilibrato e verde. Per cucinare ogni giorno, condimenti e finitura.",
@@ -167,7 +167,7 @@
     "detail_keep_value": "Fresco e al buio, lontano dalla luce",
     "shipping_1": "Spedizioni in Spagna e UE in 2–4 giorni lavorativi.",
     "shipping_2": "Imbottigliato su ordinazione e confezionato in imballaggio protettivo e riciclabile.",
-    "shipping_3": "Resi entro 14 giorni su bottiglie chiuse — rimborso completo.",
+    "shipping_3": "Resi entro 14 giorni su bottiglie chiuse, rimborso completo.",
     "highlight_1": "100% Olio Extravergine di Oliva",
     "highlight_2": "Estrazione a freddo",
     "highlight_3": "Raccolta precoce",
@@ -191,17 +191,17 @@
     "contact": "Contatti"
   },
   "meta": {
-    "home_title": "Nostrum — Olio d'Oliva",
-    "home_description": "Nostrum non è semplicemente olio d'oliva. Un'esperienza di marca di lusso — prima la storia, poi il prodotto.",
-    "contact_title": "Contatti — Nostrum",
-    "contact_description": "Scrivi a Nostrum. Per ordini, richieste professionali o qualsiasi altra cosa — rispondiamo personalmente.",
-    "origins_title": "Origini — Nostrum",
+    "home_title": "Nostrum · Olio d'Oliva",
+    "home_description": "Nostrum non è semplicemente olio d'oliva. Un'esperienza di marca di lusso, prima la storia, poi il prodotto.",
+    "contact_title": "Contatti · Nostrum",
+    "contact_description": "Scrivi a Nostrum. Per ordini, richieste professionali o qualsiasi altra cosa, rispondiamo personalmente.",
+    "origins_title": "Origini · Nostrum",
     "origins_description": "Dove inizia Nostrum. Il frantoio, la famiglia e come viene prodotto l'olio.",
-    "products_title": "Prodotti — Nostrum",
+    "products_title": "Prodotti · Nostrum",
     "products_description": "La collezione Nostrum. Olio extravergine di oliva premium dalla Catalogna.",
-    "cart_title": "Carrello — Nostrum",
+    "cart_title": "Carrello · Nostrum",
     "cart_description": "La tua selezione Nostrum.",
-    "journal_title": "Giornale — Nostrum",
+    "journal_title": "Giornale · Nostrum",
     "journal_description": "Storie dal frantoio. Il giornale Nostrum."
   }
 }

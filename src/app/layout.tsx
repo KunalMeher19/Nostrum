@@ -25,9 +25,9 @@ const display = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: "Nostrum — Olive Oil",
+  title: "Nostrum · Olive Oil",
   description:
-    "Nostrum is not simply olive oil. A luxury brand experience — story first, product second.",
+    "Nostrum is not simply olive oil. A luxury brand experience, story first, product second.",
 };
 
 export const viewport: Viewport = {
@@ -103,7 +103,7 @@ export default function RootLayout({
               UnderlayNav + RouteCurtain render inside the [locale] layout so
               they can read the locale context. */}
           {children}
-          {/* "The Nostrum Journal" invitation — 5s after the loader, once
+          {/* "The Nostrum Journal" invitation — ~1min after the loader, once
               per session. Renders nothing until it opens. */}
           <NewsletterModal />
           {/* Cookie consent — waits for loader + Journal to finish, then

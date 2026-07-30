@@ -175,7 +175,7 @@ export default function SiteFooter() {
           <address className="nf__address">
             Olive Groves, Catalonia
             <br />
-            Spain — EU
+            Spain, EU
           </address>
           <ul className="nf__contact">
             <li>

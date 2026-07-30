@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Products — Nostrum",
+  title: "Products · Nostrum",
   description:
     "The Nostrum collection. Extra virgin olive oil, bottled with intent.",
 };

@@ -326,7 +326,7 @@ export default function ProductsSection() {
                 <LocaleLink
                   href={`/product/${product.id}`}
                   className="shop-card__link"
-                  aria-label={`${t(product.nameKey)} — ${t(product.detailKey)}`}
+                  aria-label={`${t(product.nameKey)}, ${t(product.detailKey)}`}
                 />
                 <button
                   type="button"

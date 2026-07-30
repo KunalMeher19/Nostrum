@@ -1540,7 +1540,7 @@ export default function CrispHeader() {
             <img
               className="crisp-header__slider-slide-inner is--frame"
               src="/frames/ezgif-frame-001.jpg"
-              alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black — the opening frame of the scroll-through reveal."
+              alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black, the opening frame of the scroll-through reveal."
               data-slideshow="parallax"
               draggable="false"
             />
@@ -1638,7 +1638,7 @@ export default function CrispHeader() {
               <img
                 loading="eager"
                 src="/frames/ezgif-frame-001.jpg"
-                alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black — the opening frame of the scroll-through reveal."
+                alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black, the opening frame of the scroll-through reveal."
                 className="crisp-loader__cover-img is--frame"
               />
             </div>

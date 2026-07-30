@@ -8,13 +8,13 @@ import { getLenis } from "../SmoothScroll/lenisStore";
  * NewsletterModal — "The Nostrum Journal" subscription invitation.
  *
  * A split-screen editorial modal (copy left, product photography right) that
- * fades in ~5s AFTER the loading screen has finished — never over the loader
+ * fades in ~1min AFTER the loading screen has finished — never over the loader
  * intro. It reads as joining a private olive-oil journal, not a marketing
  * popup: warm paper panel, hairline borders, gold accents, generous space.
  *
  * Behaviour:
- *  - Waits for `.crisp-header.is--loading` to clear (home loader), then 5s.
- *    On pages without the loader the 5s countdown starts immediately.
+ *  - Waits for `.crisp-header.is--loading` to clear (home loader), then 1min.
+ *    On pages without the loader the countdown starts immediately.
  *  - Shows once per browser session (sessionStorage), and never again once
  *    subscribed (localStorage).
  *  - ESC, backdrop click, and the ✕ all close. Scroll is paused while open
@@ -25,7 +25,8 @@ import { getLenis } from "../SmoothScroll/lenisStore";
 
 const SESSION_KEY = "nostrum-journal-shown";
 const SUBSCRIBED_KEY = "nostrum-journal-subscribed";
-const DELAY_AFTER_LOAD_MS = 5000;
+// Feedback 2.0: "I know I said 5 seconds but it might be better in a minute."
+const DELAY_AFTER_LOAD_MS = 60_000;
 const LOADER_POLL_MS = 250;
 
 export default function NewsletterModal() {
@@ -184,7 +185,7 @@ export default function NewsletterModal() {
                 from the grove
               </h2>
               <p className="nl-modal__sub">
-                New harvest updates, exclusive releases and recipes —
+                New harvest updates, exclusive releases and recipes,
                 and&nbsp;5% off your first order.
               </p>
 
@@ -234,7 +235,7 @@ export default function NewsletterModal() {
               </h2>
               <p className="nl-modal__sub">
                 Your 5% welcome offer is on its way. Until the next
-                harvest&nbsp;—
+                harvest.
               </p>
               <button
                 type="button"
@@ -251,7 +252,7 @@ export default function NewsletterModal() {
         <div className="nl-modal__media" aria-hidden="true">
           <img
             className="nl-modal__img"
-            src="/products/1.webp"
+            src="/products/12.webp"
             alt=""
             draggable="false"
           />
