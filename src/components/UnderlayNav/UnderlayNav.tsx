@@ -551,10 +551,10 @@ export default function UnderlayNav() {
             </button>
 
             {/* ---- Right-side actions: cart + account ------------- */}
-            {/* Placeholder buttons for now (no routes yet). Icons are the
-                visible paths extracted from the Lottie-exported SVGs in
-                /assests, re-inked with currentColor so they ride the same
-                --nav-col auto-contrast as the wordmark + Menu toggle. */}
+            {/* Icons are the visible paths extracted from the
+                Lottie-exported SVGs in /assests, re-inked with
+                currentColor so they ride the same --nav-col
+                auto-contrast as the wordmark + Menu toggle. */}
             <div className="underlay-nav__actions">
               <Link
                 href={localize("/cart")}
@@ -588,8 +588,8 @@ export default function UnderlayNav() {
                   </span>
                 )}
               </Link>
-              <button
-                type="button"
+              <Link
+                href={localize("/account")}
                 className="underlay-nav__action"
                 aria-label="Account"
               >
@@ -614,7 +614,7 @@ export default function UnderlayNav() {
                     transform="translate(120 120)"
                   />
                 </svg>
-              </button>
+              </Link>
             </div>
           </div>
         </div>

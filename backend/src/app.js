@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 const healthRoutes = require('./routes/health.routes');
+const meRoutes = require('./routes/me.routes');
 
 const app = express();
 
@@ -23,6 +24,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/me', meRoutes);
 
 // 404 handler
 app.use((req, res) => {
