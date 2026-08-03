@@ -1,0 +1,679 @@
+/* ------------------------------------------------------------------ */
+/* AccountPortal — signed-in customer portal (dark, editorial).         */
+/* Same material language as the account card: olive gradient panel,   */
+/* warm gold bloom, film grain, hairlines. Orders are quiet ledger     */
+/* rows; the active order's timeline is the one gold moment.           */
+/* ------------------------------------------------------------------ */
+
+.pt {
+  --pt-ink: #14160f;
+  --pt-panel-a: #1e2a16;
+  --pt-panel-b: #2c2117;
+  --pt-fg: #edebe3;
+  --pt-muted: #9a978d;
+  --pt-gold: #e6b422;
+  --pt-lime: #a6ce3a;
+  --pt-hair: color-mix(in srgb, #edebe3 12%, transparent);
+
+  display: grid;
+  place-items: start center;
+  min-height: 100svh;
+  padding: clamp(6rem, 12vh, 8.5rem) clamp(1rem, 4vw, 3rem)
+    clamp(3rem, 7vh, 5rem);
+  background-color: var(--pt-ink);
+  color: var(--pt-fg);
+}
+
+.pt__panel {
+  position: relative;
+  width: min(100%, 62rem);
+  padding: clamp(2rem, 5vw, 4rem);
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      152deg,
+      var(--pt-panel-a) 0%,
+      color-mix(in srgb, var(--pt-panel-a) 50%, var(--pt-ink)) 48%,
+      var(--pt-panel-b) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--pt-gold) 13%, transparent);
+}
+
+.pt__glow {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(
+      ellipse 75% 50% at 12% 108%,
+      rgba(230, 180, 34, 0.22) 0%,
+      rgba(120, 94, 28, 0.11) 40%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 55% 38% at 95% -10%,
+      rgba(166, 206, 58, 0.08) 0%,
+      transparent 60%
+    );
+  pointer-events: none;
+}
+
+.pt__grain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── Head ─────────────────────────────────────────────────────────── */
+
+.pt__eyebrow {
+  margin: 0 0 1.2em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--pt-gold);
+}
+
+.pt__headline {
+  margin: 0 0 0.35em;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(2.6rem, 6vw, 4.2rem);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  color: #faf8f2;
+}
+
+.pt__lede {
+  margin: 0 0 2.2rem;
+  font-size: 0.92rem;
+  color: var(--pt-muted);
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────── */
+
+.pt__tabs {
+  display: flex;
+  gap: 1.8rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--pt-hair);
+}
+
+.pt__tab {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0 0 0.75rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pt-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pt__tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--pt-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pt__tab.is--on {
+  color: var(--pt-fg);
+}
+.pt__tab.is--on::after {
+  transform: scaleX(1);
+}
+
+/* ── Order lists ──────────────────────────────────────────────────── */
+
+.pt__section-title {
+  margin: 2.2rem 0 0.9rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--pt-muted);
+}
+
+.pt__section-title:first-child {
+  margin-top: 0;
+}
+
+.pt__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pt__order {
+  border-bottom: 1px solid var(--pt-hair);
+}
+
+.pt__order-row {
+  appearance: none;
+  background: none;
+  border: none;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 7.5rem 6.5rem 1fr auto 7.5rem 1.5rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.05rem 0.2rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: var(--pt-fg);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.5s ease;
+}
+
+.pt__order-row:hover {
+  background: color-mix(in srgb, var(--pt-fg) 3%, transparent);
+}
+
+.pt__order-number {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  color: #faf8f2;
+}
+
+.pt__order-date,
+.pt__order-items {
+  font-size: 0.84rem;
+  color: var(--pt-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pt__order-total {
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.pt__order-chev {
+  color: var(--pt-muted);
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* Status chip — quiet, tonal. Lime only when it's moving. */
+.pt__status {
+  justify-self: start;
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--pt-hair);
+  color: var(--pt-muted);
+  white-space: nowrap;
+}
+
+.pt__status--confirmed,
+.pt__status--preparing,
+.pt__status--placed {
+  border-color: color-mix(in srgb, var(--pt-gold) 40%, transparent);
+  color: var(--pt-gold);
+}
+
+.pt__status--shipped {
+  border-color: color-mix(in srgb, var(--pt-lime) 45%, transparent);
+  color: var(--pt-lime);
+}
+
+.pt__status--delivered {
+  color: var(--pt-muted);
+}
+
+.pt__status--cancelled {
+  border-color: color-mix(in srgb, #c8503c 40%, transparent);
+  color: #c8836f;
+}
+
+/* ── Expanded order detail ────────────────────────────────────────── */
+
+.pt__order-detail {
+  padding: 0.6rem 0.2rem 1.6rem;
+  animation: pt-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pt-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The shipping timeline — the one gold moment. */
+.pt__timeline {
+  list-style: none;
+  display: flex;
+  margin: 0.4rem 0 1.6rem;
+  padding: 0;
+}
+
+.pt__step {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.9rem;
+}
+
+/* connecting hairline */
+.pt__step::before {
+  content: "";
+  position: absolute;
+  top: 3.5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--pt-hair);
+}
+
+.pt__step.is--done::before {
+  background: linear-gradient(90deg, var(--pt-gold), color-mix(in srgb, var(--pt-gold) 55%, transparent));
+}
+
+.pt__step-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pt-ink);
+  border: 1px solid var(--pt-hair);
+  transition: background-color 0.6s ease;
+}
+
+.pt__step.is--done .pt__step-dot {
+  background: var(--pt-gold);
+  border-color: var(--pt-gold);
+}
+
+.pt__step.is--now .pt__step-dot {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--pt-gold) 22%, transparent);
+}
+
+.pt__step-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pt-muted);
+}
+
+.pt__step.is--done .pt__step-label {
+  color: var(--pt-fg);
+}
+
+.pt__step-date {
+  font-size: 0.68rem;
+  color: var(--pt-muted);
+}
+
+.pt__detail-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+}
+
+.pt__detail-title {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--pt-muted);
+}
+
+.pt__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.pt__items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+}
+
+.pt__items-ship {
+  color: var(--pt-muted);
+  font-size: 0.82rem;
+}
+
+.pt__items-total {
+  border-top: 1px solid var(--pt-hair);
+  margin-top: 0.4rem;
+  padding-top: 0.7rem !important;
+  color: #faf8f2;
+}
+
+.pt__ship-line {
+  margin: 0 0 1rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--pt-fg);
+}
+
+.pt__mini-label {
+  display: block;
+  font-size: 0.64rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--pt-muted);
+  margin-bottom: 0.3rem;
+}
+
+.pt__invoice {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pt-fg);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--pt-gold) 55%, transparent);
+  padding-bottom: 0.3rem;
+  transition: border-color 0.4s ease, color 0.4s ease;
+}
+
+.pt__invoice:hover {
+  color: var(--pt-gold);
+  border-color: var(--pt-gold);
+}
+
+/* ── Empty state / quiet text ─────────────────────────────────────── */
+
+.pt__quiet {
+  margin: 0.6rem 0;
+  font-size: 0.88rem;
+  color: var(--pt-muted);
+}
+
+.pt__empty {
+  padding: 2.5rem 0 1.5rem;
+}
+
+.pt__empty-line {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  color: #faf8f2;
+}
+
+/* ── Buy-more CTA ─────────────────────────────────────────────────── */
+
+.pt__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 2.4rem;
+  padding: 0.9rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--pt-lime) 45%, transparent);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pt-fg);
+  text-decoration: none;
+  transition:
+    border-color 0.5s ease,
+    background-color 0.5s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pt__cta:hover {
+  border-color: var(--pt-lime);
+  background: color-mix(in srgb, var(--pt-lime) 7%, transparent);
+  transform: translateY(-1px);
+}
+
+.pt__cta-arrow {
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pt__cta:hover .pt__cta-arrow {
+  transform: translateX(0.35rem);
+}
+
+/* ── Details form ─────────────────────────────────────────────────── */
+
+.pt__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4rem 2rem;
+  margin-bottom: 1rem;
+}
+
+.pt__field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.pt__field.is--wide {
+  grid-column: 1 / -1;
+}
+
+.pt__field label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--pt-muted);
+}
+
+.pt__field input {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.3rem 0 0.6rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.95rem;
+  color: var(--pt-fg);
+  border-bottom: 1px solid var(--pt-hair);
+  border-radius: 0;
+  outline: none;
+}
+
+.pt__field.is--static p {
+  margin: 0;
+  padding: 0.3rem 0 0.6rem;
+  font-size: 0.95rem;
+  color: var(--pt-muted);
+  border-bottom: 1px solid transparent;
+}
+
+.pt__field-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--pt-lime);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.pt__field:focus-within .pt__field-line {
+  transform: scaleX(1);
+}
+
+.pt__save-row {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  margin-top: 1.6rem;
+}
+
+.pt__save {
+  appearance: none;
+  background: none;
+  border: none;
+  position: relative;
+  padding: 0.4rem 0 0.8rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--pt-fg);
+  cursor: pointer;
+}
+
+.pt__save:disabled {
+  color: var(--pt-muted);
+  cursor: wait;
+}
+
+.pt__save-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--pt-gold), var(--pt-lime));
+  transform-origin: left center;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pt__save:hover:not(:disabled) .pt__save-line {
+  transform: scaleX(0.55);
+}
+
+.pt__saved {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--pt-lime);
+}
+
+.pt__saved.is--error {
+  color: #c8836f;
+}
+
+/* ── Footer links ─────────────────────────────────────────────────── */
+
+.pt__foot {
+  display: flex;
+  gap: 1.8rem;
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--pt-hair);
+}
+
+.pt__foot-link {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  color: var(--pt-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+  transition:
+    color 0.4s ease,
+    text-decoration-color 0.4s ease;
+}
+
+.pt__foot-link:hover {
+  color: var(--pt-fg);
+  text-decoration-color: var(--pt-gold);
+}
+
+/* ── Reduced motion / small screens ───────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .pt * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .pt__order-row {
+    grid-template-columns: 1fr auto 1.2rem;
+    grid-template-areas:
+      "number total chev"
+      "date status status"
+      "items items items";
+    row-gap: 0.35rem;
+  }
+  .pt__order-number { grid-area: number; }
+  .pt__order-total { grid-area: total; }
+  .pt__order-chev { grid-area: chev; }
+  .pt__order-date { grid-area: date; }
+  .pt__status { grid-area: status; justify-self: end; }
+  .pt__order-items { grid-area: items; }
+
+  .pt__detail-grid {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+
+  .pt__timeline {
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .pt__step {
+    padding-top: 0;
+    padding-left: 1.2rem;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+  .pt__step::before {
+    top: 0;
+    bottom: -0.9rem;
+    left: 3.5px;
+    right: auto;
+    width: 1px;
+    height: auto;
+  }
+  .pt__step:last-child::before {
+    bottom: 0;
+  }
+  .pt__step-dot {
+    top: 0.15rem;
+  }
+
+  .pt__fields {
+    grid-template-columns: 1fr;
+  }
+}

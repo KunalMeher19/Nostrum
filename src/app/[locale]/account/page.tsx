@@ -4,7 +4,7 @@ import { generateLocalizedMetadata } from "@/lib/metadata";
 import { getMessages, isValidLocale, type Locale } from "@/lib/i18n";
 import { auth } from "@/auth";
 import AccountSection from "@/components/AccountSection/AccountSection";
-import SignedInCard from "@/components/AccountSection/SignedInCard";
+import AccountPortal from "@/components/AccountPortal/AccountPortal";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -21,7 +21,7 @@ export default async function AccountPage() {
   return (
     <main data-main className="account-page">
       {session?.user ? (
-        <SignedInCard
+        <AccountPortal
           name={session.user.name ?? null}
           email={session.user.email ?? null}
           role={session.user.role}
