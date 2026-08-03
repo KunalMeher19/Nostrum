@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "../LocaleContext/LocaleContext";
+import JournalAdmin from "./JournalAdmin";
 import {
   api,
   API_URL,
@@ -36,7 +37,7 @@ const STATUSES: OrderStatus[] = [
   "cancelled",
 ];
 
-type View = "orders" | "customers" | "shop";
+type View = "orders" | "customers" | "shop" | "journal";
 
 export default function AdminPortal({ name }: { name: string | null }) {
   const { t, locale } = useLocale();
@@ -60,7 +61,7 @@ export default function AdminPortal({ name }: { name: string | null }) {
         </header>
 
         <nav className="ad__tabs" role="tablist">
-          {(["orders", "customers", "shop"] as View[]).map((v) => (
+          {(["orders", "customers", "shop", "journal"] as View[]).map((v) => (
             <button
               key={v}
               type="button"
@@ -77,6 +78,7 @@ export default function AdminPortal({ name }: { name: string | null }) {
         {view === "orders" && <OrdersView />}
         {view === "customers" && <CustomersView />}
         {view === "shop" && <ShopView />}
+        {view === "journal" && <JournalAdmin />}
 
         <footer className="ad__foot">
           <Link className="ad__foot-link" href={`/${locale}/account`}>

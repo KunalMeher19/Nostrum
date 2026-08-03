@@ -1,6 +1,7 @@
 // /api/me · current user (session check + profile for the portals).
 const express = require('express');
 const { requireAuth } = require('../middlewares/auth.middleware');
+const { writeLimiter } = require('../middlewares/rate-limit.middleware');
 const User = require('../models/user.model');
 
 const router = express.Router();
@@ -25,7 +26,7 @@ router.get('/', requireAuth, async (req, res, next) => {
 });
 
 // Update account / shipping details (customer portal).
-router.patch('/', requireAuth, async (req, res, next) => {
+router.patch('/', writeLimiter, requireAuth, async (req, res, next) => {
   try {
     const updates = {};
     if (typeof req.body.name === 'string' && req.body.name.trim()) {

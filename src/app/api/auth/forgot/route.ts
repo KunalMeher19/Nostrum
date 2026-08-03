@@ -4,8 +4,12 @@ import { NextResponse } from "next/server";
 import { findUserByEmail, normalizeEmail } from "@/lib/auth/users";
 import { issueToken } from "@/lib/auth/tokens";
 import { sendMail } from "@/lib/auth/mailer";
+import { guard } from "@/lib/auth/rate-limit";
 
 export async function POST(req: Request) {
+  const limited = guard(req, "forgot");
+  if (limited) return limited;
+
   let body: { email?: string };
   try {
     body = await req.json();

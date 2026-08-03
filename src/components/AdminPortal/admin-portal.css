@@ -779,3 +779,150 @@
     gap: 1.2rem;
   }
 }
+
+/* ── Journal tab (posts + museum authoring) ───────────────────────── */
+
+.ad__journal .ad__list {
+  margin-top: 0.4rem;
+}
+
+.ad__editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.ad__field textarea,
+.ad__field select {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.3rem 0 0.55rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.92rem;
+  color: var(--ad-fg);
+  border-bottom: 1px solid var(--ad-hair);
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.4s ease;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.ad__field textarea:focus,
+.ad__field select:focus {
+  border-color: var(--ad-lime);
+}
+
+.ad__field select option {
+  background: #1a1c13;
+  color: var(--ad-fg);
+}
+
+.ad__hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.72rem;
+  color: var(--ad-muted);
+}
+
+.ad__chip.is--danger {
+  color: #d98a7e;
+  border-color: color-mix(in srgb, #d98a7e 40%, transparent);
+}
+
+.ad__save.is--primary span:first-child {
+  color: var(--ad-lime);
+}
+
+/* Exhibit row thumbnail */
+.ad__exhibit-thumb {
+  position: relative;
+  width: 3.2rem;
+  height: 2.2rem;
+  border-radius: 2px;
+  overflow: hidden;
+  flex: none;
+}
+
+.ad__exhibit-thumb img {
+  object-fit: cover;
+}
+
+/* Image picker */
+.ad__imagepick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.ad__imagepick-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--ad-hair);
+  border-radius: 2px;
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ad-fg);
+  cursor: pointer;
+  transition: border-color 0.4s ease;
+}
+
+.ad__imagepick-toggle:hover {
+  border-color: var(--ad-lime);
+}
+
+.ad__imagepick-thumb {
+  position: relative;
+  width: 3rem;
+  height: 2rem;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ad__imagepick-thumb img {
+  object-fit: cover;
+}
+
+.ad__imagepick-none {
+  color: var(--ad-muted);
+}
+
+.ad__imagepick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr));
+  gap: 0.5rem;
+}
+
+.ad__imagepick-cell {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--ad-hair);
+  border-radius: 2px;
+  overflow: hidden;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.3s ease, opacity 0.3s ease;
+  opacity: 0.75;
+}
+
+.ad__imagepick-cell:hover,
+.ad__imagepick-cell.is--on {
+  opacity: 1;
+  border-color: var(--ad-lime);
+}
+
+.ad__imagepick-cell img {
+  object-fit: cover;
+}
+
+.ad__imagepick-cell.is--none {
+  color: var(--ad-muted);
+  font-size: 1.1rem;
+}

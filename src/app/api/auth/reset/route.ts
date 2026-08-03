@@ -2,8 +2,12 @@
 import { NextResponse } from "next/server";
 import { consumeToken } from "@/lib/auth/tokens";
 import { setUserPassword } from "@/lib/auth/users";
+import { guard } from "@/lib/auth/rate-limit";
 
 export async function POST(req: Request) {
+  const limited = guard(req, "reset");
+  if (limited) return limited;
+
   let body: { token?: string; password?: string };
   try {
     body = await req.json();

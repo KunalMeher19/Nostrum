@@ -9,7 +9,8 @@
     "test": "jest --runInBand",
     "seed:admin": "node scripts/seed-admin.js",
     "seed:products": "node scripts/seed-products.js",
-    "seed:orders": "node scripts/seed-orders.js"
+    "seed:orders": "node scripts/seed-orders.js",
+    "seed:journal": "node scripts/seed-journal.js"
   },
   "keywords": [
     "nostrum",
@@ -23,6 +24,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.6.1",
     "helmet": "^8.0.0",
     "jose": "^6.2.5",
     "mongoose": "^9.9.0",

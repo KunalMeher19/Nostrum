@@ -1,13 +1,27 @@
 // /api/admin · role-gated admin API (orders, customers, products).
 const express = require('express');
 const { requireAuth, requireRole } = require('../middlewares/auth.middleware');
+const { writeLimiter, heavyLimiter } = require('../middlewares/rate-limit.middleware');
+const { requireObjectId } = require('../middlewares/sanitize.middleware');
 const orders = require('../services/orders.service');
 const { streamInvoice } = require('../services/invoice.service');
 const { Order } = require('../models/order.model');
 const Product = require('../models/product.model');
 const User = require('../models/user.model');
+const Post = require('../models/post.model');
+const { Exhibit, MUSEUM_ROOMS } = require('../models/exhibit.model');
 
 const router = express.Router();
+
+// Tier limiters mount BEFORE the auth gate so unauthenticated probing
+// burns the prober's budget instead of free 401s forever.
+router.use('/customers.csv', heavyLimiter);
+router.use('/orders/:id/invoice', heavyLimiter);
+router.use('/orders/:id/status', writeLimiter);
+router.use('/products/:id', writeLimiter);
+router.use('/posts', writeLimiter);
+router.use('/exhibits', writeLimiter);
+
 router.use(requireAuth, requireRole('admin'));
 
 /* ── Orders ───────────────────────────────────────────────────────── */
@@ -24,7 +38,7 @@ router.get('/orders', async (req, res, next) => {
   }
 });
 
-router.get('/orders/:id', async (req, res, next) => {
+router.get('/orders/:id', requireObjectId('id'), async (req, res, next) => {
   try {
     const order = await orders.getOrder(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -36,7 +50,7 @@ router.get('/orders/:id', async (req, res, next) => {
 
 // Update shipping status (+ optional carrier / tracking). Reflected in
 // the customer portal immediately (same collection).
-router.patch('/orders/:id/status', async (req, res, next) => {
+router.patch('/orders/:id/status', requireObjectId('id'), async (req, res, next) => {
   try {
     const { status, carrier, trackingCode } = req.body || {};
     const order = await orders.updateOrderStatus(req.params.id, status, {
@@ -50,7 +64,7 @@ router.patch('/orders/:id/status', async (req, res, next) => {
   }
 });
 
-router.get('/orders/:id/invoice', async (req, res, next) => {
+router.get('/orders/:id/invoice', requireObjectId('id'), async (req, res, next) => {
   try {
     const doc = await orders.getOrderDoc(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Order not found' });
@@ -140,7 +154,7 @@ router.get('/products', async (req, res, next) => {
 
 // Edit name/subtitle/prices/stock/sizes/packs/active. Slug is identity;
 // not editable here.
-router.patch('/products/:id', async (req, res, next) => {
+router.patch('/products/:id', requireObjectId('id'), async (req, res, next) => {
   try {
     const b = req.body || {};
     const updates = {};
@@ -175,6 +189,169 @@ router.patch('/products/:id', async (req, res, next) => {
     ).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json({ product: { ...product, id: String(product._id), _id: undefined } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Journal: posts (blog authoring) ──────────────────────────────── */
+
+function slugify(title) {
+  return String(title)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // strip accents (ES/CA titles)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+async function uniqueSlug(title) {
+  const base = slugify(title) || 'post';
+  let slug = base;
+  for (let n = 2; await Post.exists({ slug }); n++) slug = `${base}-${n}`;
+  return slug;
+}
+
+function postFields(body) {
+  const b = body || {};
+  const updates = {};
+  if (typeof b.title === 'string' && b.title.trim())
+    updates.title = b.title.trim().slice(0, 160);
+  if (typeof b.excerpt === 'string') updates.excerpt = b.excerpt.trim().slice(0, 300);
+  if (typeof b.body === 'string') updates.body = b.body.slice(0, 20000);
+  if (typeof b.coverImage === 'string')
+    updates.coverImage = b.coverImage.slice(0, 300) || null;
+  return updates;
+}
+
+router.get('/posts', async (req, res, next) => {
+  try {
+    const posts = await Post.find({}).sort({ createdAt: -1 }).lean();
+    res.json({
+      posts: posts.map((p) => ({ ...p, id: String(p._id), _id: undefined })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/posts', async (req, res, next) => {
+  try {
+    const fields = postFields(req.body);
+    if (!fields.title) return res.status(400).json({ error: 'title_required' });
+    const publish = req.body?.status === 'published';
+    const post = await Post.create({
+      ...fields,
+      slug: await uniqueSlug(fields.title),
+      status: publish ? 'published' : 'draft',
+      publishedAt: publish ? new Date() : null,
+    });
+    res.status(201).json({ post: { ...post.toObject(), id: String(post._id), _id: undefined } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/posts/:id', requireObjectId('id'), async (req, res, next) => {
+  try {
+    const updates = { ...postFields(req.body), updatedAt: new Date() };
+    if (req.body?.status === 'published' || req.body?.status === 'draft') {
+      updates.status = req.body.status;
+      if (req.body.status === 'published') {
+        const existing = await Post.findById(req.params.id).lean();
+        if (!existing) return res.status(404).json({ error: 'Post not found' });
+        if (!existing.publishedAt) updates.publishedAt = new Date();
+      }
+    }
+    const post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true }
+    ).lean();
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    res.json({ post: { ...post, id: String(post._id), _id: undefined } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/posts/:id', requireObjectId('id'), async (req, res, next) => {
+  try {
+    const gone = await Post.findByIdAndDelete(req.params.id).lean();
+    if (!gone) return res.status(404).json({ error: 'Post not found' });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Journal: museum exhibits ─────────────────────────────────────── */
+
+function exhibitFields(body) {
+  const b = body || {};
+  const updates = {};
+  if (typeof b.title === 'string' && b.title.trim())
+    updates.title = b.title.trim().slice(0, 120);
+  if (typeof b.caption === 'string') updates.caption = b.caption.trim().slice(0, 500);
+  if (typeof b.image === 'string' && b.image.trim())
+    updates.image = b.image.trim().slice(0, 300);
+  if (MUSEUM_ROOMS.includes(b.room)) updates.room = b.room;
+  if (Number.isFinite(Number(b.order))) updates.order = Math.floor(Number(b.order));
+  if (typeof b.published === 'boolean') updates.published = b.published;
+  return updates;
+}
+
+router.get('/exhibits', async (req, res, next) => {
+  try {
+    const exhibits = await Exhibit.find({}).lean();
+    exhibits.sort(
+      (a, b) =>
+        MUSEUM_ROOMS.indexOf(a.room) - MUSEUM_ROOMS.indexOf(b.room) ||
+        a.order - b.order
+    );
+    res.json({
+      exhibits: exhibits.map((e) => ({ ...e, id: String(e._id), _id: undefined })),
+      rooms: MUSEUM_ROOMS,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/exhibits', async (req, res, next) => {
+  try {
+    const fields = exhibitFields(req.body);
+    if (!fields.title || !fields.image)
+      return res.status(400).json({ error: 'title_and_image_required' });
+    const exhibit = await Exhibit.create(fields);
+    res
+      .status(201)
+      .json({ exhibit: { ...exhibit.toObject(), id: String(exhibit._id), _id: undefined } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/exhibits/:id', requireObjectId('id'), async (req, res, next) => {
+  try {
+    const exhibit = await Exhibit.findByIdAndUpdate(
+      req.params.id,
+      { $set: exhibitFields(req.body) },
+      { new: true }
+    ).lean();
+    if (!exhibit) return res.status(404).json({ error: 'Exhibit not found' });
+    res.json({ exhibit: { ...exhibit, id: String(exhibit._id), _id: undefined } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/exhibits/:id', requireObjectId('id'), async (req, res, next) => {
+  try {
+    const gone = await Exhibit.findByIdAndDelete(req.params.id).lean();
+    if (!gone) return res.status(404).json({ error: 'Exhibit not found' });
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

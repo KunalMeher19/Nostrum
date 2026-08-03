@@ -5,6 +5,7 @@
 // reimplement this module against that API (map their order object to
 // serializeOrder's shape) and the routes + UI stay untouched.
 const { Order, ORDER_STATUSES } = require('../models/order.model');
+const { escapeRegex } = require('../middlewares/sanitize.middleware');
 
 // Statuses the customer portal shows as "active" (still moving).
 const ACTIVE_STATUSES = ['placed', 'confirmed', 'preparing', 'shipped'];
@@ -54,10 +55,13 @@ async function getOrderForUser(userId, orderId) {
 async function listAllOrders({ status, q } = {}) {
   const filter = {};
   if (status && ORDER_STATUSES.includes(status)) filter.status = status;
-  if (q) {
+  if (q && typeof q === 'string') {
+    // User-typed search box → escape before building a regex, otherwise
+    // "(" 500s and crafted patterns can ReDoS the process.
+    const safe = escapeRegex(q.slice(0, 120));
     filter.$or = [
-      { number: { $regex: q, $options: 'i' } },
-      { email: { $regex: q, $options: 'i' } },
+      { number: { $regex: safe, $options: 'i' } },
+      { email: { $regex: safe, $options: 'i' } },
     ];
   }
   const orders = await Order.find(filter).sort({ placedAt: -1 }).limit(200).lean();

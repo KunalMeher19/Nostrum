@@ -7,8 +7,12 @@ import {
 } from "@/lib/auth/users";
 import { issueToken } from "@/lib/auth/tokens";
 import { sendMail } from "@/lib/auth/mailer";
+import { guard } from "@/lib/auth/rate-limit";
 
 export async function POST(req: Request) {
+  const limited = guard(req, "register");
+  if (limited) return limited;
+
   let body: {
     name?: string;
     email?: string;
