@@ -6,6 +6,7 @@
 // serializeOrder's shape) and the routes + UI stay untouched.
 const { Order, ORDER_STATUSES } = require('../models/order.model');
 const { escapeRegex } = require('../middlewares/sanitize.middleware');
+const mailer = require('./mailer.service');
 
 // Statuses the customer portal shows as "active" (still moving).
 const ACTIVE_STATUSES = ['placed', 'confirmed', 'preparing', 'shipped'];
@@ -94,6 +95,19 @@ async function getOrderDoc(orderId) {
   return Order.findById(orderId).lean();
 }
 
+// The creation seam. Checkout does not exist yet (Shopify vs Stripe is
+// still the client's call), but when it lands it MUST create orders
+// through here so the confirmation email fires with it. If the client
+// picks Shopify, reimplement this against their API and keep the
+// sendOrderConfirmation call (or move to Shopify's notifications).
+async function createOrder(payload) {
+  const order = await Order.create(payload);
+  mailer.sendOrderConfirmation(order).catch((err) =>
+    console.error('[orders] confirmation mail failed:', err.message)
+  );
+  return serializeOrder(order.toObject(), { detail: true });
+}
+
 module.exports = {
   ACTIVE_STATUSES,
   ORDER_STATUSES,
@@ -104,4 +118,5 @@ module.exports = {
   getOrder,
   updateOrderStatus,
   getOrderDoc,
+  createOrder,
 };

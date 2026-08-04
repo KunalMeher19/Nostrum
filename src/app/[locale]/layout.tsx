@@ -4,6 +4,7 @@ import { LocaleProvider } from "@/components/LocaleContext/LocaleContext";
 import HtmlLang from "@/components/HtmlLang/HtmlLang";
 import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
 import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
+import NewsletterModal from "@/components/NewsletterModal/NewsletterModal";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -25,6 +26,10 @@ export default async function LocaleLayout({
       <UnderlayNav />
       <RouteCurtain />
       {children}
+      {/* "The Nostrum Journal" invitation — ~1min after the loader, once
+          per session. Renders nothing until it opens. Lives here (not the
+          root layout) so it can read the locale context. */}
+      <NewsletterModal />
     </LocaleProvider>
   );
 }

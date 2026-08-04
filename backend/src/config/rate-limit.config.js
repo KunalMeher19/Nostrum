@@ -32,4 +32,10 @@ module.exports = {
     windowMs: num('RATE_ANON_WINDOW_MS', 60_000),
     max: num('RATE_ANON_MAX', 60),
   },
+  // Public, unauthenticated writes (contact form, newsletter signup):
+  // a human sends one or two; a spam script sends hundreds.
+  publicWrite: {
+    windowMs: num('RATE_PUBLIC_WRITE_WINDOW_MS', 60_000),
+    max: num('RATE_PUBLIC_WRITE_MAX', 5),
+  },
 };

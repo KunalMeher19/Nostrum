@@ -150,3 +150,38 @@ export const JOURNAL_IMAGES: string[] = [
 export function euro(value: number) {
   return "€" + value.toFixed(2).replace(".", ",");
 }
+
+/* ── Public writes: contact form + newsletter (GDPR) ─────────────── */
+
+export type ContactTopic = "general" | "professional" | "press";
+
+export function submitContact(payload: {
+  name: string;
+  email: string;
+  topic: ContactTopic;
+  message: string;
+  locale?: string;
+}) {
+  return api<{ ok: true }>("/api/contact", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function subscribeNewsletter(payload: {
+  email: string;
+  consent: true;
+  locale?: string;
+}) {
+  return api<{ ok: true }>("/api/newsletter/subscribe", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function unsubscribeNewsletter(token: string) {
+  return api<{ ok: true }>("/api/newsletter/unsubscribe", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}

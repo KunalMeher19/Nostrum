@@ -73,7 +73,8 @@
     "sent_title": "Ricevuto.",
     "sent_line": "Grazie per averci scritto. Leggiamo tutto personalmente, aspettati una risposta entro un giorno o due.",
     "gdpr": "Inviando accetti la nostra informativa sulla privacy.",
-    "whatsapp_label": "Parla con Nostrum su WhatsApp"
+    "whatsapp_label": "Parla con Nostrum su WhatsApp",
+    "send_error": "Qualcosa è andato storto. Riprova a inviare."
   },
   "story": {
     "title": "La Nostra Storia",
@@ -206,7 +207,9 @@
     "account_title": "Account · Nostrum",
     "account_description": "Il tuo account Nostrum. Ordini, dati e altro.",
     "admin_title": "Admin · Nostrum",
-    "admin_description": "Il retrobottega della casa. Ordini, clienti e lo scaffale."
+    "admin_description": "Il retrobottega della casa. Ordini, clienti e lo scaffale.",
+    "unsubscribe_title": "Annulla iscrizione · Nostrum",
+    "unsubscribe_description": "Lascia il Diario Nostrum."
   },
   "account": {
     "eyebrow": "Account",
@@ -381,5 +384,34 @@
     "read_story": "Leggere",
     "back": "Tornare al giornale",
     "to_shop": "Portare l'olio a casa"
+  },
+  "newsletter": {
+    "eyebrow": "Il Diario Nostrum",
+    "title_1": "Ricevi storie",
+    "title_2": "dall'uliveto",
+    "sub": "Novità dal raccolto, uscite esclusive e ricette, e il 5% sul tuo primo ordine.",
+    "placeholder": "La tua email",
+    "consent_pre": "Accetto la",
+    "consent_link": "Privacy Policy",
+    "join": "Unisciti al Diario",
+    "sending": "Un momento…",
+    "error": "Qualcosa è andato storto. Riprova.",
+    "done_title_1": "Benvenuto",
+    "done_title_2": "nel Diario",
+    "done_sub": "Il tuo 5% di benvenuto è in arrivo. Al prossimo raccolto.",
+    "continue": "Continua",
+    "close": "Chiudi"
+  },
+  "unsubscribe": {
+    "eyebrow": "Il Diario Nostrum",
+    "title": "Lasci il Diario?",
+    "lede": "Conferma qui sotto e le storie dall'uliveto smetteranno di arrivare a questo indirizzo.",
+    "confirm": "Annulla iscrizione",
+    "working": "Un momento…",
+    "done_title": "Hai lasciato il Diario.",
+    "done_line": "Niente più lettere da noi. L'uliveto resta qui, quando vorrai tornare.",
+    "invalid_title": "Questo link è incompleto.",
+    "invalid_line": "Usa il link di annullamento da una delle nostre lettere.",
+    "error": "Qualcosa è andato storto. Riprova."
   }
 }

@@ -73,7 +73,8 @@
     "sent_title": "Received.",
     "sent_line": "Thank you for writing. We read everything ourselves, expect a reply within a day or two.",
     "gdpr": "By sending you agree to our privacy policy.",
-    "whatsapp_label": "Chat with Nostrum on WhatsApp"
+    "whatsapp_label": "Chat with Nostrum on WhatsApp",
+    "send_error": "Something slipped. Please try sending again."
   },
   "story": {
     "title": "Our Story",
@@ -206,7 +207,9 @@
     "account_title": "Account · Nostrum",
     "account_description": "Your Nostrum account. Orders, details and more.",
     "admin_title": "Admin · Nostrum",
-    "admin_description": "The back room of the house. Orders, customers and the shelf."
+    "admin_description": "The back room of the house. Orders, customers and the shelf.",
+    "unsubscribe_title": "Unsubscribe · Nostrum",
+    "unsubscribe_description": "Leave the Nostrum Journal."
   },
   "account": {
     "eyebrow": "Account",
@@ -381,5 +384,34 @@
     "read_story": "Read",
     "back": "Back to the journal",
     "to_shop": "Bring the oil home"
+  },
+  "newsletter": {
+    "eyebrow": "The Nostrum Journal",
+    "title_1": "Receive stories",
+    "title_2": "from the grove",
+    "sub": "New harvest updates, exclusive releases and recipes, and 5% off your first order.",
+    "placeholder": "Email address",
+    "consent_pre": "I agree to the",
+    "consent_link": "Privacy Policy",
+    "join": "Join the Journal",
+    "sending": "One moment…",
+    "error": "Something slipped. Please try again.",
+    "done_title_1": "Welcome to",
+    "done_title_2": "the Journal",
+    "done_sub": "Your 5% welcome offer is on its way. Until the next harvest.",
+    "continue": "Continue",
+    "close": "Close"
+  },
+  "unsubscribe": {
+    "eyebrow": "The Nostrum Journal",
+    "title": "Leaving the Journal?",
+    "lede": "Confirm below and stories from the grove will stop reaching this address.",
+    "confirm": "Unsubscribe",
+    "working": "One moment…",
+    "done_title": "You have left the Journal.",
+    "done_line": "No more letters from us. The grove remains, whenever you wish to return.",
+    "invalid_title": "This link is incomplete.",
+    "invalid_line": "Please use the unsubscribe link from one of our letters.",
+    "error": "Something slipped. Please try again."
   }
 }

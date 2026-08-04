@@ -73,7 +73,8 @@
     "sent_title": "Rebut.",
     "sent_line": "Gràcies per escriure. Ho llegim tot nosaltres mateixos, espera una resposta en un dia o dos.",
     "gdpr": "En enviar acceptes la nostra política de privacitat.",
-    "whatsapp_label": "Parla amb Nostrum per WhatsApp"
+    "whatsapp_label": "Parla amb Nostrum per WhatsApp",
+    "send_error": "Alguna cosa ha fallat. Prova d'enviar-ho de nou."
   },
   "story": {
     "title": "La Nostra Història",
@@ -206,7 +207,9 @@
     "account_title": "Compte · Nostrum",
     "account_description": "El teu compte Nostrum. Comandes, dades i més.",
     "admin_title": "Admin · Nostrum",
-    "admin_description": "La rebotiga de la casa. Comandes, clients i la prestatgeria."
+    "admin_description": "La rebotiga de la casa. Comandes, clients i la prestatgeria.",
+    "unsubscribe_title": "Donar-se de baixa · Nostrum",
+    "unsubscribe_description": "Deixa el Diari Nostrum."
   },
   "account": {
     "eyebrow": "Compte",
@@ -381,5 +384,34 @@
     "read_story": "Llegir",
     "back": "Tornar al diari",
     "to_shop": "Portar l'oli a casa"
+  },
+  "newsletter": {
+    "eyebrow": "El Diari Nostrum",
+    "title_1": "Rep històries",
+    "title_2": "de l'oliverar",
+    "sub": "Novetats de la collita, llançaments exclusius i receptes, i un 5% en la teva primera comanda.",
+    "placeholder": "El teu email",
+    "consent_pre": "Accepto la",
+    "consent_link": "Política de Privacitat",
+    "join": "Unir-me al Diari",
+    "sending": "Un moment…",
+    "error": "Alguna cosa ha fallat. Torna-ho a provar.",
+    "done_title_1": "Benvingut",
+    "done_title_2": "al Diari",
+    "done_sub": "El teu 5% de benvinguda és de camí. Fins a la propera collita.",
+    "continue": "Continuar",
+    "close": "Tancar"
+  },
+  "unsubscribe": {
+    "eyebrow": "El Diari Nostrum",
+    "title": "Deixes el Diari?",
+    "lede": "Confirma a sota i les històries de l'oliverar deixaran d'arribar a aquesta adreça.",
+    "confirm": "Donar-me de baixa",
+    "working": "Un moment…",
+    "done_title": "Has deixat el Diari.",
+    "done_line": "No més cartes nostres. L'oliverar segueix aquí, quan vulguis tornar.",
+    "invalid_title": "Aquest enllaç és incomplet.",
+    "invalid_line": "Fes servir l'enllaç de baixa d'una de les nostres cartes.",
+    "error": "Alguna cosa ha fallat. Torna-ho a provar."
   }
 }

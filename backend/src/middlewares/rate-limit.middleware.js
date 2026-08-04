@@ -5,16 +5,30 @@
 // TRUST_PROXY=<hops> so req.ip is the real client, not the proxy —
 // otherwise every visitor would share the proxy's bucket.
 //
-// Store: in-memory (per process). Fine for a single instance; when the
-// API scales horizontally, plug a shared store (rate-limit-redis via
-// src/db/redis.js) into makeLimiter() and nothing else changes.
+// Store: in-memory (per process) by default — fine for a single
+// instance. Set REDIS_URL to move the buckets to Redis (rate-limit-redis
+// via src/db/redis.js) so horizontally-scaled instances share budgets.
 const { rateLimit } = require('express-rate-limit');
 const tiers = require('../config/rate-limit.config');
+const { getRedis } = require('../db/redis');
 
 const SESSION_COOKIE = 'authjs.session-token'; // matches auth.middleware
 
 function hasSessionCookie(req) {
   return (req.headers.cookie || '').includes(SESSION_COOKIE);
+}
+
+// One shared-store factory per limiter (each limiter needs its own
+// prefix so tiers don't collide on the same Redis keys).
+let storeSeq = 0;
+function makeStore() {
+  const redis = getRedis();
+  if (!redis) return undefined; // in-memory default
+  const { RedisStore } = require('rate-limit-redis');
+  return new RedisStore({
+    sendCommand: (...args) => redis.call(...args),
+    prefix: `rl:${storeSeq++}:`,
+  });
 }
 
 function makeLimiter(tier, options = {}) {
@@ -23,6 +37,7 @@ function makeLimiter(tier, options = {}) {
     limit: tier.max,
     standardHeaders: 'draft-7', // RateLimit + Retry-After headers
     legacyHeaders: false,
+    store: makeStore(),
     // JSON body consistent with the rest of the API. Genuine clients
     // (the portals) surface this as a soft "slow down" state.
     handler: (req, res) => {
@@ -51,4 +66,14 @@ const writeLimiter = makeLimiter(tiers.write);
 // Expensive responses: PDF invoices, CSV exports.
 const heavyLimiter = makeLimiter(tiers.heavy);
 
-module.exports = { globalLimiter, anonLimiter, writeLimiter, heavyLimiter, makeLimiter };
+// Public unauthenticated writes: contact form, newsletter signup.
+const publicWriteLimiter = makeLimiter(tiers.publicWrite);
+
+module.exports = {
+  globalLimiter,
+  anonLimiter,
+  writeLimiter,
+  heavyLimiter,
+  publicWriteLimiter,
+  makeLimiter,
+};

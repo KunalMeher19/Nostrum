@@ -14,6 +14,8 @@ const meRoutes = require('./routes/me.routes');
 const ordersRoutes = require('./routes/orders.routes');
 const adminRoutes = require('./routes/admin.routes');
 const journalRoutes = require('./routes/journal.routes');
+const contactRoutes = require('./routes/contact.routes');
+const newsletterRoutes = require('./routes/newsletter.routes');
 
 const app = express();
 
@@ -68,6 +70,8 @@ app.use('/api/me', meRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/journal', journalRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // 404 handler
 app.use((req, res) => {

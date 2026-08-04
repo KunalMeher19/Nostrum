@@ -9,6 +9,9 @@ Nostrum is **a premium, dark, agriculture-rooted olive oil brand — with a clea
 
 **Always read `NOSTRUM-DESIGN.md` (repo root) for the full spec** — it's now grounded in the client's official brief (`assests/Nostrum.pdf`). This skill is the quick enforcement layer.
 
+## Project tracker protocol (see `CLAUDE.md`, repo root)
+`REMAINING-WORK.md` (repo root) is the living single source of truth: what is done, what is left, what is blocked on the client, and every client/project decision. Read it at session start; update it at the end of every conversation WITHOUT being asked. When something already recorded is changed again, UPDATE its existing entry in place (before → after → why) — never append a duplicate paragraph about the same topic. Anything you build or restyle under this skill counts: record it there too.
+
 ## The principles
 1. Luxury first — every interaction intentional, exclusive, expensive.
 2. Minimal but cinematic — space + motion over clutter. **Premium = restraint.**

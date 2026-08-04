@@ -10,12 +10,15 @@ const Product = require('../models/product.model');
 const User = require('../models/user.model');
 const Post = require('../models/post.model');
 const { Exhibit, MUSEUM_ROOMS } = require('../models/exhibit.model');
+const Subscriber = require('../models/subscriber.model');
+const { ContactMessage } = require('../models/contact-message.model');
 
 const router = express.Router();
 
 // Tier limiters mount BEFORE the auth gate so unauthenticated probing
 // burns the prober's budget instead of free 401s forever.
 router.use('/customers.csv', heavyLimiter);
+router.use('/newsletter/subscribers.csv', heavyLimiter);
 router.use('/orders/:id/invoice', heavyLimiter);
 router.use('/orders/:id/status', writeLimiter);
 router.use('/products/:id', writeLimiter);
@@ -134,6 +137,66 @@ router.get('/customers.csv', async (req, res, next) => {
       `attachment; filename="nostrum-customers-${new Date().toISOString().slice(0, 10)}.csv"`
     );
     res.send('﻿' + csv); // BOM so Excel opens UTF-8 accents correctly
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Newsletter subscribers (email-marketing export) ──────────────── */
+
+router.get('/newsletter/subscribers', async (req, res, next) => {
+  try {
+    const subs = await Subscriber.find({}).sort({ createdAt: -1 }).lean();
+    res.json({
+      subscribers: subs.map((s) => ({
+        id: String(s._id),
+        email: s.email,
+        locale: s.locale ?? '',
+        consentAt: s.consentAt ?? null,
+        unsubscribedAt: s.unsubscribedAt ?? null,
+        createdAt: s.createdAt ?? null,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// CSV export mirroring customers.csv: BOM so Excel opens UTF-8 right.
+// Unsubscribed addresses are included with their date so the marketing
+// tool can suppress them (GDPR: never mail past an unsubscribe).
+router.get('/newsletter/subscribers.csv', async (req, res, next) => {
+  try {
+    const subs = await Subscriber.find({}).sort({ createdAt: -1 }).lean();
+    const esc = (v) => {
+      const s = v == null ? '' : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const day = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '');
+    const header = 'email,locale,consent_date,unsubscribed_date,signup_date';
+    const lines = subs.map((s) =>
+      [esc(s.email), esc(s.locale), day(s.consentAt), day(s.unsubscribedAt), day(s.createdAt)].join(',')
+    );
+    const csv = [header, ...lines].join('\r\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="nostrum-subscribers-${new Date().toISOString().slice(0, 10)}.csv"`
+    );
+    res.send('﻿' + csv); // BOM so Excel opens UTF-8 accents correctly
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Contact messages (read-only inbox) ───────────────────────────── */
+
+router.get('/contact-messages', async (req, res, next) => {
+  try {
+    const msgs = await ContactMessage.find({}).sort({ createdAt: -1 }).limit(200).lean();
+    res.json({
+      messages: msgs.map((m) => ({ ...m, id: String(m._id), _id: undefined })),
+    });
   } catch (err) {
     next(err);
   }

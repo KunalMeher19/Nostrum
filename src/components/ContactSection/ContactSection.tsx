@@ -7,6 +7,7 @@ import {
 } from "../RouteCurtain/curtainNav";
 import "./contact-section.css";
 import { useLocale } from "../LocaleContext/LocaleContext";
+import { submitContact, type ContactTopic } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
 /* ContactSection — the /contact split (NOSTRUM-DESIGN §7 "Contact").   */
@@ -47,13 +48,13 @@ const TOPICS = [
   { value: "press", labelKey: "contact.topic_press" },
 ];
 
-type SendState = "idle" | "sending" | "sent";
+type SendState = "idle" | "sending" | "sent" | "error";
 
 export default function ContactSection() {
   const rootRef = useRef<HTMLElement>(null);
   const [topic, setTopic] = useState("general");
   const [sendState, setSendState] = useState<SendState>("idle");
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   // Curtain-aware entry: hold the staged pre-state until the RouteCurtain
   // starts revealing the page, then release — the settle plays AS the drape
@@ -97,13 +98,26 @@ export default function ContactSection() {
     };
   }, []);
 
-  // No backend yet — hold the button in "sending" for a beat, then flip the
-  // form to the sent state. TODO: wire to Resend (§13) when the API lands.
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // POST to the Express API (stored + relayed to the house inbox; the
+  // relay itself is a console stub until an email provider is wired).
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (sendState !== "idle") return;
+    if (sendState === "sending" || sendState === "sent") return;
+    const form = new FormData(e.currentTarget);
     setSendState("sending");
-    window.setTimeout(() => setSendState("sent"), 900);
+    try {
+      await submitContact({
+        name: String(form.get("name") ?? ""),
+        email: String(form.get("email") ?? ""),
+        topic: topic as ContactTopic,
+        message: String(form.get("message") ?? ""),
+        locale,
+      });
+      setSendState("sent");
+    } catch {
+      // Keep the form (and what they typed) so they can simply retry.
+      setSendState("error");
+    }
   };
 
   return (
@@ -292,7 +306,11 @@ export default function ContactSection() {
                 </span>
                 <span className="ct__submit-line" aria-hidden="true" />
               </button>
-              <p className="ct__gdpr">{t("contact.gdpr")}</p>
+              <p className="ct__gdpr">
+                {sendState === "error"
+                  ? t("contact.send_error")
+                  : t("contact.gdpr")}
+              </p>
             </div>
           </form>
         )}

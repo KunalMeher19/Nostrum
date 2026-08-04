@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./newsletter-modal.css";
 import { getLenis } from "../SmoothScroll/lenisStore";
+import { useLocale } from "../LocaleContext/LocaleContext";
+import { subscribeNewsletter } from "@/lib/api";
 
 /**
  * NewsletterModal — "The Nostrum Journal" subscription invitation.
@@ -31,11 +33,14 @@ const LOADER_POLL_MS = 250;
 
 export default function NewsletterModal() {
   const [open, setOpen] = useState(false);
-  // "idle" → "sending" → "done"
-  const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
+  // "idle" → "sending" → "done" ("error" returns to a retryable form)
+  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">(
+    "idle"
+  );
   const [closing, setClosing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+  const { t, locale } = useLocale();
   // Whether Lenis was already stopped when we opened (home slideshow keeps it
   // stopped on purpose) — only restart on close if WE stopped it.
   const lenisWasRunning = useRef(false);
@@ -137,20 +142,26 @@ export default function NewsletterModal() {
   }, []);
 
   /* ---- Submit ------------------------------------------------------------ */
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (status !== "idle") return;
+    if (status === "sending" || status === "done") return;
+    const email = emailRef.current?.value.trim() ?? "";
+    if (!email) return;
     setStatus("sending");
-    // No mail backend is wired yet — hold a beat so the state change feels
-    // deliberate, then land on the welcome note. Swap for a real POST later.
-    setTimeout(() => {
+    try {
+      // GDPR: the consent checkbox is required by the form, so reaching
+      // here means it is checked. The backend stores consentAt + sends
+      // the welcome mail (console stub) with the unsubscribe link.
+      await subscribeNewsletter({ email, consent: true, locale });
       setStatus("done");
       try {
         localStorage.setItem(SUBSCRIBED_KEY, "1");
       } catch {
         /* ignore */
       }
-    }, 900);
+    } catch {
+      setStatus("error");
+    }
   };
 
   if (!open) return null;
@@ -175,19 +186,16 @@ export default function NewsletterModal() {
       >
         {/* ---- Left: the invitation ---- */}
         <div className="nl-modal__content">
-          <p className="nl-modal__eyebrow">The Nostrum Journal</p>
+          <p className="nl-modal__eyebrow">{t("newsletter.eyebrow")}</p>
 
           {status !== "done" ? (
             <>
               <h2 className="nl-modal__title" id="nl-modal-title">
-                Receive stories
+                {t("newsletter.title_1")}
                 <br />
-                from the grove
+                {t("newsletter.title_2")}
               </h2>
-              <p className="nl-modal__sub">
-                New harvest updates, exclusive releases and recipes,
-                and&nbsp;5% off your first order.
-              </p>
+              <p className="nl-modal__sub">{t("newsletter.sub")}</p>
 
               <form className="nl-modal__form" onSubmit={onSubmit}>
                 <div className="nl-modal__field">
@@ -197,8 +205,8 @@ export default function NewsletterModal() {
                     type="email"
                     name="email"
                     required
-                    placeholder="Email address"
-                    aria-label="Email address"
+                    placeholder={t("newsletter.placeholder")}
+                    aria-label={t("newsletter.placeholder")}
                     autoComplete="email"
                   />
                 </div>
@@ -211,7 +219,8 @@ export default function NewsletterModal() {
                   />
                   <span className="nl-modal__checkmark" aria-hidden="true" />
                   <span className="nl-modal__consent-text">
-                    I agree to the <u>Privacy&nbsp;Policy</u>
+                    {t("newsletter.consent_pre")}{" "}
+                    <u>{t("newsletter.consent_link")}</u>
                   </span>
                 </label>
 
@@ -221,28 +230,34 @@ export default function NewsletterModal() {
                   disabled={status === "sending"}
                 >
                   <span className="nl-modal__cta-label">
-                    {status === "sending" ? "One moment…" : "Join the Journal"}
+                    {status === "sending"
+                      ? t("newsletter.sending")
+                      : t("newsletter.join")}
                   </span>
                 </button>
+                {status === "error" && (
+                  <p className="nl-modal__error" role="alert">
+                    {t("newsletter.error")}
+                  </p>
+                )}
               </form>
             </>
           ) : (
             <div className="nl-modal__done">
               <h2 className="nl-modal__title" id="nl-modal-title">
-                Welcome to
+                {t("newsletter.done_title_1")}
                 <br />
-                the Journal
+                {t("newsletter.done_title_2")}
               </h2>
-              <p className="nl-modal__sub">
-                Your 5% welcome offer is on its way. Until the next
-                harvest.
-              </p>
+              <p className="nl-modal__sub">{t("newsletter.done_sub")}</p>
               <button
                 type="button"
                 className="nl-modal__cta"
                 onClick={requestClose}
               >
-                <span className="nl-modal__cta-label">Continue</span>
+                <span className="nl-modal__cta-label">
+                  {t("newsletter.continue")}
+                </span>
               </button>
             </div>
           )}
@@ -264,7 +279,7 @@ export default function NewsletterModal() {
         <button
           type="button"
           className="nl-modal__close"
-          aria-label="Close"
+          aria-label={t("newsletter.close")}
           onClick={requestClose}
         >
           <span className="nl-modal__close-x" aria-hidden="true" />

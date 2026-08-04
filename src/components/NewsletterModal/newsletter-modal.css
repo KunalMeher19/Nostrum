@@ -261,6 +261,16 @@
   text-decoration-thickness: 1px;
 }
 
+/* Error line — quiet, warm; the form stays put so a retry is one click. */
+.nl-modal__error {
+  margin: 10px 0 0;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  color: #9a5b3c;
+}
+
 /* CTA — deep olive plate, gold sheen sweep on hover. */
 .nl-modal__cta {
   position: relative;

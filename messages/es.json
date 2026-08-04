@@ -73,7 +73,8 @@
     "sent_title": "Recibido.",
     "sent_line": "Gracias por escribir. Lo leemos todo nosotros mismos, espera una respuesta en un día o dos.",
     "gdpr": "Al enviar aceptas nuestra política de privacidad.",
-    "whatsapp_label": "Habla con Nostrum por WhatsApp"
+    "whatsapp_label": "Habla con Nostrum por WhatsApp",
+    "send_error": "Algo ha fallado. Prueba a enviarlo de nuevo."
   },
   "story": {
     "title": "Nuestra Historia",
@@ -206,7 +207,9 @@
     "account_title": "Cuenta · Nostrum",
     "account_description": "Tu cuenta Nostrum. Pedidos, datos y más.",
     "admin_title": "Admin · Nostrum",
-    "admin_description": "La trastienda de la casa. Pedidos, clientes y la estantería."
+    "admin_description": "La trastienda de la casa. Pedidos, clientes y la estantería.",
+    "unsubscribe_title": "Darse de baja · Nostrum",
+    "unsubscribe_description": "Deja el Diario Nostrum."
   },
   "account": {
     "eyebrow": "Cuenta",
@@ -381,5 +384,34 @@
     "read_story": "Leer",
     "back": "Volver al diario",
     "to_shop": "Llevar el aceite a casa"
+  },
+  "newsletter": {
+    "eyebrow": "El Diario Nostrum",
+    "title_1": "Recibe historias",
+    "title_2": "del olivar",
+    "sub": "Novedades de la cosecha, lanzamientos exclusivos y recetas, y un 5% en tu primer pedido.",
+    "placeholder": "Tu email",
+    "consent_pre": "Acepto la",
+    "consent_link": "Política de Privacidad",
+    "join": "Unirme al Diario",
+    "sending": "Un momento…",
+    "error": "Algo ha fallado. Inténtalo de nuevo.",
+    "done_title_1": "Bienvenido",
+    "done_title_2": "al Diario",
+    "done_sub": "Tu 5% de bienvenida está en camino. Hasta la próxima cosecha.",
+    "continue": "Continuar",
+    "close": "Cerrar"
+  },
+  "unsubscribe": {
+    "eyebrow": "El Diario Nostrum",
+    "title": "¿Dejas el Diario?",
+    "lede": "Confirma abajo y las historias del olivar dejarán de llegar a esta dirección.",
+    "confirm": "Darme de baja",
+    "working": "Un momento…",
+    "done_title": "Has dejado el Diario.",
+    "done_line": "No más cartas nuestras. El olivar sigue aquí, cuando quieras volver.",
+    "invalid_title": "Este enlace está incompleto.",
+    "invalid_line": "Usa el enlace de baja de una de nuestras cartas.",
+    "error": "Algo ha fallado. Inténtalo de nuevo."
   }
 }

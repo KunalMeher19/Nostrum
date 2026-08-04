@@ -18,13 +18,16 @@ import "./cookie-banner.css";
  *    for IDLE_MS before sliding up. Any interaction resets the clock, so
  *    it only ever appears while the visitor is at rest.
  *
- * The legal pages aren't ready yet, so Accept / Preferences / Reject do
- * not set any real consent state — each simply dismisses the banner and
- * remembers the dismissal (localStorage) so it doesn't reappear. Swap in
- * real consent logic later.
+ * The legal pages aren't ready yet, so Preferences currently behaves as
+ * a dismissal. The choice IS real consent state now: it is stored in
+ * localStorage and only "accept" lets consent-gated scripts (Analytics)
+ * load. Swap in a fuller preferences UI when the legal text arrives.
  */
 
 const CHOICE_KEY = "nostrum-cookie-choice";
+/** Fired on window whenever a consent choice is made (detail: the choice).
+ *  Analytics listens so GA can load the moment "accept" is clicked. */
+export const CONSENT_EVENT = "nostrum-consent";
 const IDLE_MS = 3500; // quiet time required before entering
 const POLL_MS = 400; // loader / modal / idle check cadence
 const EXIT_MS = 500; // keep in sync with --ck-out in the CSS
@@ -105,6 +108,8 @@ export default function CookieBanner() {
     } catch {
       /* ignore */
     }
+    // Let consent-gated scripts (Analytics) react immediately.
+    window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: choice }));
     const reduced = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)"
     ).matches;
@@ -135,7 +140,8 @@ export default function CookieBanner() {
       </p>
 
       <div className="ck-banner__actions">
-        {/* Legal pages pending — buttons only dismiss, no consent state. */}
+        {/* "accept" is the only choice that unlocks consent-gated
+            scripts (Analytics). Preferences pends the legal pages. */}
         <button
           type="button"
           className="ck-banner__btn ck-banner__btn--accept"

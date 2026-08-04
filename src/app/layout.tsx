@@ -4,8 +4,8 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
 import { CartProvider } from "@/components/Cart/CartContext";
 import RingCursor from "@/components/RingCursor/RingCursor";
-import NewsletterModal from "@/components/NewsletterModal/NewsletterModal";
 import CookieBanner from "@/components/CookieBanner/CookieBanner";
+import Analytics from "@/components/Analytics/Analytics";
 
 // Clean, quiet sans for UI/body (§4 — client-approved type direction)
 const sans = Libre_Franklin({
@@ -103,12 +103,13 @@ export default function RootLayout({
               UnderlayNav + RouteCurtain render inside the [locale] layout so
               they can read the locale context. */}
           {children}
-          {/* "The Nostrum Journal" invitation — ~1min after the loader, once
-              per session. Renders nothing until it opens. */}
-          <NewsletterModal />
           {/* Cookie consent — waits for loader + Journal to finish, then
-              enters on the first quiet (idle) moment. */}
+              enters on the first quiet (idle) moment. (The Journal modal
+              itself lives in the [locale] layout for i18n.) */}
           <CookieBanner />
+          {/* GA4, consent-gated. Renders nothing until NEXT_PUBLIC_GA_ID
+              is set AND the visitor accepts the cookie banner (§16). */}
+          <Analytics />
         </CartProvider>
       </body>
     </html>
