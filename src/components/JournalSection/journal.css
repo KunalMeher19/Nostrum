@@ -131,15 +131,17 @@
 .jr__title-line {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.24em; /* keep italic descenders inside the mask */
-  margin-bottom: -0.24em;
+  /* keep italic descenders + right-side overhang inside the mask */
+  padding: 0 0.12em 0.24em 0;
+  margin: 0 -0.12em -0.24em 0;
 }
 
 .jr__title-seg {
   display: inline-block;
-  /* extend the paint box so background-clip gradients cover descenders */
-  padding-bottom: 0.22em;
-  margin-bottom: -0.22em;
+  /* extend the paint box so background-clip gradients cover descenders
+     and the italic overhang of the final letter */
+  padding: 0 0.12em 0.22em 0;
+  margin: 0 -0.12em -0.22em 0;
   will-change: transform;
 }
 
