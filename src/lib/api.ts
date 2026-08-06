@@ -66,6 +66,7 @@ export type OrderDetail = OrderSummary & {
   shippingAddress: ShippingAddress | null;
   carrier: string | null;
   trackingCode: string | null;
+  trackingUrl: string | null;
   updatedAt: string;
 };
 

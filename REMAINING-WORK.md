@@ -1,8 +1,8 @@
 # Nostrum · Remaining Work
 
-> Audit date: 2026-08-04. Updated 2026-08-04 after completing section 2 and the unblocked parts of section 3.
+> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (section 2.5).
 > Checked against `NOSTRUM-DESIGN.md`, client feedback rounds, and the current codebase.
-> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal, admin portal (orders / customers CSV / shop editor / journal authoring), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB, rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md.
+> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal, admin portal (orders / customers CSV / shop editor / journal authoring), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup), rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md.
 
 ---
 
@@ -12,10 +12,19 @@
 - Checkout does not exist. `src/components/pages/CartPage.tsx` has a disabled "Checkout · coming soon" button.
 - Brief requires: product list → product page → cart → checkout, **guest checkout**, Stripe (confirm Redsys / PayPal with client's bank), shipping rates, IVA/VAT.
 - **Open decision (§14):** Shopify headless vs. custom + Stripe. The entire order layer was built swappable behind `backend/src/services/orders.service.js`; when the client decides, reimplement only that module.
+- **Our recommendation to the client (2026-08-06): custom + Stripe Checkout.** Portals, invoices, admin, and the Mongo order layer are already built; Shopify would mean re-plumbing all of it and fighting theme restrictions. Stripe Checkout gives hosted card payments, guest checkout, Apple/Google Pay, and Stripe Tax for Spanish IVA. Redsys is unnecessary with Stripe; PayPal can be added later if the client insists. Ask once, then build.
+- **Build recipe when the client says yes (Stripe path):**
+  1. `npm install stripe` in `backend/`; env `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+  2. `POST /api/checkout` (public, rate-limited): validate cart lines against the `products` collection (server-side prices, never trust the browser), create a Stripe Checkout Session (`mode: payment`, `automatic_tax`, `shipping_address_collection`, locale from the request), return the redirect URL. Logged-in users get their email prefilled; guests type theirs.
+  3. `POST /api/stripe/webhook` (raw body, signature-verified, mounted BEFORE express.json): on `checkout.session.completed`, build the order payload (items, address, email, `userId` when the session carried one) and call `orders.service.createOrder()`. That single call already consumes stock and fires the confirmation mail. Map `OutOfStockError` → refund + apology mail (rare race; stock is also checked at session creation).
+  4. Orders must NEVER be created from the success redirect page; only from the webhook.
+  5. Frontend: enable the CartPage button → call `/api/checkout` → `window.location = url`; success/cancel pages under `/[locale]/shop/checkout/…` (5 locales).
+  6. Shipping rates + free-shipping threshold: client must supply the numbers (currently a per-order `shippingCost` field exists; expose config via env or an admin setting).
 
 ### 1.2 Real shop catalog
 - Public Shop intentionally still reads static placeholders in `src/lib/products.ts` (sizes / prices / photos / oil types unconfirmed by client).
 - The MongoDB `products` collection + admin shop editor is ready to become the source of truth once real data arrives. Task then: point the public Shop at the products API.
+- **Build recipe when real data arrives:** enter the catalog through the admin shop editor; add a public `GET /api/products` (active only, cached) to `backend`; swap `src/lib/products.ts` consumers to fetch it server-side (keep the type shape, it already mirrors the model); product photos to `public/` or a CDN. Stock now matters: `createOrder` consumes per-size stock (see 2.5), so real counts must be set before checkout goes live.
 
 ### 1.3 Email provider (Resend)
 - `src/lib/auth/mailer.ts` (Next) and `backend/src/services/mailer.service.js` (Express) are console stubs. Wiring instructions are in each header comment (install resend, RESEND_API_KEY, verified sending domain).
@@ -45,7 +54,15 @@
 - Tokenized (sha256-hashed) link in the welcome mail → `/[locale]/unsubscribe` page (explicit confirm click) → `POST /api/newsletter/unsubscribe` (idempotent, non-enumerating).
 
 ### 2.4 Order confirmation path — DONE (stub)
-- `orders.service.createOrder()` is the creation seam; it fires `sendOrderConfirmation` (console stub). Checkout must create orders through it when it lands.
+- `orders.service.createOrder()` is the creation seam; it fires `sendOrderConfirmation` (console stub). Checkout must create orders through it when it lands. Since 2026-08-06 it also consumes stock (see 2.5), so it is the single entry point for everything an order must do.
+
+### 2.5 Order fulfilment plumbing — DONE 2026-08-06 (built ahead of the commerce decision; all payment-rail-agnostic)
+- **Stock consumption:** `createOrder()` atomically decrements per-size stock in the `products` collection (filter requires `stock >= qty`, so concurrent orders cannot oversell); throws `OutOfStockError` (`code: OUT_OF_STOCK`) and rolls back already-taken lines. Inactive/unknown products count as out of stock. Cancelling an order (admin status → `cancelled`) restocks the units exactly once.
+- **Shipping-status mail:** `sendShippingUpdate` added to `backend/src/services/mailer.service.js` (console stub, same pattern); fired by `updateOrderStatus()` only on the transition INTO `shipped`, carrying carrier + tracking link. Re-saving a shipped order (e.g. fixing the code) does not re-mail.
+- **Tracking links:** `orders.service.js` maps known carriers (SEUR, Correos Express, Correos, MRW, GLS, DHL, UPS) to tracking-page URLs; order detail responses now include `trackingUrl`, and the customer portal renders the tracking code as a link (`AccountPortal.tsx`, lime underline style). Unknown carriers degrade to the bare code.
+- **Guest orders:** `Order.userId` is now optional (was required; changed 2026-08-06 because the brief requires guest checkout). Public `POST /api/orders/lookup` (publicWrite limiter) returns full order detail for the exact order-number + purchase-email pair; the pair is the ownership proof, same model as carrier tracking pages. Account order lists are unaffected.
+- **Verified:** `backend/__tests__/orders.test.js` (stock consume/reject/rollback, ship-mail once, restock once, tracking URLs, lookup happy/miss/validation) + updated seam test; full suite 69/69 green; frontend `tsc --noEmit` clean.
+- **Still to add later (needs UI/decisions):** a guest "track my order" page in the frontend calling the lookup endpoint (trivial, but wants design + 5-locale copy); guest invoice download via the same pair if the client wants it.
 
 ---
 
@@ -68,14 +85,16 @@
 
 ## Suggested order of attack
 
-1. DONE: sections 2.1 to 2.4 (contact, newsletter, unsubscribe, order-confirmation seam), plus the unblocked section 3 chores.
-2. Chase client on the five blockers in section 1 (commerce decision is the critical path to launch).
-3. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
+1. DONE: sections 2.1 to 2.5 (contact, newsletter, unsubscribe, order-confirmation seam, order-fulfilment plumbing), plus the unblocked section 3 chores.
+2. Chase client on the five blockers in section 1 (commerce decision is the critical path to launch); send him the Stripe recommendation in 1.1 with the Redsys/PayPal question.
+3. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook), then 1.2 (real catalog + public products API), then the guest track-my-order page (2.5 tail).
+4. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
 
 ---
 
 ## Decision log (client + project decisions, newest first)
 
+- **2026-08-06** · Built all payment-rail-agnostic fulfilment plumbing ahead of the commerce decision (stock consumption + restock, shipped-mail stub, carrier tracking links, guest orders + public lookup — see 2.5). Guest support decided now, not after the payments choice, because the brief mandates guest checkout regardless of rail. Stripe recommendation drafted into 1.1 to put to the client.
 - **2026-08-04** · Session protocol: this file is the living tracker; read at session start, updated after every session (see `CLAUDE.md`).
 - **2026-08-04** · Stub cleanup: deleted unused `validator.middleware.js` and `broker/` (inline validation is the project convention; no zod/joi churn).
 - **2026-08-04** · Newsletter/contact abuse control: shared `publicWrite` rate tier (5/min, `RATE_PUBLIC_WRITE_*`); subscribe/unsubscribe responses are enumeration-safe by design.

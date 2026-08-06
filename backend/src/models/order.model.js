@@ -62,10 +62,12 @@ const orderSchema = new mongoose.Schema(
   {
     // Human-facing order number, e.g. "NST-2026-0412".
     number: { type: String, required: true, unique: true },
+    // Null for guest-checkout orders (brief requires guest checkout).
+    // Guests retrieve their order via number + email (orders/lookup).
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      default: null,
       index: true,
     },
     email: { type: String, required: true }, // snapshot for admin/export

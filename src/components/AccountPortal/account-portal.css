@@ -385,6 +385,17 @@
   color: var(--pt-fg);
 }
 
+.pt__tracking-link {
+  color: var(--pt-lime, #a6ce3a);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s ease;
+}
+
+.pt__tracking-link:hover {
+  opacity: 0.75;
+}
+
 .pt__mini-label {
   display: block;
   font-size: 0.64rem;

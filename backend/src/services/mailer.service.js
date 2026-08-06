@@ -22,6 +22,7 @@
 //        - contact-relay        (to the house inbox)
 //        - newsletter-welcome   (with unsubscribe link)
 //        - order-confirmation   (number, items, total)
+//        - shipping-update      (status, carrier, tracking link)
 //   5. Localize subjects/body per the recipient's locale.
 // ============================================================
 
@@ -76,4 +77,26 @@ async function sendOrderConfirmation(order) {
   });
 }
 
-module.exports = { sendMail, sendContactRelay, sendNewsletterWelcome, sendOrderConfirmation };
+// Shipping update, sent when the admin marks an order shipped. Carries
+// the carrier + tracking link when the admin filled them in.
+async function sendShippingUpdate(order) {
+  const tracking = order.trackingUrl
+    ? `Track it here: ${order.trackingUrl}`
+    : order.trackingCode
+      ? `Tracking code: ${order.trackingCode}`
+      : '';
+  const carrier = order.carrier ? `Carrier: ${order.carrier}\n` : '';
+  await sendMail({
+    to: order.email,
+    subject: `Nostrum order ${order.number} is on its way`,
+    text: `Your order has left the house.\n\n${carrier}${tracking}`.trimEnd(),
+  });
+}
+
+module.exports = {
+  sendMail,
+  sendContactRelay,
+  sendNewsletterWelcome,
+  sendOrderConfirmation,
+  sendShippingUpdate,
+};

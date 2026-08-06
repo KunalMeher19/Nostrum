@@ -164,6 +164,14 @@ describe('order confirmation seam', () => {
     const mailer = require('../src/services/mailer.service');
     const spy = jest.spyOn(mailer, 'sendOrderConfirmation').mockResolvedValue();
     const orders = require('../src/services/orders.service');
+    // createOrder now consumes stock, so the catalog must cover the line.
+    const Product = require('../src/models/product.model');
+    await Product.create({
+      slug: 'nostrum-5l',
+      name: 'Nostrum 5L',
+      sizes: [{ id: '5l', label: '5 L', price: 40, stock: 5 }],
+      active: true,
+    });
     const order = await orders.createOrder({
       number: 'NST-2026-9999',
       userId: '64b000000000000000000001',
@@ -190,6 +198,9 @@ describe('order confirmation seam', () => {
     expect(order.number).toBe('NST-2026-9999');
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][0].email).toBe('buyer@test.local');
+    const after = await Product.findOne({ slug: 'nostrum-5l' }).lean();
+    expect(after.sizes[0].stock).toBe(3); // 5 seeded − 2 ordered
+    await Product.deleteMany({});
     spy.mockRestore();
   });
 });

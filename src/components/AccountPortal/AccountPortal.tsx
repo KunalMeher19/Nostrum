@@ -304,7 +304,23 @@ function OrderRow({
                   <p className="pt__ship-line">
                     <span className="pt__mini-label">{t("portal.carrier")}</span>
                     {detail.carrier}
-                    {detail.trackingCode ? ` · ${detail.trackingCode}` : ""}
+                    {detail.trackingCode && (
+                      <>
+                        {" · "}
+                        {detail.trackingUrl ? (
+                          <a
+                            className="pt__tracking-link"
+                            href={detail.trackingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {detail.trackingCode}
+                          </a>
+                        ) : (
+                          detail.trackingCode
+                        )}
+                      </>
+                    )}
                   </p>
                 )}
                 {detail.shippingAddress?.line1 && (
