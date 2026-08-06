@@ -104,7 +104,8 @@ function buildWildPath(nodes: { x: number; y: number }[], W: number, H: number):
     d += ` C ${f(peakX)} ${f(peakY + spanB * 0.5)}, ${f(b.x)} ${f(b.y - spanB * 0.5)}, ${f(b.x)} ${f(b.y)}`;
   }
   const last = nodes[nodes.length - 1];
-  const endY = Math.min(last.y + 350, H);
+  const tailLen = W <= 540 ? 50 : 100;
+  const endY = Math.min(last.y + tailLen, H);
   const tailDy = endY - last.y;
   d += ` C ${f(last.x)} ${f(last.y + tailDy * 0.33)}, ${f(last.x)} ${f(last.y + tailDy * 0.66)}, ${f(last.x)} ${f(endY)}`;
   return d;
@@ -177,6 +178,7 @@ export default function StoryProcess() {
     const steps = Array.from(
       root.querySelectorAll<HTMLElement>(".story-process__step")
     );
+    const stepsContainer = root.querySelector<HTMLElement>(".story-process__steps");
 
     // The points the wild stroke threads through: the intro title, then each
     // step's image on its inner edge (left step → 40% across, right step → 60%)
@@ -195,9 +197,13 @@ export default function StoryProcess() {
         }
         nodes.push({ x: startX, y: startY });
       }
+      // step.offsetTop is relative to .story-process__steps (position:relative),
+      // not the track. Add the steps container's own offsetTop so node y-values
+      // are in track-relative coordinates matching the SVG viewBox.
+      const stepsBaseY = stepsContainer?.offsetTop ?? 0;
       steps.forEach((step) => {
         const side = step.dataset.side === "right" ? 0.6 : 0.4;
-        nodes.push({ x: W * side, y: step.offsetTop + step.offsetHeight / 2 });
+        nodes.push({ x: W * side, y: stepsBaseY + step.offsetTop + step.offsetHeight / 2 });
       });
       return nodes;
     };
@@ -340,7 +346,12 @@ export default function StoryProcess() {
           scrollTrigger: {
             trigger: root,
             start: "top 55%",
-            end: "92% bottom",
+            // 85% (not 92/95) — on browsers with heavy chrome (Brave: tabs +
+            // address bar + bookmarks bar + shields) the viewport is ≈200px
+            // shorter, which stretches the scroll range and delays the line.
+            // 85% ensures the full draw completes within Step 05's area on
+            // ANY viewport height so the line arrives as the step enters.
+            end: "85% bottom",
             scrub: 1,
             invalidateOnRefresh: true,
             // Rebuild the path whenever ScrollTrigger recomputes (resize / the
