@@ -37,6 +37,28 @@
     "note": "Cold-pressed · bottled to order · shipped across Spain & the EU",
     "b2b": "B2B enquiries"
   },
+  "cart": {
+    "eyebrow": "Shop",
+    "title": "Your Cart",
+    "drawer_title": "Cart",
+    "close": "Close cart",
+    "item": "item",
+    "items": "items",
+    "empty_title": "Your cart is empty, for now.",
+    "empty_note": "Cold-pressed and bottled to order. The collection is waiting.",
+    "empty_cta": "Explore the collection",
+    "suggest_eyebrow": "From the collection",
+    "remove": "Remove",
+    "qty_minus": "Decrease quantity",
+    "qty_plus": "Increase quantity",
+    "subtotal": "Subtotal",
+    "shipping_note": "Shipping calculated at checkout.",
+    "checkout": "Proceed to checkout",
+    "checkout_soon": "Payments open soon",
+    "view_cart": "View full cart",
+    "continue": "Continue shopping",
+    "add_more": "Add more from the Shop"
+  },
   "footer": {
     "tagline": "From the land. For the table.",
     "navigation": "Navigation",

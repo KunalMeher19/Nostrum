@@ -37,6 +37,28 @@
     "note": "Prensado en frío · embotellado bajo pedido · envíos a España y la UE",
     "b2b": "Consultas B2B"
   },
+  "cart": {
+    "eyebrow": "Tienda",
+    "title": "Tu cesta",
+    "drawer_title": "Cesta",
+    "close": "Cerrar la cesta",
+    "item": "artículo",
+    "items": "artículos",
+    "empty_title": "Tu cesta está vacía, por ahora.",
+    "empty_note": "Prensado en frío y embotellado bajo pedido. La colección te espera.",
+    "empty_cta": "Descubre la colección",
+    "suggest_eyebrow": "De la colección",
+    "remove": "Eliminar",
+    "qty_minus": "Reducir cantidad",
+    "qty_plus": "Aumentar cantidad",
+    "subtotal": "Subtotal",
+    "shipping_note": "Envío calculado al finalizar la compra.",
+    "checkout": "Tramitar el pedido",
+    "checkout_soon": "Pagos disponibles muy pronto",
+    "view_cart": "Ver la cesta completa",
+    "continue": "Seguir comprando",
+    "add_more": "Añadir más de la tienda"
+  },
   "footer": {
     "tagline": "De la tierra. Para la mesa.",
     "navigation": "Navegación",

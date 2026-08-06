@@ -37,6 +37,28 @@
     "note": "Premsat en fred · embotellat sota comanda · enviaments a Espanya i la UE",
     "b2b": "Consultes B2B"
   },
+  "cart": {
+    "eyebrow": "Botiga",
+    "title": "La teva cistella",
+    "drawer_title": "Cistella",
+    "close": "Tancar la cistella",
+    "item": "article",
+    "items": "articles",
+    "empty_title": "La teva cistella és buida, de moment.",
+    "empty_note": "Premsat en fred i embotellat sota comanda. La col·lecció t'espera.",
+    "empty_cta": "Descobreix la col·lecció",
+    "suggest_eyebrow": "De la col·lecció",
+    "remove": "Elimina",
+    "qty_minus": "Redueix la quantitat",
+    "qty_plus": "Augmenta la quantitat",
+    "subtotal": "Subtotal",
+    "shipping_note": "Enviament calculat en finalitzar la compra.",
+    "checkout": "Tramitar la comanda",
+    "checkout_soon": "Pagaments disponibles ben aviat",
+    "view_cart": "Veure la cistella completa",
+    "continue": "Continua comprant",
+    "add_more": "Afegeix més de la botiga"
+  },
   "footer": {
     "tagline": "De la terra. Per a la taula.",
     "navigation": "Navegació",

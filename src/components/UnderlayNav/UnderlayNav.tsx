@@ -87,7 +87,9 @@ export default function UnderlayNav() {
   const pathname = usePathname();
   // Live cart badge. The provider hydrates from localStorage AFTER mount, so
   // SSR + first paint always agree (count 0 → no badge → no hydration issues).
-  const { count: cartCount } = useCart();
+  // openDrawer: the icon opens the slide-in cart instead of routing; the
+  // /cart href stays for middle-click, new-tab and no-JS.
+  const { count: cartCount, openDrawer } = useCart();
   // Set by the GSAP context to a routine that snaps the menu to a clean closed
   // state. The route-change effect below calls it so navigating ALWAYS lands
   // with the menu shut and the page/overlay reset — the nav stays mounted
@@ -565,6 +567,14 @@ export default function UnderlayNav() {
                     ? `Shopping cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
                     : "Shopping cart"
                 }
+                aria-haspopup="dialog"
+                onClick={(e) => {
+                  // Plain left-click slides the cart drawer in; modified
+                  // clicks (new tab etc.) keep native <Link> behaviour.
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                  e.preventDefault();
+                  openDrawer();
+                }}
               >
                 <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
                   {/* Inner group carries the hover animation (CSS transform

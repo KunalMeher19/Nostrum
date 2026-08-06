@@ -37,6 +37,28 @@
     "note": "Spremuto a freddo · imbottigliato su ordinazione · spedizioni in Spagna e UE",
     "b2b": "Richieste B2B"
   },
+  "cart": {
+    "eyebrow": "Shop",
+    "title": "Il tuo carrello",
+    "drawer_title": "Carrello",
+    "close": "Chiudi il carrello",
+    "item": "articolo",
+    "items": "articoli",
+    "empty_title": "Il tuo carrello è vuoto, per ora.",
+    "empty_note": "Spremuto a freddo e imbottigliato su ordinazione. La collezione ti aspetta.",
+    "empty_cta": "Scopri la collezione",
+    "suggest_eyebrow": "Dalla collezione",
+    "remove": "Rimuovi",
+    "qty_minus": "Riduci la quantità",
+    "qty_plus": "Aumenta la quantità",
+    "subtotal": "Subtotale",
+    "shipping_note": "Spedizione calcolata al momento del pagamento.",
+    "checkout": "Procedi all'ordine",
+    "checkout_soon": "Pagamenti disponibili a breve",
+    "view_cart": "Vedi il carrello completo",
+    "continue": "Continua lo shopping",
+    "add_more": "Aggiungi altro dallo shop"
+  },
   "footer": {
     "tagline": "Dalla terra. Per la tavola.",
     "navigation": "Navigazione",
