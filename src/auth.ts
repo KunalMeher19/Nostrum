@@ -14,7 +14,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { ObjectId } from "mongodb";
-import clientPromise, { getDb } from "@/lib/auth/mongodb";
+import { getClientPromise, getDb } from "@/lib/auth/mongodb";
 import { isAdminEmail, verifyCredentials, type Role } from "@/lib/auth/users";
 
 declare module "next-auth" {
@@ -30,7 +30,7 @@ declare module "next-auth" {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: MongoDBAdapter(getClientPromise),
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: "/en/account", // locale-aware pages redirect as needed
