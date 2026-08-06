@@ -559,8 +559,12 @@ export default function UnderlayNav() {
                 currentColor so they ride the same --nav-col
                 auto-contrast as the wordmark + Menu toggle. */}
             <div className="underlay-nav__actions">
-              <Link
-                href={localize("/cart")}
+              {/* A button, NOT a link: the icon only slides the cart drawer
+                  in. Routing to /cart lives inside the drawer ("View full
+                  cart") — an anchor here would also be caught by the route
+                  curtain's global link interception and navigate anyway. */}
+              <button
+                type="button"
                 className="underlay-nav__action"
                 aria-label={
                   cartCount > 0
@@ -568,13 +572,7 @@ export default function UnderlayNav() {
                     : "Shopping cart"
                 }
                 aria-haspopup="dialog"
-                onClick={(e) => {
-                  // Plain left-click slides the cart drawer in; modified
-                  // clicks (new tab etc.) keep native <Link> behaviour.
-                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-                  e.preventDefault();
-                  openDrawer();
-                }}
+                onClick={openDrawer}
               >
                 <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
                   {/* Inner group carries the hover animation (CSS transform
@@ -598,7 +596,7 @@ export default function UnderlayNav() {
                     {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}
-              </Link>
+              </button>
               <Link
                 href={localize("/account")}
                 className="underlay-nav__action"
