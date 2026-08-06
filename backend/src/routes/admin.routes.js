@@ -1,10 +1,12 @@
 // /api/admin · role-gated admin API (orders, customers, products).
 const express = require('express');
-const { requireAuth, requireRole } = require('../middlewares/auth.middleware');
+const { requireAuth, requireAdmin } = require('../middlewares/auth.middleware');
 const { writeLimiter, heavyLimiter } = require('../middlewares/rate-limit.middleware');
 const { requireObjectId } = require('../middlewares/sanitize.middleware');
 const orders = require('../services/orders.service');
 const { streamInvoice } = require('../services/invoice.service');
+const { recordAudit } = require('../services/audit.service');
+const { AuditEvent } = require('../models/audit-event.model');
 const { Order } = require('../models/order.model');
 const Product = require('../models/product.model');
 const User = require('../models/user.model');
@@ -25,7 +27,9 @@ router.use('/products/:id', writeLimiter);
 router.use('/posts', writeLimiter);
 router.use('/exhibits', writeLimiter);
 
-router.use(requireAuth, requireRole('admin'));
+// requireAdmin re-reads the role from the users collection on every
+// request, so revoking admin in the DB locks this router out instantly.
+router.use(requireAuth, requireAdmin);
 
 /* ── Orders ───────────────────────────────────────────────────────── */
 
@@ -61,6 +65,12 @@ router.patch('/orders/:id/status', requireObjectId('id'), async (req, res, next)
       trackingCode,
     });
     if (!order) return res.status(400).json({ error: 'Invalid status or order' });
+    recordAudit(req, 'order.status', req.params.id, {
+      number: order.number,
+      status: order.status,
+      carrier: order.carrier,
+      trackingCode: order.trackingCode,
+    });
     res.json({ order });
   } catch (err) {
     next(err);
@@ -136,6 +146,7 @@ router.get('/customers.csv', async (req, res, next) => {
       'Content-Disposition',
       `attachment; filename="nostrum-customers-${new Date().toISOString().slice(0, 10)}.csv"`
     );
+    recordAudit(req, 'export.customers', null, { rows: rows.length });
     res.send('﻿' + csv); // BOM so Excel opens UTF-8 accents correctly
   } catch (err) {
     next(err);
@@ -183,7 +194,21 @@ router.get('/newsletter/subscribers.csv', async (req, res, next) => {
       'Content-Disposition',
       `attachment; filename="nostrum-subscribers-${new Date().toISOString().slice(0, 10)}.csv"`
     );
+    recordAudit(req, 'export.subscribers', null, { rows: subs.length });
     res.send('﻿' + csv); // BOM so Excel opens UTF-8 accents correctly
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Audit trail (read-only) ──────────────────────────────────────── */
+
+router.get('/audit-events', async (req, res, next) => {
+  try {
+    const events = await AuditEvent.find({}).sort({ at: -1 }).limit(200).lean();
+    res.json({
+      events: events.map((e) => ({ ...e, id: String(e._id), _id: undefined })),
+    });
   } catch (err) {
     next(err);
   }
@@ -251,6 +276,9 @@ router.patch('/products/:id', requireObjectId('id'), async (req, res, next) => {
       { new: true }
     ).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
+    recordAudit(req, 'product.update', product.slug, {
+      fields: Object.keys(updates),
+    });
     res.json({ product: { ...product, id: String(product._id), _id: undefined } });
   } catch (err) {
     next(err);
@@ -310,6 +338,7 @@ router.post('/posts', async (req, res, next) => {
       status: publish ? 'published' : 'draft',
       publishedAt: publish ? new Date() : null,
     });
+    recordAudit(req, 'post.create', post.slug, { status: post.status });
     res.status(201).json({ post: { ...post.toObject(), id: String(post._id), _id: undefined } });
   } catch (err) {
     next(err);
@@ -333,6 +362,7 @@ router.patch('/posts/:id', requireObjectId('id'), async (req, res, next) => {
       { new: true }
     ).lean();
     if (!post) return res.status(404).json({ error: 'Post not found' });
+    recordAudit(req, 'post.update', post.slug, { fields: Object.keys(updates) });
     res.json({ post: { ...post, id: String(post._id), _id: undefined } });
   } catch (err) {
     next(err);
@@ -343,6 +373,7 @@ router.delete('/posts/:id', requireObjectId('id'), async (req, res, next) => {
   try {
     const gone = await Post.findByIdAndDelete(req.params.id).lean();
     if (!gone) return res.status(404).json({ error: 'Post not found' });
+    recordAudit(req, 'post.delete', gone.slug);
     res.json({ ok: true });
   } catch (err) {
     next(err);
@@ -388,6 +419,7 @@ router.post('/exhibits', async (req, res, next) => {
     if (!fields.title || !fields.image)
       return res.status(400).json({ error: 'title_and_image_required' });
     const exhibit = await Exhibit.create(fields);
+    recordAudit(req, 'exhibit.create', String(exhibit._id), { room: exhibit.room });
     res
       .status(201)
       .json({ exhibit: { ...exhibit.toObject(), id: String(exhibit._id), _id: undefined } });
@@ -404,6 +436,7 @@ router.patch('/exhibits/:id', requireObjectId('id'), async (req, res, next) => {
       { new: true }
     ).lean();
     if (!exhibit) return res.status(404).json({ error: 'Exhibit not found' });
+    recordAudit(req, 'exhibit.update', req.params.id);
     res.json({ exhibit: { ...exhibit, id: String(exhibit._id), _id: undefined } });
   } catch (err) {
     next(err);
@@ -414,6 +447,7 @@ router.delete('/exhibits/:id', requireObjectId('id'), async (req, res, next) => 
   try {
     const gone = await Exhibit.findByIdAndDelete(req.params.id).lean();
     if (!gone) return res.status(404).json({ error: 'Exhibit not found' });
+    recordAudit(req, 'exhibit.delete', req.params.id);
     res.json({ ok: true });
   } catch (err) {
     next(err);

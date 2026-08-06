@@ -5,6 +5,7 @@
 // reimplement this module against that API (map their order object to
 // serializeOrder's shape) and the routes + UI stay untouched.
 const { Order, ORDER_STATUSES } = require('../models/order.model');
+const { Counter } = require('../models/counter.model');
 const Product = require('../models/product.model');
 const { escapeRegex } = require('../middlewares/sanitize.middleware');
 const mailer = require('./mailer.service');
@@ -180,6 +181,19 @@ async function getOrderDoc(orderId) {
 // through here so the confirmation email fires with it. If the client
 // picks Shopify, reimplement this against their API and keep the
 // sendOrderConfirmation call (or move to Shopify's notifications).
+// Collision-safe order numbers: "NST-2026-0001", per-year sequence via
+// an atomic counter. Gaps (e.g. a failed create after numbering) are
+// fine; duplicates are impossible.
+async function nextOrderNumber(now = new Date()) {
+  const year = now.getFullYear();
+  const counter = await Counter.findOneAndUpdate(
+    { _id: `orders-${year}` },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true }
+  ).lean();
+  return `NST-${year}-${String(counter.seq).padStart(4, '0')}`;
+}
+
 async function createOrder(payload) {
   // Stock is consumed up front and returned if persisting fails, so the
   // counters in the admin shop editor always match reality. Throws
@@ -188,6 +202,7 @@ async function createOrder(payload) {
   await consumeStock(payload.items);
   let order;
   try {
+    if (!payload.number) payload.number = await nextOrderNumber();
     order = await Order.create(payload);
   } catch (err) {
     await restockItems(payload.items);
@@ -225,4 +240,5 @@ module.exports = {
   updateOrderStatus,
   getOrderDoc,
   createOrder,
+  nextOrderNumber,
 };

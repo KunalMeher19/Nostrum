@@ -9,6 +9,7 @@
 // session cookie rides along on same-site requests in dev (localhost).
 const { jwtDecrypt } = require('jose');
 const { hkdfSync } = require('crypto');
+const User = require('../models/user.model');
 
 const SESSION_COOKIES = [
   'authjs.session-token', // http (dev)
@@ -91,11 +92,36 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-/** Requires a specific role (use after requireAuth). */
+/** Requires a specific role (use after requireAuth). Trusts the role
+ * claim inside the session token — fine for customer-tier gating. */
 const requireRole = (role) => (req, res, next) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
   if (req.user.role !== role) return res.status(403).json({ error: 'Forbidden' });
   next();
 };
 
-module.exports = { requireAuth, requireRole, readSession };
+/** Admin gate with instant revocation (use after requireAuth).
+ *
+ * The role inside the JWE is only as fresh as the session (up to its
+ * full lifetime): a demoted or deleted admin would keep admin power
+ * until expiry. Admin routes guard customer PII and shop money, so
+ * they re-read the CURRENT role from the users collection on every
+ * request — one indexed _id lookup. Customer routes keep trusting the
+ * token; this cost is for the blast-radius tier only. */
+const requireAdmin = async (req, res, next) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    if (req.user.role !== 'admin' || !/^[a-f0-9]{24}$/i.test(req.user.id)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const current = await User.findById(req.user.id).select('role').lean();
+    if (!current || current.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { requireAuth, requireRole, requireAdmin, readSession };

@@ -48,11 +48,25 @@ app.use(
   })
 );
 
+// Cross-site mutation guard: browsers attach the Origin header to every
+// cross-origin (and most same-origin) non-GET request. A mutation
+// arriving from an origin we don't serve is rejected outright — CSRF
+// belt-and-braces on top of SameSite=Lax cookies and CORS. Requests
+// with NO Origin (curl, server-to-server, supertest) pass: they can't
+// carry a victim's cookie, which is the attack this blocks.
+app.use((req, res, next) => {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+  const origin = req.headers.origin;
+  if (!origin || ALLOWED_ORIGINS.includes(origin)) return next();
+  res.status(403).json({ error: 'origin_not_allowed' });
+});
+
 // Body limits: portal payloads are tiny (profile, status changes,
 // product edits, journal posts). 200kb caps memory abuse while leaving
-// generous headroom for post content.
+// generous headroom for post content. JSON ONLY — no urlencoded parser:
+// nothing consumes form bodies, and refusing them removes the classic
+// no-preflight HTML-form request class entirely.
 app.use(express.json({ limit: '200kb' }));
-app.use(express.urlencoded({ extended: true, limit: '200kb' }));
 app.use(sanitizeBody);
 
 // Rate limiting: global backstop for every request, plus a tighter

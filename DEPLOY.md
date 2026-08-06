@@ -29,11 +29,12 @@ Two apps deploy together:
 | Var | Required | Notes |
 |---|---|---|
 | `MONGODB_URI` | yes | Production MongoDB (Atlas or managed). Local Windows service is dev-only. |
-| `CORS_ORIGIN` | yes (prod) | Comma allowlist of frontend origins, e.g. `https://nostrum.com,https://www.nostrum.com`. Never a wildcard. |
+| `CORS_ORIGIN` | yes (prod) | Comma allowlist of frontend origins, e.g. `https://nostrum.com,https://www.nostrum.com`. Never a wildcard. The API refuses to boot in production if unset or containing localhost, and the same list gates cross-site mutations (Origin check). |
 | `TRUST_PROXY` | yes (prod) | Number of proxy hops (Vercel/nginx/CF: usually `1`). Without it every visitor shares the proxy's rate-limit bucket. |
 | `FRONTEND_URL` | yes (prod) | Used to build unsubscribe links in newsletter mails. Defaults to `http://localhost:3000`. |
 | `CONTACT_INBOX` | yes (prod) | Where contact-form submissions are relayed. PENDING CLIENT (real house inbox). |
 | `PORT` | optional | Defaults to 5000. |
+| `SHUTDOWN_GRACE_MS` | optional | Drain window for graceful shutdown (default 10000). In-flight requests get this long on SIGTERM before a hard exit. |
 | `REDIS_URL` | when scaling | Optional. Set to move rate-limit buckets to Redis so multiple API instances share budgets. Unset = in-memory (fine for one instance). |
 | `RATE_*` | optional | Tune limiter tiers without a deploy; see `backend/src/config/rate-limit.config.js` (global/write/heavy/anon/publicWrite). |
 

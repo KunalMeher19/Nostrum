@@ -33,6 +33,24 @@ async function connectTestDb() {
     process.env.MONGODB_TEST_URI || 'mongodb://127.0.0.1:27017/nostrum-test';
   mongoose.set('strictQuery', true);
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
+  await seedSessionUsers();
+}
+
+/** The fixed-uid users behind customerSession()/adminSession().
+ * requireAdmin re-checks the role in the DB, so the admin session is
+ * only honored when this user document actually exists with the role. */
+async function seedSessionUsers() {
+  const User = require('../src/models/user.model');
+  await User.updateOne(
+    { _id: '64b000000000000000000001' },
+    { $setOnInsert: { name: 'Test Customer', email: 'customer@example.com', role: 'customer' } },
+    { upsert: true }
+  );
+  await User.updateOne(
+    { _id: '64b000000000000000000009' },
+    { $setOnInsert: { name: 'Test Admin', email: 'admin@example.com', role: 'admin' } },
+    { upsert: true }
+  );
 }
 
 async function dropAndCloseTestDb() {
@@ -48,6 +66,7 @@ module.exports = {
   sessionCookie,
   customerSession,
   adminSession,
+  seedSessionUsers,
   connectTestDb,
   dropAndCloseTestDb,
   sleep,

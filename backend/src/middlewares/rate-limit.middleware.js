@@ -14,6 +14,11 @@ const { getRedis } = require('../db/redis');
 
 const SESSION_COOKIE = 'authjs.session-token'; // matches auth.middleware
 
+// Deliberately a cheap string check, NOT a decrypt: verifying the JWE
+// here would double the crypto work on every request just to pick a
+// rate tier. Known trade-off: a scanner can skip the anon tier by
+// sending any cookie with this name — it then still faces the global
+// tier (300/min) and 401s at every auth gate. Acceptable.
 function hasSessionCookie(req) {
   return (req.headers.cookie || '').includes(SESSION_COOKIE);
 }

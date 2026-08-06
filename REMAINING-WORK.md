@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (section 2.5).
+> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5) and the backend hardening round (2.6).
 > Checked against `NOSTRUM-DESIGN.md`, client feedback rounds, and the current codebase.
 > What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal, admin portal (orders / customers CSV / shop editor / journal authoring), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup), rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md.
 
@@ -64,6 +64,17 @@
 - **Verified:** `backend/__tests__/orders.test.js` (stock consume/reject/rollback, ship-mail once, restock once, tracking URLs, lookup happy/miss/validation) + updated seam test; full suite 69/69 green; frontend `tsc --noEmit` clean.
 - **Still to add later (needs UI/decisions):** a guest "track my order" page in the frontend calling the lookup endpoint (trivial, but wants design + 5-locale copy); guest invoice download via the same pair if the client wants it.
 
+### 2.6 Backend hardening round — DONE 2026-08-06 (all unblocked, no client input needed)
+- **Process resilience:** `backend/server.js` now drains gracefully on SIGTERM/SIGINT (stop accepting → finish in-flight → close Mongo → exit; hard-exit timer via `SHUTDOWN_GRACE_MS`, default 10s) and exits non-zero on `uncaughtException`/`unhandledRejection` so the process manager restarts clean. Boot smoke-tested.
+- **Fail-fast env validation:** `src/config/env.config.js` runs before listen. Always requires `MONGODB_URI` + `AUTH_SECRET`; in production additionally refuses to start on missing/localhost `CORS_ORIGIN` or an `AUTH_SECRET` under 32 chars, and warns when `TRUST_PROXY` is unset. Turns silent prod misconfigurations into loud boot failures. `DEPLOY.md` updated.
+- **Instant admin revocation:** admin routes moved from token-role trust (`requireRole('admin')`) to `requireAdmin`, which re-reads the CURRENT role from the users collection on every request (one indexed lookup). Demoting/deleting the admin user in the DB now locks the panel instantly instead of at session expiry. Customer routes still trust the token (cheap tier). Test helpers seed the fixed-uid session users to match.
+- **Admin audit trail:** append-only `audit_events` collection (actor, action, target, meta, ip, at) written fire-and-forget from every admin mutation (order status, product edits, journal posts, exhibits) and both PII CSV exports (GDPR accountability for the email-marketing exports). Read-only `GET /api/admin/audit-events` (latest 200). No admin UI yet; add a simple table tab when convenient.
+- **Atomic order numbers:** `counters` collection + `orders.service.nextOrderNumber()` mint per-year sequential numbers (`NST-2026-0001`) under an atomic `$inc`; `createOrder()` auto-assigns when the payload carries no number. Removes the caller-supplied-number landmine from the checkout build.
+- **CSRF surface trimmed:** dropped `express.urlencoded` (JSON-only API — HTML-form bodies are no longer parsed at all) and added a cross-site mutation guard: POST/PUT/PATCH/DELETE with an Origin header outside the CORS allowlist → 403. Origin-less clients (curl, server-to-server) pass, since they cannot carry a victim's cookie. Belt-and-braces on top of SameSite=Lax.
+- **Known accepted trade-off (documented in code):** the anon rate-limit tier is skippable by sending a fake session cookie (string check, not a decrypt, to avoid doubling crypto per request); such traffic still faces the global tier and 401s.
+- **Verified:** `backend/__tests__/ops.hardening.test.js` (env assertions, revocation, ghost-admin, audit writes + exports, number sequencing, origin guard, form-body rejection); full suite 80/80 green across 10 suites.
+- **Deferred to deploy time (in DEPLOY.md territory):** pino structured logging with request IDs + PII redaction when Resend lands; CI (GitHub Action running backend tests + `npm audit`); HSTS at the proxy; Atlas backups; integer-cents money migration when Stripe lands; TOTP 2FA for the admin account (put to client once real data flows).
+
 ---
 
 ## 3. Pre-launch hardening / deployment chores
@@ -85,7 +96,7 @@
 
 ## Suggested order of attack
 
-1. DONE: sections 2.1 to 2.5 (contact, newsletter, unsubscribe, order-confirmation seam, order-fulfilment plumbing), plus the unblocked section 3 chores.
+1. DONE: sections 2.1 to 2.6 (contact, newsletter, unsubscribe, order-confirmation seam, order-fulfilment plumbing, backend hardening), plus the unblocked section 3 chores.
 2. Chase client on the five blockers in section 1 (commerce decision is the critical path to launch); send him the Stripe recommendation in 1.1 with the Redsys/PayPal question.
 3. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook), then 1.2 (real catalog + public products API), then the guest track-my-order page (2.5 tail).
 4. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
@@ -94,6 +105,7 @@
 
 ## Decision log (client + project decisions, newest first)
 
+- **2026-08-06** · Backend hardening round (2.6): graceful shutdown + crash handlers, fail-fast prod env validation, DB-backed instant admin revocation, append-only admin audit trail, atomic order numbers, JSON-only bodies + Origin mutation guard. Deliberate trade-off logged: anon rate tier skippable via fake cookie (string check kept cheap on purpose). Structured logging, CI, 2FA and integer-cents money deferred to deploy/Stripe time.
 - **2026-08-06** · Built all payment-rail-agnostic fulfilment plumbing ahead of the commerce decision (stock consumption + restock, shipped-mail stub, carrier tracking links, guest orders + public lookup — see 2.5). Guest support decided now, not after the payments choice, because the brief mandates guest checkout regardless of rail. Stripe recommendation drafted into 1.1 to put to the client.
 - **2026-08-04** · Session protocol: this file is the living tracker; read at session start, updated after every session (see `CLAUDE.md`).
 - **2026-08-04** · Stub cleanup: deleted unused `validator.middleware.js` and `broker/` (inline validation is the project convention; no zod/joi churn).
