@@ -49,6 +49,8 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false);
 
   const rootRef = useRef<HTMLElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Light theme: pin the shop inversion + ink nav on this route --- */
@@ -122,6 +124,59 @@ export default function ProductPage() {
     };
     // Entrance runs once per product route.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.slug]);
+
+  /* ---- Spotlight sticky — image scrolls, panel sticks (≥900px) -------- */
+  /* Mirrors StorySection's spotlight sticky: transform-driven via
+     ScrollTrigger onUpdate rather than CSS position:sticky, which
+     misbehaves under Lenis + the transformed [data-main]. On mobile
+     (<900px) the grid collapses to a single column and the panel stacks
+     normally below the image — no sticky needed. */
+  const PDP_STICKY_TOP = 96; // px — clear of the fixed nav
+  useEffect(() => {
+    const grid = gridRef.current;
+    const panel = panelRef.current;
+    if (!grid || !panel) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let cancelled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let ctx: any = null;
+
+    (async () => {
+      const gsapMod = await import("gsap");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gsap: any = (gsapMod as any).gsap ?? (gsapMod as any).default;
+      gsap.registerPlugin(ScrollTrigger);
+      if (cancelled) return;
+
+      ctx = gsap.context(() => {
+        const mm = gsap.matchMedia();
+        mm.add("(min-width: 901px)", () => {
+          const st = ScrollTrigger.create({
+            trigger: grid,
+            start: () => `top ${PDP_STICKY_TOP}`,
+            end: () => `bottom ${PDP_STICKY_TOP + panel.offsetHeight}`,
+            onUpdate(self: { progress: number; start: number; end: number }) {
+              gsap.set(panel, {
+                y: self.progress * Math.max(0, self.end - self.start),
+              });
+            },
+            invalidateOnRefresh: true,
+          });
+          return () => {
+            st.kill();
+            gsap.set(panel, { y: 0 });
+          };
+        });
+      }, grid);
+    })();
+
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
   }, [product?.slug]);
 
   useEffect(
@@ -215,7 +270,7 @@ export default function ProductPage() {
           <span aria-current="page">{size.label}</span>
         </nav>
 
-        <div className="pdp__grid">
+        <div className="pdp__grid" ref={gridRef}>
           {/* ---- Gallery — one photo per product (client feedback 1.0:
                   thumbnail row below the main image removed) ------------ */}
           <section className="pdp__gallery" aria-label="Product image">
@@ -232,7 +287,7 @@ export default function ProductPage() {
           </section>
 
           {/* ---- Details column -------------------------------------- */}
-          <section className="pdp__panel" aria-label="Product details">
+          <section className="pdp__panel" aria-label="Product details" ref={panelRef}>
             <header className="pdp__head" data-rise>
               <h1 className="pdp__name">{product.name}</h1>
               <p className="pdp__subtitle">{t("product.subtitle")}</p>
