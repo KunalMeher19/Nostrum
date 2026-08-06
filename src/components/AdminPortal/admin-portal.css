@@ -926,3 +926,27 @@
   color: var(--ad-muted);
   font-size: 1.1rem;
 }
+
+/* ── Audit trail ──────────────────────────────────────────────────── */
+
+.ad__audit-when {
+  white-space: nowrap;
+  color: var(--ad-muted);
+}
+
+.ad__audit-action {
+  display: block;
+  letter-spacing: 0.06em;
+  color: var(--ad-fg);
+}
+
+.ad__audit-meta {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  color: var(--ad-muted);
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

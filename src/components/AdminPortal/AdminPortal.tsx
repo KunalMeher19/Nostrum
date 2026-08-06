@@ -10,6 +10,7 @@ import {
   euro,
   type AdminCustomer,
   type AdminProduct,
+  type AuditEvent,
   type OrderDetail,
   type OrderStatus,
   type OrderSummary,
@@ -37,7 +38,7 @@ const STATUSES: OrderStatus[] = [
   "cancelled",
 ];
 
-type View = "orders" | "customers" | "shop" | "journal";
+type View = "orders" | "customers" | "shop" | "journal" | "audit";
 
 export default function AdminPortal({ name }: { name: string | null }) {
   const { t, locale } = useLocale();
@@ -61,7 +62,7 @@ export default function AdminPortal({ name }: { name: string | null }) {
         </header>
 
         <nav className="ad__tabs" role="tablist">
-          {(["orders", "customers", "shop", "journal"] as View[]).map((v) => (
+          {(["orders", "customers", "shop", "journal", "audit"] as View[]).map((v) => (
             <button
               key={v}
               type="button"
@@ -79,6 +80,7 @@ export default function AdminPortal({ name }: { name: string | null }) {
         {view === "customers" && <CustomersView />}
         {view === "shop" && <ShopView />}
         {view === "journal" && <JournalAdmin />}
+        {view === "audit" && <AuditView />}
 
         <footer className="ad__foot">
           <Link className="ad__foot-link" href={`/${locale}/account`}>
@@ -389,6 +391,76 @@ function CustomersView() {
                   <td>{dateFmt(c.createdAt)}</td>
                   <td className="is--num">{c.orderCount}</td>
                   <td className="is--num">{euro(c.orderTotal)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Audit trail (read-only, append-only on the backend) ───────────── */
+
+function AuditView() {
+  const { t, locale } = useLocale();
+  const [events, setEvents] = useState<AuditEvent[] | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    api<{ events: AuditEvent[] }>("/api/admin/audit-events")
+      .then((d) => setEvents(d.events))
+      .catch(() => setFailed(true));
+  }, []);
+
+  const whenFmt = (iso: string) =>
+    new Date(iso).toLocaleString(locale, {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  return (
+    <div className="ad__view">
+      <p className="ad__note">{t("admin.audit_note")}</p>
+
+      {events === null && !failed && (
+        <p className="ad__quiet">{t("portal.loading")}</p>
+      )}
+      {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
+      {events !== null && events.length === 0 && (
+        <p className="ad__quiet">{t("admin.audit_none")}</p>
+      )}
+
+      {events !== null && events.length > 0 && (
+        <div className="ad__table-wrap">
+          <table className="ad__table">
+            <thead>
+              <tr>
+                <th>{t("admin.col_when")}</th>
+                <th>{t("admin.col_actor")}</th>
+                <th>{t("admin.col_action")}</th>
+                <th>{t("admin.col_target")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((e) => (
+                <tr key={e.id}>
+                  <td className="ad__audit-when">{whenFmt(e.at)}</td>
+                  <td>{e.actorEmail ?? e.actorId}</td>
+                  <td>
+                    <span className="ad__audit-action">{e.action}</span>
+                    {e.meta && (
+                      <span className="ad__audit-meta">
+                        {Object.entries(e.meta)
+                          .map(([k, v]) => `${k}: ${String(v)}`)
+                          .join(" · ")}
+                      </span>
+                    )}
+                  </td>
+                  <td>{e.target ?? "·"}</td>
                 </tr>
               ))}
             </tbody>

@@ -49,7 +49,8 @@
     "privacy": "Privacy",
     "cookies": "Cookies",
     "legal": "Legal",
-    "back_to_top": "Back to top"
+    "back_to_top": "Back to top",
+    "track": "Track order"
   },
   "contact": {
     "eyebrow": "Contact",
@@ -209,7 +210,9 @@
     "admin_title": "Admin · Nostrum",
     "admin_description": "The back room of the house. Orders, customers and the shelf.",
     "unsubscribe_title": "Unsubscribe · Nostrum",
-    "unsubscribe_description": "Leave the Nostrum Journal."
+    "unsubscribe_description": "Leave the Nostrum Journal.",
+    "track_title": "Track your order · Nostrum",
+    "track_description": "Follow your Nostrum order with your order number and email."
   },
   "account": {
     "eyebrow": "Account",
@@ -289,7 +292,10 @@
     "field_postal": "Postal code",
     "field_country": "Country",
     "save": "Save changes",
-    "saved": "Saved."
+    "saved": "Saved.",
+    "stat_orders": "Orders",
+    "stat_active": "In motion",
+    "stat_spent": "All time"
   },
   "admin": {
     "eyebrow": "The back room",
@@ -355,7 +361,14 @@
     "shown": "Shown",
     "hidden": "Hidden",
     "choose_image": "Choose image",
-    "no_image": "None"
+    "no_image": "None",
+    "tab_audit": "Audit",
+    "audit_note": "Every admin action, recorded as it happens. Read-only.",
+    "audit_none": "Nothing recorded yet.",
+    "col_when": "When",
+    "col_actor": "Actor",
+    "col_action": "Action",
+    "col_target": "Target"
   },
   "journal": {
     "eyebrow": "The journal",
@@ -413,5 +426,18 @@
     "invalid_title": "This link is incomplete.",
     "invalid_line": "Please use the unsubscribe link from one of our letters.",
     "error": "Something slipped. Please try again."
+  },
+  "track": {
+    "eyebrow": "Order tracking",
+    "title": "Follow your oil.",
+    "lede": "Enter your order number and the email used at purchase. No account needed.",
+    "field_number": "Order number",
+    "field_email": "Email",
+    "submit": "Find my order",
+    "working": "One moment",
+    "not_found": "We could not find that order. Check the number and the email, then try again.",
+    "error": "Something slipped. Please try again.",
+    "placed_on": "Placed on",
+    "search_again": "Look up another order"
   }
 }

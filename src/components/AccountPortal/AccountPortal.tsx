@@ -103,6 +103,29 @@ export default function AccountPortal({
           </p>
         </header>
 
+        {orders !== null && orders.length > 0 && (
+          <dl className="pt__stats">
+            <div className="pt__stat">
+              <dt>{t("portal.stat_orders")}</dt>
+              <dd>{orders.length}</dd>
+            </div>
+            <div className="pt__stat">
+              <dt>{t("portal.stat_active")}</dt>
+              <dd>{active.length}</dd>
+            </div>
+            <div className="pt__stat">
+              <dt>{t("portal.stat_spent")}</dt>
+              <dd>
+                {euro(
+                  orders
+                    .filter((o) => o.status !== "cancelled")
+                    .reduce((sum, o) => sum + o.total, 0)
+                )}
+              </dd>
+            </div>
+          </dl>
+        )}
+
         <nav className="pt__tabs" role="tablist">
           <button
             type="button"

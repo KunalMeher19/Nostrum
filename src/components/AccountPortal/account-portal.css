@@ -39,6 +39,38 @@
       var(--pt-panel-b) 100%
     );
   border: 1px solid color-mix(in srgb, var(--pt-gold) 13%, transparent);
+  box-shadow: 0 44px 90px -48px rgba(0, 0, 0, 0.85);
+  animation: pt-enter 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* A single gold keyline along the top edge — the quiet luxury cue. */
+.pt__panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    transparent 4%,
+    color-mix(in srgb, var(--pt-gold) 60%, transparent) 24%,
+    color-mix(in srgb, var(--pt-gold) 30%, transparent) 56%,
+    transparent 90%
+  );
+  pointer-events: none;
+}
+
+@keyframes pt-enter {
+  from {
+    opacity: 0;
+    transform: translateY(1.2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .pt__glow {
@@ -97,6 +129,47 @@
   color: var(--pt-muted);
 }
 
+/* ── Stats strip — three quiet numbers under the greeting ─────────── */
+
+.pt__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 0 2.4rem;
+  border-top: 1px solid var(--pt-hair);
+  border-bottom: 1px solid var(--pt-hair);
+}
+
+.pt__stat {
+  padding: 1.1rem 1.4rem 1.2rem;
+}
+
+.pt__stat:first-child {
+  padding-left: 0.2rem;
+}
+
+.pt__stat + .pt__stat {
+  border-left: 1px solid var(--pt-hair);
+}
+
+.pt__stat dt {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--pt-muted);
+}
+
+.pt__stat dd {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #faf8f2;
+}
+
 /* ── Tabs ─────────────────────────────────────────────────────────── */
 
 .pt__tabs {
@@ -134,6 +207,10 @@
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.pt__tab:hover {
+  color: var(--pt-fg);
+}
+
 .pt__tab.is--on {
   color: var(--pt-fg);
 }
@@ -164,7 +241,28 @@
 }
 
 .pt__order {
+  position: relative;
   border-bottom: 1px solid var(--pt-hair);
+}
+
+/* Hairline gold tick that draws in when the row is touched or open. */
+.pt__order::before {
+  content: "";
+  position: absolute;
+  top: 1.2rem;
+  bottom: 1.2rem;
+  left: -0.9rem;
+  width: 1px;
+  background: var(--pt-gold);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.pt__order:hover::before,
+.pt__order.is--open::before {
+  transform: scaleY(1);
 }
 
 .pt__order-row {
@@ -193,6 +291,12 @@
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   color: #faf8f2;
+  transition: color 0.45s ease;
+}
+
+.pt__order-row:hover .pt__order-number,
+.pt__order.is--open .pt__order-number {
+  color: var(--pt-gold);
 }
 
 .pt__order-date,
@@ -224,6 +328,7 @@
   padding: 0.3rem 0.65rem;
   border-radius: 999px;
   border: 1px solid var(--pt-hair);
+  background: color-mix(in srgb, var(--pt-fg) 3%, transparent);
   color: var(--pt-muted);
   white-space: nowrap;
 }
@@ -686,5 +791,13 @@
 
   .pt__fields {
     grid-template-columns: 1fr;
+  }
+
+  .pt__stat {
+    padding: 0.9rem 0.7rem 1rem;
+  }
+
+  .pt__stat dd {
+    font-size: 1.25rem;
   }
 }

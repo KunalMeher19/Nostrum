@@ -20,6 +20,7 @@ const NAV_LINKS = [
   { href: "/history", labelKey: "footer.history" },
   { href: "/b2b", labelKey: "footer.b2b" },
   { href: "/contact", labelKey: "footer.contact" },
+  { href: "/track", labelKey: "footer.track" },
 ];
 
 const SOCIALS = [

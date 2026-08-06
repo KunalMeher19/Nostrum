@@ -1,0 +1,423 @@
+/* ------------------------------------------------------------------ */
+/* TrackOrderSection — guest order tracking (dark, editorial).          */
+/* Same material language as the portal: olive gradient card on ink,   */
+/* warm gold bloom, film grain, hairlines. The shipping timeline is    */
+/* the one gold moment.                                                */
+/* ------------------------------------------------------------------ */
+
+.tk {
+  --tk-ink: #14160f;
+  --tk-panel-a: #1e2a16;
+  --tk-panel-b: #2c2117;
+  --tk-fg: #edebe3;
+  --tk-muted: #9a978d;
+  --tk-gold: #e6b422;
+  --tk-lime: #a6ce3a;
+  --tk-hair: color-mix(in srgb, #edebe3 12%, transparent);
+
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: clamp(6rem, 12vh, 8.5rem) clamp(1rem, 4vw, 3rem)
+    clamp(3rem, 7vh, 5rem);
+  background-color: var(--tk-ink);
+  color: var(--tk-fg);
+}
+
+.tk__card {
+  position: relative;
+  width: min(100%, 40rem);
+  padding: clamp(2rem, 5vw, 3.5rem);
+  border-radius: 20px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(
+    152deg,
+    var(--tk-panel-a) 0%,
+    color-mix(in srgb, var(--tk-panel-a) 50%, var(--tk-ink)) 48%,
+    var(--tk-panel-b) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--tk-gold) 13%, transparent);
+}
+
+.tk__glow {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(
+      ellipse 75% 50% at 12% 108%,
+      rgba(230, 180, 34, 0.22) 0%,
+      rgba(120, 94, 28, 0.11) 40%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 55% 38% at 95% -10%,
+      rgba(166, 206, 58, 0.08) 0%,
+      transparent 60%
+    );
+  pointer-events: none;
+}
+
+.tk__grain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── Head ─────────────────────────────────────────────────────────── */
+
+.tk__eyebrow {
+  margin: 0 0 1.2em;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-transform: uppercase;
+  color: var(--tk-gold);
+}
+
+.tk__title {
+  margin: 0 0 0.4em;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
+  font-size: clamp(2.1rem, 5vw, 3.1rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #faf8f2;
+}
+
+.tk__title.is--number {
+  letter-spacing: 0.04em;
+  font-size: clamp(1.8rem, 4.4vw, 2.6rem);
+}
+
+.tk__lede {
+  margin: 0 0 2rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--tk-muted);
+}
+
+.tk__state {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--tk-gold);
+}
+
+.tk__state--shipped {
+  color: var(--tk-lime);
+}
+.tk__state--delivered,
+.tk__state--cancelled {
+  color: var(--tk-muted);
+}
+
+/* ── Lookup form ──────────────────────────────────────────────────── */
+
+.tk__form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.tk__field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tk__field label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--tk-muted);
+}
+
+.tk__field input {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.3rem 0 0.6rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.95rem;
+  color: var(--tk-fg);
+  border-bottom: 1px solid var(--tk-hair);
+  border-radius: 0;
+  outline: none;
+}
+
+.tk__field input::placeholder {
+  color: color-mix(in srgb, var(--tk-muted) 55%, transparent);
+}
+
+.tk__field-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--tk-lime);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.tk__field:focus-within .tk__field-line {
+  transform: scaleX(1);
+}
+
+.tk__cta {
+  justify-self: start;
+  margin-top: 0.4rem;
+  padding: 15px 34px;
+  border: 1px solid color-mix(in srgb, var(--tk-gold) 42%, transparent);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--tk-fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tk__cta:hover:not(:disabled) {
+  background: var(--tk-gold);
+  border-color: var(--tk-gold);
+  color: var(--tk-ink);
+}
+
+.tk__cta:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.tk__note {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #c8836f;
+}
+
+/* ── Found order ──────────────────────────────────────────────────── */
+
+.tk__result {
+  animation: tk-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tk-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The shipping timeline — the one gold moment. */
+.tk__timeline {
+  list-style: none;
+  display: flex;
+  margin: 0.4rem 0 1.8rem;
+  padding: 0;
+}
+
+.tk__step {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.9rem;
+}
+
+.tk__step::before {
+  content: "";
+  position: absolute;
+  top: 3.5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--tk-hair);
+}
+
+.tk__step.is--done::before {
+  background: linear-gradient(
+    90deg,
+    var(--tk-gold),
+    color-mix(in srgb, var(--tk-gold) 55%, transparent)
+  );
+}
+
+.tk__step-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tk-ink);
+  border: 1px solid var(--tk-hair);
+  transition: background-color 0.6s ease;
+}
+
+.tk__step.is--done .tk__step-dot {
+  background: var(--tk-gold);
+  border-color: var(--tk-gold);
+}
+
+.tk__step.is--now .tk__step-dot {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tk-gold) 22%, transparent);
+}
+
+.tk__step-label {
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tk-muted);
+}
+
+.tk__step.is--done .tk__step-label {
+  color: var(--tk-fg);
+}
+
+.tk__step-date {
+  font-size: 0.66rem;
+  color: var(--tk-muted);
+}
+
+/* Carrier + address */
+.tk__ship {
+  margin-bottom: 1.6rem;
+}
+
+.tk__ship-line {
+  margin: 0 0 1rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--tk-fg);
+}
+
+.tk__mini-label {
+  display: block;
+  font-size: 0.64rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--tk-muted);
+  margin-bottom: 0.3rem;
+}
+
+.tk__tracking-link {
+  color: var(--tk-lime);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s ease;
+}
+
+.tk__tracking-link:hover {
+  opacity: 0.75;
+}
+
+/* Items ledger */
+.tk__items {
+  list-style: none;
+  margin: 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--tk-hair);
+  font-size: 0.88rem;
+}
+
+.tk__items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+}
+
+.tk__items-ship {
+  color: var(--tk-muted);
+  font-size: 0.82rem;
+}
+
+.tk__items-total {
+  border-top: 1px solid var(--tk-hair);
+  margin-top: 0.4rem;
+  padding-top: 0.7rem !important;
+  color: #faf8f2;
+}
+
+/* Search again */
+.tk__again {
+  appearance: none;
+  background: none;
+  border: none;
+  margin-top: 1.8rem;
+  padding: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tk-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+  transition:
+    color 0.4s ease,
+    text-decoration-color 0.4s ease;
+}
+
+.tk__again:hover {
+  color: var(--tk-fg);
+  text-decoration-color: var(--tk-gold);
+}
+
+/* ── Reduced motion / small screens ───────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tk * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .tk__timeline {
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .tk__step {
+    padding-top: 0;
+    padding-left: 1.2rem;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+  .tk__step::before {
+    top: 0;
+    bottom: -0.9rem;
+    left: 3.5px;
+    right: auto;
+    width: 1px;
+    height: auto;
+  }
+  .tk__step:last-child::before {
+    bottom: 0;
+  }
+  .tk__step-dot {
+    top: 0.15rem;
+  }
+}

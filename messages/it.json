@@ -49,7 +49,8 @@
     "privacy": "Privacy",
     "cookies": "Cookies",
     "legal": "Legale",
-    "back_to_top": "Torna su"
+    "back_to_top": "Torna su",
+    "track": "Traccia ordine"
   },
   "contact": {
     "eyebrow": "Contatti",
@@ -209,7 +210,9 @@
     "admin_title": "Admin · Nostrum",
     "admin_description": "Il retrobottega della casa. Ordini, clienti e lo scaffale.",
     "unsubscribe_title": "Annulla iscrizione · Nostrum",
-    "unsubscribe_description": "Lascia il Diario Nostrum."
+    "unsubscribe_description": "Lascia il Diario Nostrum.",
+    "track_title": "Traccia il tuo ordine · Nostrum",
+    "track_description": "Segui il tuo ordine Nostrum con numero d'ordine ed email."
   },
   "account": {
     "eyebrow": "Account",
@@ -289,7 +292,10 @@
     "field_postal": "Codice postale",
     "field_country": "Paese",
     "save": "Salva modifiche",
-    "saved": "Salvato."
+    "saved": "Salvato.",
+    "stat_orders": "Ordini",
+    "stat_active": "In viaggio",
+    "stat_spent": "In totale"
   },
   "admin": {
     "eyebrow": "Il retrobottega",
@@ -355,7 +361,14 @@
     "shown": "Visibile",
     "hidden": "Nascosta",
     "choose_image": "Scegli immagine",
-    "no_image": "Nessuna"
+    "no_image": "Nessuna",
+    "tab_audit": "Audit",
+    "audit_note": "Ogni azione del pannello, registrata al momento. Sola lettura.",
+    "audit_none": "Ancora nessun registro.",
+    "col_when": "Quando",
+    "col_actor": "Autore",
+    "col_action": "Azione",
+    "col_target": "Oggetto"
   },
   "journal": {
     "eyebrow": "Il giornale",
@@ -413,5 +426,18 @@
     "invalid_title": "Questo link è incompleto.",
     "invalid_line": "Usa il link di annullamento da una delle nostre lettere.",
     "error": "Qualcosa è andato storto. Riprova."
+  },
+  "track": {
+    "eyebrow": "Traccia il tuo ordine",
+    "title": "Segui il tuo olio.",
+    "lede": "Inserisci il numero d'ordine e l'email dell'acquisto. Nessun account necessario.",
+    "field_number": "Numero d'ordine",
+    "field_email": "Email",
+    "submit": "Trova il mio ordine",
+    "working": "Un momento",
+    "not_found": "Non troviamo quest'ordine. Controlla il numero e l'email e riprova.",
+    "error": "Qualcosa è andato storto. Riprova.",
+    "placed_on": "Effettuato il",
+    "search_again": "Cerca un altro ordine"
   }
 }

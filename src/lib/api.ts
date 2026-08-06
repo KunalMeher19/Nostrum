@@ -152,6 +152,30 @@ export function euro(value: number) {
   return "€" + value.toFixed(2).replace(".", ",");
 }
 
+/* ── Guest order tracking (no account) ───────────────────────────── */
+
+/* POST keeps the email out of URLs/logs; the number + purchase-email
+   pair is the ownership proof (same model as carrier tracking pages). */
+export function lookupOrder(payload: { number: string; email: string }) {
+  return api<{ order: OrderDetail }>("/api/orders/lookup", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/* ── Admin audit trail (read-only) ───────────────────────────────── */
+
+export type AuditEvent = {
+  id: string;
+  actorId: string;
+  actorEmail: string | null;
+  action: string;
+  target: string | null;
+  meta: Record<string, unknown> | null;
+  ip: string | null;
+  at: string;
+};
+
 /* ── Public writes: contact form + newsletter (GDPR) ─────────────── */
 
 export type ContactTopic = "general" | "professional" | "press";

@@ -49,7 +49,8 @@
     "privacy": "Privacitat",
     "cookies": "Cookies",
     "legal": "Legal",
-    "back_to_top": "Tornar amunt"
+    "back_to_top": "Tornar amunt",
+    "track": "Seguiment"
   },
   "contact": {
     "eyebrow": "Contacte",
@@ -209,7 +210,9 @@
     "admin_title": "Admin · Nostrum",
     "admin_description": "La rebotiga de la casa. Comandes, clients i la prestatgeria.",
     "unsubscribe_title": "Donar-se de baixa · Nostrum",
-    "unsubscribe_description": "Deixa el Diari Nostrum."
+    "unsubscribe_description": "Deixa el Diari Nostrum.",
+    "track_title": "Segueix la teva comanda · Nostrum",
+    "track_description": "Segueix la teva comanda Nostrum amb el número de comanda i el correu."
   },
   "account": {
     "eyebrow": "Compte",
@@ -289,7 +292,10 @@
     "field_postal": "Codi postal",
     "field_country": "País",
     "save": "Desar canvis",
-    "saved": "Desat."
+    "saved": "Desat.",
+    "stat_orders": "Comandes",
+    "stat_active": "En camí",
+    "stat_spent": "En total"
   },
   "admin": {
     "eyebrow": "La rebotiga",
@@ -355,7 +361,14 @@
     "shown": "Visible",
     "hidden": "Oculta",
     "choose_image": "Triar imatge",
-    "no_image": "Cap"
+    "no_image": "Cap",
+    "tab_audit": "Auditoria",
+    "audit_note": "Cada acció del panell, registrada a l'instant. Només lectura.",
+    "audit_none": "Encara no hi ha registres.",
+    "col_when": "Quan",
+    "col_actor": "Autor",
+    "col_action": "Acció",
+    "col_target": "Objectiu"
   },
   "journal": {
     "eyebrow": "El diari",
@@ -413,5 +426,18 @@
     "invalid_title": "Aquest enllaç és incomplet.",
     "invalid_line": "Fes servir l'enllaç de baixa d'una de les nostres cartes.",
     "error": "Alguna cosa ha fallat. Torna-ho a provar."
+  },
+  "track": {
+    "eyebrow": "Seguiment de comanda",
+    "title": "Segueix el teu oli.",
+    "lede": "Introdueix el número de comanda i el correu de la compra. Sense necessitat de compte.",
+    "field_number": "Número de comanda",
+    "field_email": "Correu electrònic",
+    "submit": "Cerca la meva comanda",
+    "working": "Un moment",
+    "not_found": "No hem trobat aquesta comanda. Revisa el número i el correu i torna-ho a provar.",
+    "error": "Alguna cosa ha fallat. Torna-ho a provar.",
+    "placed_on": "Feta el",
+    "search_again": "Cerca una altra comanda"
   }
 }

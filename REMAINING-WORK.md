@@ -1,8 +1,8 @@
 # Nostrum · Remaining Work
 
-> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5) and the backend hardening round (2.6).
-> Checked against `NOSTRUM-DESIGN.md`, client feedback rounds, and the current codebase.
-> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal, admin portal (orders / customers CSV / shop editor / journal authoring), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup), rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md.
+> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass).
+> Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
+> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md.
 
 ---
 
@@ -62,18 +62,32 @@
 - **Tracking links:** `orders.service.js` maps known carriers (SEUR, Correos Express, Correos, MRW, GLS, DHL, UPS) to tracking-page URLs; order detail responses now include `trackingUrl`, and the customer portal renders the tracking code as a link (`AccountPortal.tsx`, lime underline style). Unknown carriers degrade to the bare code.
 - **Guest orders:** `Order.userId` is now optional (was required; changed 2026-08-06 because the brief requires guest checkout). Public `POST /api/orders/lookup` (publicWrite limiter) returns full order detail for the exact order-number + purchase-email pair; the pair is the ownership proof, same model as carrier tracking pages. Account order lists are unaffected.
 - **Verified:** `backend/__tests__/orders.test.js` (stock consume/reject/rollback, ship-mail once, restock once, tracking URLs, lookup happy/miss/validation) + updated seam test; full suite 69/69 green; frontend `tsc --noEmit` clean.
-- **Still to add later (needs UI/decisions):** a guest "track my order" page in the frontend calling the lookup endpoint (trivial, but wants design + 5-locale copy); guest invoice download via the same pair if the client wants it.
+- **Guest track-my-order page — DONE 2026-08-06** (was listed here as "still to add later" when the lookup endpoint shipped earlier the same day): `/[locale]/track` (`src/app/[locale]/track/page.tsx` + `src/components/TrackOrderSection/`), dark portal material language, number + email form → full order view (gold timeline, items ledger, carrier tracking link), enumeration-safe error copy, `footer.track` link in the site footer nav, `track.*` + `meta.track_*` copy in all 5 locales. Verified: `tsc --noEmit` + `next build` clean, route prerenders in all 5 locales. Still optional later: guest invoice download via the same number+email pair if the client wants it.
 
 ### 2.6 Backend hardening round — DONE 2026-08-06 (all unblocked, no client input needed)
 - **Process resilience:** `backend/server.js` now drains gracefully on SIGTERM/SIGINT (stop accepting → finish in-flight → close Mongo → exit; hard-exit timer via `SHUTDOWN_GRACE_MS`, default 10s) and exits non-zero on `uncaughtException`/`unhandledRejection` so the process manager restarts clean. Boot smoke-tested.
 - **Fail-fast env validation:** `src/config/env.config.js` runs before listen. Always requires `MONGODB_URI` + `AUTH_SECRET`; in production additionally refuses to start on missing/localhost `CORS_ORIGIN` or an `AUTH_SECRET` under 32 chars, and warns when `TRUST_PROXY` is unset. Turns silent prod misconfigurations into loud boot failures. `DEPLOY.md` updated.
 - **Instant admin revocation:** admin routes moved from token-role trust (`requireRole('admin')`) to `requireAdmin`, which re-reads the CURRENT role from the users collection on every request (one indexed lookup). Demoting/deleting the admin user in the DB now locks the panel instantly instead of at session expiry. Customer routes still trust the token (cheap tier). Test helpers seed the fixed-uid session users to match.
-- **Admin audit trail:** append-only `audit_events` collection (actor, action, target, meta, ip, at) written fire-and-forget from every admin mutation (order status, product edits, journal posts, exhibits) and both PII CSV exports (GDPR accountability for the email-marketing exports). Read-only `GET /api/admin/audit-events` (latest 200). No admin UI yet; add a simple table tab when convenient.
+- **Admin audit trail:** append-only `audit_events` collection (actor, action, target, meta, ip, at) written fire-and-forget from every admin mutation (order status, product edits, journal posts, exhibits) and both PII CSV exports (GDPR accountability for the email-marketing exports). Read-only `GET /api/admin/audit-events` (latest 200). Admin UI added 2026-08-06 (was endpoint-only at first): an "Audit" tab in `AdminPortal.tsx` renders the latest 200 events as a read-only table (when / actor / action + meta / target), `admin.tab_audit` + column copy in all 5 locales.
 - **Atomic order numbers:** `counters` collection + `orders.service.nextOrderNumber()` mint per-year sequential numbers (`NST-2026-0001`) under an atomic `$inc`; `createOrder()` auto-assigns when the payload carries no number. Removes the caller-supplied-number landmine from the checkout build.
 - **CSRF surface trimmed:** dropped `express.urlencoded` (JSON-only API — HTML-form bodies are no longer parsed at all) and added a cross-site mutation guard: POST/PUT/PATCH/DELETE with an Origin header outside the CORS allowlist → 403. Origin-less clients (curl, server-to-server) pass, since they cannot carry a victim's cookie. Belt-and-braces on top of SameSite=Lax.
 - **Known accepted trade-off (documented in code):** the anon rate-limit tier is skippable by sending a fake session cookie (string check, not a decrypt, to avoid doubling crypto per request); such traffic still faces the global tier and 401s.
 - **Verified:** `backend/__tests__/ops.hardening.test.js` (env assertions, revocation, ghost-admin, audit writes + exports, number sequencing, origin guard, form-body rejection); full suite 80/80 green across 10 suites.
 - **Deferred to deploy time (in DEPLOY.md territory):** pino structured logging with request IDs + PII redaction when Resend lands; CI (GitHub Action running backend tests + `npm audit`); HSTS at the proxy; Atlas backups; integer-cents money migration when Stripe lands; TOTP 2FA for the admin account (put to client once real data flows).
+
+### 2.7 Frontend gap round vs. the brief PDF — DONE 2026-08-06
+
+Re-audited the frontend against the original client brief (`assests/Nostrum.pdf`). Confirmed implemented: quick add-to-cart on hover, product page (size selector, x1/x2/x3 + free custom quantity, description/shipping tabs), full client portal, footer structure, History as `/origins`, contact form, cookie banner, 5 locales. Gaps found and their dispositions:
+
+- **Guest track-my-order page — BUILT** (see 2.5).
+- **Admin audit tab — BUILT** (see 2.6).
+- **Customer portal premium pass — BUILT:** stats strip under the greeting (orders / in motion / all-time spend, cancelled orders excluded from spend; `portal.stat_*` in 5 locales), gold top keyline + panel entrance animation + soft shadow, gold hairline tick on hovered/open order rows, order-number gold hover, tonal status chips, tab hover states. All inside the existing dark ledger language, reduced-motion safe (blanket rule already in the file).
+- **Floating WhatsApp bubble (every page, brief §03) — PARKED by project decision 2026-08-06.** Not built yet; currently WhatsApp appears only in the contact panel + footer link. Number itself is still blocked on client (1.5), but the bubble can be built with a placeholder whenever unparked. Must be the on-brand dark pill, not the stock green widget.
+- **B2B block at the END of the Shop + Home CTA (brief §04) — PARKED by project decision 2026-08-06.** Today only a top-of-shop B2B button routing to the contact form ("professional" topic) exists.
+- **Search in the top nav (brief §04 sketch) — ON HOLD by project decision 2026-08-06.** With a 3-product catalog it may be pointless; put "skip or build" to the client alongside the commerce question.
+- **Signature motion ideas (brief §07: light streaks, spinning olives, sketch illustration, pour CTA, leaf-sound toggle) — still open, optional.** Brief says "options to explore, pick what looks best"; none built (frame-sequence hero was disabled after feedback 1.0). Propose one (spinning olives or pour CTA) or close the topic with the client.
+
+Verified: frontend `tsc --noEmit` and `next build` clean; no backend changes this round.
 
 ---
 
@@ -96,15 +110,17 @@
 
 ## Suggested order of attack
 
-1. DONE: sections 2.1 to 2.6 (contact, newsletter, unsubscribe, order-confirmation seam, order-fulfilment plumbing, backend hardening), plus the unblocked section 3 chores.
-2. Chase client on the five blockers in section 1 (commerce decision is the critical path to launch); send him the Stripe recommendation in 1.1 with the Redsys/PayPal question.
-3. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook), then 1.2 (real catalog + public products API), then the guest track-my-order page (2.5 tail).
-4. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
+1. DONE: sections 2.1 to 2.7 (contact, newsletter, unsubscribe, order-confirmation seam, order-fulfilment plumbing, backend hardening, frontend gap round incl. /track page + audit tab + portal premium pass), plus the unblocked section 3 chores.
+2. Chase client on the five blockers in section 1 (commerce decision is the critical path to launch); send him the Stripe recommendation in 1.1 with the Redsys/PayPal question, plus the nav-search "skip or build" question (2.7).
+3. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook), then 1.2 (real catalog + public products API).
+4. Unpark when ready: WhatsApp bubble + B2B end-of-shop block (2.7, both buildable with placeholders any time).
+5. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
 
 ---
 
 ## Decision log (client + project decisions, newest first)
 
+- **2026-08-06** · Frontend gap round vs. the brief PDF (2.7): built the guest /track page (5 locales, footer-linked), the admin Audit tab, and a premium pass on the customer portal (stats strip, gold keyline, row ticks). Parked by project decision: floating WhatsApp bubble and B2B end-of-shop block (both buildable with placeholders, do when unparked); nav search ON HOLD pending a "skip or build" answer from the client; signature motion ideas from brief §07 remain open options.
 - **2026-08-06** · Backend hardening round (2.6): graceful shutdown + crash handlers, fail-fast prod env validation, DB-backed instant admin revocation, append-only admin audit trail, atomic order numbers, JSON-only bodies + Origin mutation guard. Deliberate trade-off logged: anon rate tier skippable via fake cookie (string check kept cheap on purpose). Structured logging, CI, 2FA and integer-cents money deferred to deploy/Stripe time.
 - **2026-08-06** · Built all payment-rail-agnostic fulfilment plumbing ahead of the commerce decision (stock consumption + restock, shipped-mail stub, carrier tracking links, guest orders + public lookup — see 2.5). Guest support decided now, not after the payments choice, because the brief mandates guest checkout regardless of rail. Stripe recommendation drafted into 1.1 to put to the client.
 - **2026-08-04** · Session protocol: this file is the living tracker; read at session start, updated after every session (see `CLAUDE.md`).

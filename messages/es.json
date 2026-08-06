@@ -49,7 +49,8 @@
     "privacy": "Privacidad",
     "cookies": "Cookies",
     "legal": "Legal",
-    "back_to_top": "Volver arriba"
+    "back_to_top": "Volver arriba",
+    "track": "Seguimiento"
   },
   "contact": {
     "eyebrow": "Contacto",
@@ -209,7 +210,9 @@
     "admin_title": "Admin · Nostrum",
     "admin_description": "La trastienda de la casa. Pedidos, clientes y la estantería.",
     "unsubscribe_title": "Darse de baja · Nostrum",
-    "unsubscribe_description": "Deja el Diario Nostrum."
+    "unsubscribe_description": "Deja el Diario Nostrum.",
+    "track_title": "Sigue tu pedido · Nostrum",
+    "track_description": "Sigue tu pedido Nostrum con tu número de pedido y tu email."
   },
   "account": {
     "eyebrow": "Cuenta",
@@ -289,7 +292,10 @@
     "field_postal": "Código postal",
     "field_country": "País",
     "save": "Guardar cambios",
-    "saved": "Guardado."
+    "saved": "Guardado.",
+    "stat_orders": "Pedidos",
+    "stat_active": "En camino",
+    "stat_spent": "En total"
   },
   "admin": {
     "eyebrow": "La trastienda",
@@ -355,7 +361,14 @@
     "shown": "Visible",
     "hidden": "Oculta",
     "choose_image": "Elegir imagen",
-    "no_image": "Ninguna"
+    "no_image": "Ninguna",
+    "tab_audit": "Auditoría",
+    "audit_note": "Cada acción del panel, registrada al momento. Solo lectura.",
+    "audit_none": "Aún no hay registros.",
+    "col_when": "Cuándo",
+    "col_actor": "Autor",
+    "col_action": "Acción",
+    "col_target": "Objetivo"
   },
   "journal": {
     "eyebrow": "El diario",
@@ -413,5 +426,18 @@
     "invalid_title": "Este enlace está incompleto.",
     "invalid_line": "Usa el enlace de baja de una de nuestras cartas.",
     "error": "Algo ha fallado. Inténtalo de nuevo."
+  },
+  "track": {
+    "eyebrow": "Seguimiento de pedido",
+    "title": "Sigue tu aceite.",
+    "lede": "Introduce tu número de pedido y el email de la compra. Sin necesidad de cuenta.",
+    "field_number": "Número de pedido",
+    "field_email": "Email",
+    "submit": "Buscar mi pedido",
+    "working": "Un momento",
+    "not_found": "No encontramos ese pedido. Revisa el número y el email e inténtalo de nuevo.",
+    "error": "Algo ha fallado. Inténtalo de nuevo.",
+    "placed_on": "Realizado el",
+    "search_again": "Buscar otro pedido"
   }
 }
