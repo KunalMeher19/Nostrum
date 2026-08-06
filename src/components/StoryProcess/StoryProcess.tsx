@@ -229,7 +229,13 @@ export default function StoryProcess() {
       const W = track.offsetWidth;
       const H = track.offsetHeight;
       const d = buildWildPath(computeNodes(W), W, H);
-      if (d === sampledD) return total; // geometry unchanged — reuse samples
+      if (d === sampledD) {
+        // Even if geometry string didn't change (e.g., nodes didn't move),
+        // track height (H) might have changed due to padding/viewport resizes.
+        // We MUST update the viewBox, or the SVG will be vertically squished.
+        svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+        return total; // geometry unchanged — reuse samples
+      }
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       line.setAttribute("d", d);
       total = line.getTotalLength();
@@ -346,13 +352,13 @@ export default function StoryProcess() {
           scrollTrigger: {
             trigger: root,
             start: "top 55%",
-            // 85% (not 92/95) — on browsers with heavy chrome (Brave: tabs +
-            // address bar + bookmarks bar + shields) the viewport is ≈200px
-            // shorter, which stretches the scroll range and delays the line.
-            // 85% ensures the full draw completes within Step 05's area on
-            // ANY viewport height so the line arrives as the step enters.
-            end: "85% bottom",
-            scrub: 1,
+            // Tie the end of the line draw directly to the final step so it
+            // always finishes precisely when Step 05 is in focus, regardless
+            // of how much browser chrome (Brave vs Chrome) affects the overall
+            // viewport height or scroll distances.
+            endTrigger: steps.length ? steps[steps.length - 1] : root,
+            end: steps.length ? "center 80%" : "85% bottom",
+            scrub: 0.5,
             invalidateOnRefresh: true,
             // Rebuild the path whenever ScrollTrigger recomputes (resize / the
             // display:none→visible flip after the hero loader), so it always
