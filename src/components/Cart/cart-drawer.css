@@ -1,0 +1,552 @@
+/* ------------------------------------------------------------------ */
+/* CartDrawer — site chrome, same material family as the menu takeover: */
+/* live page blurred beneath a dark veil; an ink panel slides in from    */
+/* the right. Gold hairlines, off-white text, lime reserved for the      */
+/* focus ring. All motion is CSS transitions keyed off .is--open;        */
+/* reduced-motion cuts instantly.                                        */
+/* ------------------------------------------------------------------ */
+
+.cart-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 120; /* above header bar (100) + menu screen (90); below curtain (5000) */
+  visibility: hidden;
+  /* Hold visibility until the exit transitions finish */
+  transition: visibility 0s linear 0.9s;
+}
+
+.cart-drawer.is--open {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+/* ---- Veil: blurred live page + warm dark scrim ----------------------- */
+.cart-drawer__veil {
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, #14160f 55%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.7s var(--ease-lux);
+  cursor: pointer;
+}
+
+.cart-drawer.is--open .cart-drawer__veil {
+  opacity: 1;
+}
+
+/* ---- Panel ------------------------------------------------------------ */
+.cart-drawer__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(29rem, 100vw);
+  display: flex;
+  flex-direction: column;
+  background-color: color-mix(in srgb, var(--nostrum-shop-ink) 96%, #e6b422);
+  color: var(--nostrum-warm-white);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  border-left: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 40%, transparent);
+  box-shadow: -30px 0 80px rgba(0, 0, 0, 0.45);
+  transform: translateX(102%);
+  transition: transform 0.9s var(--ease-lux);
+}
+
+.cart-drawer.is--open .cart-drawer__panel {
+  transform: translateX(0);
+}
+
+/* Soft warm glow along the panel's inner edge — the "olive lamp" touch */
+.cart-drawer__panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 40% at 100% 0%,
+    color-mix(in srgb, var(--nostrum-gold-metal) 9%, transparent) 0%,
+    transparent 60%
+  );
+}
+
+/* ---- Head ------------------------------------------------------------- */
+.cart-drawer__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1.6rem, 4vh, 2.4rem) clamp(1.5rem, 4vw, 2.2rem) 1.4rem;
+}
+
+.cart-drawer__eyebrow {
+  margin: 0 0 0.55rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal);
+}
+
+.cart-drawer__title {
+  margin: 0;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.7rem, 3.2vw, 2.1rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
+.cart-drawer__count {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 55%, transparent);
+  white-space: nowrap;
+}
+
+.cart-drawer__close {
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 1px solid
+    color-mix(in srgb, var(--nostrum-warm-white) 22%, transparent);
+  border-radius: 50%;
+  color: var(--nostrum-warm-white);
+  cursor: pointer;
+  transition:
+    border-color 0.4s var(--ease-lux),
+    color 0.4s var(--ease-lux),
+    transform 0.4s var(--ease-lux);
+}
+
+.cart-drawer__close:hover {
+  border-color: var(--nostrum-gold-metal);
+  color: var(--nostrum-gold-metal);
+  transform: rotate(90deg);
+}
+
+.cart-drawer__close:focus-visible,
+.cart-drawer__cta:focus-visible,
+.cart-drawer__view:focus-visible,
+.cart-drawer__continue:focus-visible,
+.cart-drawer__suggest-card:focus-visible {
+  outline: 1px solid var(--nostrum-lime);
+  outline-offset: 3px;
+}
+
+.cart-drawer__rule {
+  height: 1px;
+  margin: 0 clamp(1.5rem, 4vw, 2.2rem);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--nostrum-gold-metal) 55%, transparent),
+    color-mix(in srgb, var(--nostrum-gold-metal) 8%, transparent)
+  );
+}
+
+/* ---- Scrollable body --------------------------------------------------- */
+.cart-drawer__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.4rem clamp(1.5rem, 4vw, 2.2rem) 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--nostrum-gold-metal) 35%, transparent)
+    transparent;
+}
+
+/* ---- Line items --------------------------------------------------------- */
+.cart-drawer__list {
+  list-style: none;
+  margin: 0;
+}
+
+.cart-drawer__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1.1rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--nostrum-warm-white) 10%, transparent);
+  /* Stagger-in: rows drift up as the panel arrives */
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s var(--ease-lux),
+    transform 0.7s var(--ease-lux);
+}
+
+.cart-drawer.is--open .cart-drawer__row {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cart-drawer.is--open .cart-drawer__row:nth-child(1) { transition-delay: 0.22s; }
+.cart-drawer.is--open .cart-drawer__row:nth-child(2) { transition-delay: 0.3s; }
+.cart-drawer.is--open .cart-drawer__row:nth-child(3) { transition-delay: 0.38s; }
+.cart-drawer.is--open .cart-drawer__row:nth-child(n + 4) { transition-delay: 0.46s; }
+
+.cart-drawer__row-media {
+  width: 4.6rem;
+  aspect-ratio: 4 / 4.6;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(
+      80% 60% at 50% 35%,
+      color-mix(in srgb, var(--nostrum-gold-metal) 10%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, var(--nostrum-warm-white) 5%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 30%, transparent);
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1.5rem;
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 45%, transparent);
+  user-select: none;
+}
+
+.cart-drawer__row-name {
+  margin: 0 0 0.3em;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.cart-drawer__row-sub {
+  margin: 0 0 0.9em;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 55%, transparent);
+}
+
+.cart-drawer__row-sub em {
+  font-style: normal;
+  color: var(--nostrum-gold-metal);
+}
+
+.cart-drawer__row-foot {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.cart-drawer__qty {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid
+    color-mix(in srgb, var(--nostrum-warm-white) 24%, transparent);
+}
+
+.cart-drawer__qty button {
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--nostrum-warm-white);
+  transition: color 0.3s var(--ease-lux), background-color 0.3s var(--ease-lux);
+}
+
+.cart-drawer__qty button:hover {
+  color: var(--nostrum-gold-metal);
+  background-color: color-mix(in srgb, var(--nostrum-warm-white) 6%, transparent);
+}
+
+.cart-drawer__qty span {
+  min-width: 2rem;
+  text-align: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.cart-drawer__remove {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 45%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 0.35em;
+  transition: color 0.4s var(--ease-lux);
+}
+
+.cart-drawer__remove:hover {
+  color: var(--nostrum-warm-white);
+}
+
+.cart-drawer__row-price {
+  margin: 0;
+  align-self: start;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--nostrum-warm-white);
+}
+
+/* ---- Foot ---------------------------------------------------------------- */
+.cart-drawer__foot {
+  flex: none;
+  padding: 0 clamp(1.5rem, 4vw, 2.2rem) clamp(1.4rem, 3.5vh, 2rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-drawer__foot .cart-drawer__rule {
+  margin: 0 0 1.2rem;
+}
+
+.cart-drawer__subtotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 70%, transparent);
+}
+
+.cart-drawer__subtotal span:last-child {
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--nostrum-warm-white);
+}
+
+.cart-drawer__note {
+  margin: 0.7rem 0 1.2rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 42%, transparent);
+}
+
+/* Primary — gold-edged, quietly disabled until payments land (§1.1) */
+.cart-drawer__checkout {
+  width: 100%;
+  padding: 1em 1.4em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45em;
+  background-color: color-mix(in srgb, var(--nostrum-gold-metal) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nostrum-gold-metal) 55%, transparent);
+  color: var(--nostrum-warm-white);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.cart-drawer__checkout span {
+  font-size: 0.54rem;
+  letter-spacing: 0.2em;
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 85%, white);
+}
+
+.cart-drawer__checkout:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Secondary — full cart page */
+.cart-drawer__view {
+  margin-top: 0.7rem;
+  width: 100%;
+  padding: 1em 1.4em;
+  text-align: center;
+  border: 1px solid color-mix(in srgb, var(--nostrum-warm-white) 28%, transparent);
+  color: var(--nostrum-warm-white);
+  text-decoration: none;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  transition: border-color 0.4s var(--ease-lux), color 0.4s var(--ease-lux);
+}
+
+.cart-drawer__view:hover {
+  border-color: var(--nostrum-gold-metal);
+  color: var(--nostrum-gold-metal);
+}
+
+/* Tertiary — keep shopping (closes the drawer) */
+.cart-drawer__continue {
+  margin: 1.1rem auto 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 55%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 0.4em;
+  transition: color 0.4s var(--ease-lux);
+}
+
+.cart-drawer__continue:hover {
+  color: var(--nostrum-warm-white);
+}
+
+/* ---- Empty state ---------------------------------------------------------- */
+.cart-drawer__body--empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2.5rem;
+  padding-top: clamp(1.5rem, 4vh, 2.5rem);
+}
+
+.cart-drawer__empty-title {
+  margin: 0 0 0.6em;
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 2.6vw, 1.85rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.cart-drawer__empty-note {
+  margin: 0 0 1.8em;
+  max-width: 22rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 62%, transparent);
+}
+
+.cart-drawer__cta {
+  display: inline-block;
+  padding: 1em 2.2em;
+  background-color: var(--nostrum-warm-white);
+  border: 1px solid var(--nostrum-warm-white);
+  color: var(--nostrum-shop-ink);
+  text-decoration: none;
+  font-size: 0.7rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  transition:
+    background-color 0.4s var(--ease-lux),
+    color 0.4s var(--ease-lux);
+}
+
+.cart-drawer__cta:hover {
+  background-color: transparent;
+  color: var(--nostrum-warm-white);
+}
+
+/* ---- Suggestions ("From the collection") ---------------------------------- */
+.cart-drawer__suggest-eyebrow {
+  margin: 0 0 1rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--nostrum-gold-metal);
+}
+
+.cart-drawer__suggest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-drawer__suggest-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0.6rem;
+  margin: 0 -0.6rem;
+  text-decoration: none;
+  color: var(--nostrum-warm-white);
+  border-top: 1px solid
+    color-mix(in srgb, var(--nostrum-warm-white) 8%, transparent);
+  transition: background-color 0.4s var(--ease-lux);
+}
+
+.cart-drawer__suggest-list li:last-child .cart-drawer__suggest-card {
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--nostrum-warm-white) 8%, transparent);
+}
+
+.cart-drawer__suggest-card:hover {
+  background-color: color-mix(in srgb, var(--nostrum-warm-white) 4%, transparent);
+}
+
+.cart-drawer__suggest-media {
+  width: 3.1rem;
+  aspect-ratio: 4 / 4.6;
+  display: grid;
+  place-items: center;
+  background-color: color-mix(in srgb, var(--nostrum-warm-white) 5%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 28%, transparent);
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 1.05rem;
+  color: color-mix(in srgb, var(--nostrum-gold-metal) 45%, transparent);
+  user-select: none;
+}
+
+.cart-drawer__suggest-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cart-drawer__suggest-name {
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.05em;
+}
+
+.cart-drawer__suggest-detail {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-warm-white) 50%, transparent);
+}
+
+.cart-drawer__suggest-price {
+  font-family: var(--font-display), "Segoe UI", Arial, sans-serif;
+  font-size: 0.88rem;
+  transition: color 0.4s var(--ease-lux);
+}
+
+.cart-drawer__suggest-card:hover .cart-drawer__suggest-price {
+  color: var(--nostrum-gold-metal);
+}
+
+/* ---- Reduced motion --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .cart-drawer,
+  .cart-drawer__veil,
+  .cart-drawer__panel,
+  .cart-drawer__row,
+  .cart-drawer__close {
+    transition: none !important;
+  }
+  .cart-drawer__row {
+    opacity: 1;
+    transform: none;
+  }
+}

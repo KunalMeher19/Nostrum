@@ -17,8 +17,8 @@ import { LocaleLink } from "../LocaleContext/LocaleLink";
 const NAV_LINKS = [
   { href: "/", labelKey: "footer.home" },
   { href: "/products", labelKey: "footer.shop" },
-  { href: "/history", labelKey: "footer.history" },
-  { href: "/b2b", labelKey: "footer.b2b" },
+  { href: "/origins", labelKey: "footer.history" },
+  { href: "/journal", labelKey: "footer.journal" },
   { href: "/contact", labelKey: "footer.contact" },
   { href: "/track", labelKey: "footer.track" },
 ];

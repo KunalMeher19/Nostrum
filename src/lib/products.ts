@@ -114,3 +114,27 @@ export function lineTotal(product: Product, sizeId: string, qty: number) {
 export function formatEuro(value: number) {
   return "€" + value.toFixed(2).replace(".", ",");
 }
+
+/* ------------------------------------------------------------------ */
+/* Collection tiles — the Single/Duo/Trio trio the home teaser, the     */
+/* /products listing, and the cart's "from the collection" suggestions  */
+/* all share. Keys resolve through i18n; prices are computed from the   */
+/* catalog (pack tiers included) so a price change propagates.          */
+/* ------------------------------------------------------------------ */
+
+export const COLLECTION_TILES = [
+  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single" },
+  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo" },
+  { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio" },
+] as const;
+
+/* Full price of a catalog tile (default size × preselected pack qty,
+   tier discount applied). Null for unknown ids. */
+export function tilePrice(id: string): number | null {
+  const entry = CATALOG[id];
+  if (!entry) return null;
+  const size =
+    entry.product.sizes.find((s) => s.id === entry.product.defaultSizeId) ??
+    entry.product.sizes[0];
+  return lineTotal(entry.product, size.id, entry.qty);
+}

@@ -8,7 +8,8 @@
     "collections": "Col·leccions",
     "products": "Productes",
     "journal": "Diari",
-    "contact": "Contacte"
+    "contact": "Contacte",
+    "track": "Seguiment"
   },
   "hero": {
     "scroll": "Desplaça",
@@ -43,6 +44,7 @@
     "home": "Inici",
     "shop": "Botiga",
     "history": "Història",
+    "journal": "Diari",
     "b2b": "B2B",
     "contact": "Contacte",
     "origin": "Origen Catalunya, Espanya",

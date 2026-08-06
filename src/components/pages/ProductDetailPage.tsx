@@ -158,7 +158,7 @@ export default function ProductPage() {
   const tier = tierFor(product, qty);
   const total = lineTotal(product, size.id, qty);
 
-  const doAdd = () => {
+  const doAdd = (opts?: { openDrawer?: boolean }) => {
     addItem(
       {
         slug: product.slug,
@@ -167,7 +167,8 @@ export default function ProductPage() {
         sizeId: size.id,
         sizeLabel: size.label,
       },
-      qty
+      qty,
+      opts
     );
   };
 
@@ -179,7 +180,8 @@ export default function ProductPage() {
   };
 
   const handleBuyNow = () => {
-    doAdd();
+    // Straight to the full cart — no drawer flash on the way out.
+    doAdd({ openDrawer: false });
     router.push(`/${locale}/cart`);
   };
 

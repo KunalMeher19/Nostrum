@@ -8,7 +8,8 @@
     "collections": "Collezioni",
     "products": "Prodotti",
     "journal": "Giornale",
-    "contact": "Contatti"
+    "contact": "Contatti",
+    "track": "Traccia ordine"
   },
   "hero": {
     "scroll": "Scorri",
@@ -43,6 +44,7 @@
     "home": "Home",
     "shop": "Shop",
     "history": "Storia",
+    "journal": "Giornale",
     "b2b": "B2B",
     "contact": "Contatti",
     "origin": "Origine Catalogna, Spagna",
