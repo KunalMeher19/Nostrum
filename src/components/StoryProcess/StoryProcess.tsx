@@ -228,6 +228,10 @@ export default function StoryProcess() {
       if (!svg || !line || !track) return 0;
       const W = track.offsetWidth;
       const H = track.offsetHeight;
+      // The gradient is userSpaceOnUse (see the JSX note) — its vertical span
+      // must follow the viewBox height or the lime→gold ramp drifts.
+      const grad = svg.querySelector("#story-line-grad");
+      grad?.setAttribute("y2", `${H}`);
       const d = buildWildPath(computeNodes(W), W, H);
       if (d === sampledD) {
         // Even if geometry string didn't change (e.g., nodes didn't move),
@@ -346,40 +350,55 @@ export default function StoryProcess() {
       });
 
       ctx = gsap.context(() => {
-        gsap.to(draw, {
-          p: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root,
-            start: "top 55%",
-            // Tie the end of the line draw directly to the final step so it
-            // always finishes precisely when Step 05 is in focus, regardless
-            // of how much browser chrome (Brave vs Chrome) affects the overall
-            // viewport height or scroll distances.
-            endTrigger: steps.length ? steps[steps.length - 1] : root,
-            end: steps.length ? "center 80%" : "85% bottom",
-            scrub: 0.5,
-            invalidateOnRefresh: true,
-            // Rebuild the path whenever ScrollTrigger recomputes (resize / the
-            // display:none→visible flip after the hero loader), so it always
-            // matches the current step layout.
-            onRefresh: () => {
-              paintPath();
-              gsap.set(line, {
-                strokeDasharray: total,
-                strokeDashoffset: total - drawnLen(),
-              });
-            },
-            // The hero above is PINNED (adds ~6.5×vh of scroll distance). A
-            // trigger below a pin must be measured AFTER the pin applies its
-            // spacing, or it computes start/end in pre-pin coordinates and runs
-            // while this section is still off-screen. Lower priority = refreshed
-            // after the hero's pin (default 0), so our positions include it.
-            refreshPriority: -1,
+        // ---- 1. THE STROKE — tip pinned to a fixed viewport line ---------
+        // Was a scrubbed tween across a pre-measured scroll range (start
+        // "top 55%" → last step "center 80%"). Brave resolved those measured
+        // positions differently from Chrome (different chrome/viewport math),
+        // so the draw lagged behind scroll and never reached step 05. Now the
+        // mapping is calibration-free: each scroll frame reads the track's
+        // LIVE on-screen position (getBoundingClientRect) and draws the
+        // stroke up to where the path crosses the tip-line at 75% of the
+        // viewport height. The tip is defined by what is on screen — immune
+        // to browser chrome, hero pin spacing and stale refresh measurements.
+        const TIP_AT = 0.75; // the tip rides this fraction down the viewport
+        const targetP = (): number => {
+          if (!track || ySamples.length < 2) return 0;
+          const rect = track.getBoundingClientRect();
+          // viewport tip-line converted into track px (== viewBox units).
+          const tipY = window.innerHeight * TIP_AT - rect.top;
+          const y0 = ySamples[0].y;
+          const y1 = ySamples[ySamples.length - 1].y;
+          if (y1 <= y0) return 0;
+          return Math.min(1, Math.max(0, (tipY - y0) / (y1 - y0)));
+        };
+        const applyDraw = () => {
+          line.style.strokeDashoffset = `${total - drawnLen()}`;
+        };
+        // Short chase tween ≈ the old scrub-0.5 momentum feel.
+        const chase = gsap.quickTo(draw, "p", {
+          duration: 0.45,
+          ease: "power3",
+          onUpdate: applyDraw,
+        });
+        ScrollTrigger.create({
+          trigger: root,
+          start: "top bottom",
+          end: "bottom top",
+          invalidateOnRefresh: true,
+          // Measured after the hero's pin above (default priority 0) so the
+          // active window includes the pin spacing — see the reveals below.
+          refreshPriority: -1,
+          // Rebuild the path whenever ScrollTrigger recomputes (resize / the
+          // display:none→visible flip after the hero loader), so it always
+          // matches the current step layout. Jump (no chase) to the correct
+          // draw state for the new layout.
+          onRefresh: () => {
+            paintPath();
+            draw.p = targetP();
+            gsap.set(line, { strokeDasharray: total });
+            applyDraw();
           },
-          onUpdate: () => {
-            line.style.strokeDashoffset = `${total - drawnLen()}`;
-          },
+          onUpdate: () => chase(targetP()),
         });
 
         // ---- 2. STEP REVEALS — one timeline per step, on enter -----------
@@ -510,7 +529,17 @@ export default function StoryProcess() {
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="story-line-grad" x1="0" y1="0" x2="0" y2="1">
+            {/* userSpaceOnUse so the lime→gold ramp spans the TRACK, not the
+                path's own bbox — steadier under path rebuilds. y2 is kept in
+                sync with the track height by paintPath. */}
+            <linearGradient
+              id="story-line-grad"
+              gradientUnits="userSpaceOnUse"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
               <stop offset="0%" stopColor="#a6ce3a" />
               <stop offset="100%" stopColor="#e6b422" />
             </linearGradient>

@@ -235,15 +235,17 @@
 }
 
 /* The wild comgio/Skiper19 stroke — stretched down the whole track. The
-   gradient runs lime (fruit) → gold (oil). non-scaling-stroke keeps the line
-   an even weight even though the path is stretched non-uniformly to fit. */
+   gradient runs lime (fruit) → gold (oil). NO vector-effect here: the viewBox
+   is 1:1 pixels (set in JS) so scaling never happens, and non-scaling-stroke
+   combined with the huge stroke-dasharray made Chromium misrender the dash —
+   the line cut off partway down the track with stray dots (what Brave users
+   saw as "the line never reaches step 05"). */
 .story-process__spine-line {
   stroke: url(#story-line-grad);
   stroke-width: 7;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
-  vector-effect: non-scaling-stroke;
   /* Layered glow: a tight bright halo + a wider soft bloom so the line reads
      clearly against the near-black background without looking neon. */
   filter: drop-shadow(0 0 6px color-mix(in srgb, var(--sp-gold) 65%, transparent))
