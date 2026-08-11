@@ -9,6 +9,7 @@
 // Until then, Resend sends from its shared onboarding@resend.dev domain.
 // ============================================================
 import { Resend } from "resend";
+import { verifyEmailHtml, resetPasswordHtml } from "./email-templates";
 
 const RESEND_FROM = process.env.RESEND_FROM ?? "Nostrum <onboarding@resend.dev>";
 
@@ -23,6 +24,8 @@ export interface MailOptions {
   subject: string;
   text: string;
   actionUrl: string;
+  /** Pass a pre-built branded HTML body to skip the default template. */
+  html?: string;
 }
 
 export async function sendMail(opts: MailOptions): Promise<void> {
@@ -43,30 +46,37 @@ export async function sendMail(opts: MailOptions): Promise<void> {
     return;
   }
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
-      <p style="font-size:15px;line-height:1.6">${opts.text}</p>
-      <p style="margin-top:24px">
-        <a href="${opts.actionUrl}"
-           style="display:inline-block;padding:12px 24px;background:#1a1a1a;color:#fff;text-decoration:none;border-radius:4px;font-size:14px">
-          Continue
-        </a>
-      </p>
-      <p style="margin-top:24px;font-size:12px;color:#666">
-        Or copy this link: ${opts.actionUrl}
-      </p>
-    </div>
-  `;
-
   const { error } = await resend.emails.send({
     from: RESEND_FROM,
     to: opts.to,
     subject: opts.subject,
-    html,
+    html: opts.html ?? verifyEmailHtml(opts.actionUrl),
   });
 
   if (error) {
     console.error("[mailer] Resend error:", error);
     throw new Error(`Mail send failed: ${error.message}`);
   }
+}
+
+/** Verify-email flow — called from /api/auth/register */
+export async function sendVerifyEmail(to: string, actionUrl: string): Promise<void> {
+  return sendMail({
+    to,
+    subject: "Confirm your Nostrum account",
+    text: "Welcome to Nostrum. Confirm your email to complete your account.",
+    actionUrl,
+    html: verifyEmailHtml(actionUrl),
+  });
+}
+
+/** Password-reset flow — called from /api/auth/forgot */
+export async function sendResetPassword(to: string, actionUrl: string): Promise<void> {
+  return sendMail({
+    to,
+    subject: "Reset your Nostrum password",
+    text: "Use the link below to choose a new password. It expires in one hour.",
+    actionUrl,
+    html: resetPasswordHtml(actionUrl),
+  });
 }

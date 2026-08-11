@@ -6,7 +6,7 @@ import {
   normalizeEmail,
 } from "@/lib/auth/users";
 import { issueToken } from "@/lib/auth/tokens";
-import { sendMail } from "@/lib/auth/mailer";
+import { sendVerifyEmail } from "@/lib/auth/mailer";
 import { guard } from "@/lib/auth/rate-limit";
 
 export async function POST(req: Request) {
@@ -61,12 +61,7 @@ export async function POST(req: Request) {
   // a provider is wired (see src/lib/auth/mailer.ts TODO).
   const token = await issueToken(user._id, "verify-email");
   const base = process.env.AUTH_URL ?? "http://localhost:3000";
-  await sendMail({
-    to: email,
-    subject: "Verify your Nostrum account",
-    text: "Welcome to Nostrum. Confirm your email to complete your account.",
-    actionUrl: `${base}/api/auth/verify?token=${token}`,
-  });
+  await sendVerifyEmail(email, `${base}/api/auth/verify?token=${token}`);
 
   return NextResponse.json({ ok: true });
 }

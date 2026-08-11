@@ -26,11 +26,11 @@
 - The MongoDB `products` collection + admin shop editor is ready to become the source of truth once real data arrives. Task then: point the public Shop at the products API.
 - **Build recipe when real data arrives:** enter the catalog through the admin shop editor; add a public `GET /api/products` (active only, cached) to `backend`; swap `src/lib/products.ts` consumers to fetch it server-side (keep the type shape, it already mirrors the model); product photos to `public/` or a CDN. Stock now matters: `createOrder` consumes per-size stock (see 2.5), so real counts must be set before checkout goes live.
 
-### 1.3 Email provider (Resend) — WIRED 2026-08-11
+### 1.3 Email provider (Resend) — WIRED + BRANDED 2026-08-11
 - Both mailers now use Resend when `RESEND_API_KEY` is set; gracefully fall back to console-log when unset (dev/CI safe). Was: pure console stubs.
 - `RESEND_API_KEY` set in Vercel + Railway 2026-08-11. Resend account registered with `office@nostrumoils.com`.
-- **Current From address:** `onboarding@resend.dev` (Resend shared domain). To send from `no-reply@nostrumoils.com`, verify `nostrumoils.com` in Resend dashboard → add the 3 DNS records → set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in both Vercel and Railway.
-- All mail flows now live: verification, password reset (frontend); contact relay, newsletter welcome, order confirmation, shipping update (backend).
+- **Branded HTML templates built 2026-08-11:** dark luxury design (ink-black `#14160F` bg, deep-olive card, gold `#E6B422` CTA button + accents, off-white text). All 6 email types have dedicated templates: verify-email, reset-password (`src/lib/auth/email-templates.ts`); newsletter-welcome, contact-relay, order-confirmation, shipping-update (`backend/src/services/email-templates.js`). Shared design system: eyebrow labels, heading, body copy, gold CTA button, divider, fallback plain-text link. All inline styles (email client safe).
+- **Current From address:** `onboarding@resend.dev` (Resend shared domain). To send from `no-reply@nostrumoils.com`, verify `nostrumoils.com` in Resend dashboard → add the 3 DNS records → set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in both Vercel and Railway — no code change needed.
 - Verified: 80/80 backend tests green, `tsc --noEmit` clean.
 
 ### 1.4 Google OAuth credentials

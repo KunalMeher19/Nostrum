@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { findUserByEmail, normalizeEmail } from "@/lib/auth/users";
 import { issueToken } from "@/lib/auth/tokens";
-import { sendMail } from "@/lib/auth/mailer";
+import { sendResetPassword } from "@/lib/auth/mailer";
 import { guard } from "@/lib/auth/rate-limit";
 
 export async function POST(req: Request) {
@@ -23,13 +23,7 @@ export async function POST(req: Request) {
     if (user) {
       const token = await issueToken(user._id, "reset-password");
       const base = process.env.AUTH_URL ?? "http://localhost:3000";
-      // Console stub until a provider is wired (src/lib/auth/mailer.ts).
-      await sendMail({
-        to: email,
-        subject: "Reset your Nostrum password",
-        text: "Use the link below to choose a new password. It expires in one hour.",
-        actionUrl: `${base}/en/account/reset?token=${token}`,
-      });
+      await sendResetPassword(email, `${base}/en/account/reset?token=${token}`);
     }
   }
 
