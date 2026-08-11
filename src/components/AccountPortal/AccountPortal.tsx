@@ -217,7 +217,7 @@ export default function AccountPortal({
           <button
             type="button"
             className="pt__foot-link"
-            onClick={() => void signOut({ callbackUrl: `/${locale}` })}
+            onClick={() => void signOut({ callbackUrl: `/${locale}/account` })}
           >
             {t("account.signout")}
           </button>

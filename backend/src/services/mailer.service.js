@@ -1,48 +1,56 @@
 // ============================================================
-// Backend mailer stub · TODO: WIRE A REAL EMAIL PROVIDER LATER
+// Backend mailer · Resend
 // ============================================================
-// Mirror of src/lib/auth/mailer.ts on the Next.js side. Nothing is
-// actually sent yet; every mail is logged to the server console so the
-// contact relay, newsletter welcome and order confirmation flows can be
-// exercised end to end today and light up unchanged once a provider
-// (likely Resend) is wired.
+// Sends via Resend when RESEND_API_KEY is set; falls back to
+// console-logging so local dev works without a key.
 //
-// HOW TO WIRE IT LATER (when the client decides, likely Resend):
-//   1. npm install resend   (in backend/)
-//   2. Set RESEND_API_KEY in backend/.env and verify the sending
-//      domain (e.g. mail.nostrum.com) in the Resend dashboard.
-//   3. Replace the console.log in sendMail with:
-//        const { Resend } = require('resend');
-//        const resend = new Resend(process.env.RESEND_API_KEY);
-//        await resend.emails.send({
-//          from: 'Nostrum <no-reply@mail.nostrum.com>',
-//          to: opts.to, subject: opts.subject, html: opts.html,
-//        });
-//   4. Build branded HTML templates (dark, minimal, on-brand) for:
-//        - contact-relay        (to the house inbox)
-//        - newsletter-welcome   (with unsubscribe link)
-//        - order-confirmation   (number, items, total)
-//        - shipping-update      (status, carrier, tracking link)
-//   5. Localize subjects/body per the recipient's locale.
+// From address: once nostrumoils.com is verified in the Resend
+// dashboard, update RESEND_FROM env var to "Nostrum <no-reply@nostrumoils.com>".
+// Until then, Resend sends from its shared onboarding@resend.dev domain.
 // ============================================================
+const { Resend } = require('resend');
 
-// Where contact-form submissions are relayed. Placeholder until the
-// client provides the real house inbox.
+const RESEND_FROM = process.env.RESEND_FROM || 'Nostrum <onboarding@resend.dev>';
+
+// Where contact-form submissions are relayed.
 const CONTACT_INBOX = process.env.CONTACT_INBOX || 'hello@nostrum.local';
 
-async function sendMail({ to, subject, text }) {
-  // TODO(email): replace with real provider send. See header comment.
-  console.log(
-    [
-      '',
-      '==================== NOSTRUM MAIL (console stub) ====================',
-      `To:      ${to}`,
-      `Subject: ${subject}`,
-      `Body:    ${text}`,
-      '=====================================================================',
-      '',
-    ].join('\n')
-  );
+function getClient() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  return new Resend(key);
+}
+
+async function sendMail({ to, subject, text, html }) {
+  const resend = getClient();
+  if (!resend) {
+    console.log(
+      [
+        '',
+        '==================== NOSTRUM MAIL (console stub — set RESEND_API_KEY to send) ====================',
+        `To:      ${to}`,
+        `Subject: ${subject}`,
+        `Body:    ${text}`,
+        '=====================================================================================================',
+        '',
+      ].join('\n')
+    );
+    return;
+  }
+
+  const body = html || `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a"><p style="font-size:15px;line-height:1.6;white-space:pre-line">${text}</p></div>`;
+
+  const { error } = await resend.emails.send({
+    from: RESEND_FROM,
+    to,
+    subject,
+    html: body,
+  });
+
+  if (error) {
+    console.error('[mailer] Resend error:', error);
+    throw new Error(`Mail send failed: ${error.message}`);
+  }
 }
 
 // Contact form relay: the visitor's message forwarded to the house inbox.
