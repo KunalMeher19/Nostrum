@@ -33,9 +33,11 @@
 - **Current From address:** `onboarding@resend.dev` (Resend shared domain). To send from `no-reply@nostrumoils.com`, verify `nostrumoils.com` in Resend dashboard → add the 3 DNS records → set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in both Vercel and Railway — no code change needed.
 - Verified: 80/80 backend tests green, `tsc --noEmit` clean.
 
-### 1.4 Google OAuth credentials
-- Flow fully built (`allowDangerousEmailAccountLinking: true`), but `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` are empty. Client must supply Google Cloud credentials.
-- This is the "must never break again" item (broken on the client's previous site). Test end-to-end with real credentials before launch.
+### 1.4 Google OAuth credentials — DONE 2026-08-12
+- Google Cloud project `Nostrum` (ID: `nostrum-505312`) created 2026-08-12 using personal account; `office@nostrumoils.com` added as test user.
+- OAuth client created via new Google Auth Platform UI (Clients → Create client); authorised origins: `https://nostrum-rho.vercel.app` + `http://localhost:3000`; redirect URIs: `https://nostrum-rho.vercel.app/api/auth/callback/google` + `http://localhost:3000/api/auth/callback/google`.
+- `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` set in Vercel (Production). Redeployed. Google Sign-In confirmed working end-to-end 2026-08-12.
+- This is the "must never break again" item (broken on the client's previous site). Verified working — do not change the redirect URIs without updating the Google Cloud console entry.
 
 ### 1.5 Legal + contact content (client open items, §20)
 - Privacy policy, legal notice, cookies text (LSSI-CE), real contact details.
@@ -108,13 +110,64 @@ Verified: frontend `tsc --noEmit` and `next build` clean; no backend changes thi
 - **Invoice legal identity:** `backend/src/services/invoice.service.js` uses placeholder company details; swap in the client's real legal identity (ties to 1.5). STILL BLOCKED ON CLIENT.
 - **Email verification — by design NOT enforced as login gate:** Registration sends a branded verify-email (now with Resend templates), but login works immediately without clicking it. The `emailVerified` timestamp is recorded when the link is clicked. Decision: enforcing it would lock out users whose mail hits spam — wrong trade-off for an olive oil shop. If checkout-gating on verified email is wanted later, add the check in `src/auth.ts` `authorize()` callback. **CHECK AT LAUNCH** that this decision still holds once real customers are registering.
 - **Sign-out redirect fix — DONE 2026-08-11:** `signOut` callbackUrl changed from `/${locale}` to `/${locale}/account` so the user lands on the sign-in page after logging out. `AUTH_URL=https://nostrum-rho.vercel.app` confirmed set in Vercel 2026-08-11.
-- **Analytics — awaiting GA4 property ID:** `NEXT_PUBLIC_GA_ID` not yet set in Vercel. Once the GA4 property is created and the Measurement ID (`G-XXXXXXXXXX`) is added to Vercel env vars + redeployed, analytics fires immediately (code is complete and consent-gated). **Next action: create GA4 property → copy Measurement ID → set in Vercel.**
-- **Google OAuth — awaiting credentials:** `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` not yet set. Google Cloud project must be created (use `nostrumoils` email), OAuth consent screen configured, credentials generated, then both values added to Vercel. **Next action: follow Google OAuth setup steps below (1.4).**
+- **Analytics — two GA4 streams created 2026-08-12, dev ID set in Vercel:**
+  - Dev stream: `G-NFTWPSVJCF` (stream URL: `https://nostrum-rho.vercel.app`) — set as `NEXT_PUBLIC_GA_ID` in Vercel now. Redeploy Vercel to activate.
+  - Production stream: `G-CRXBY86BFJ` (stream URL: `https://nostrumoils.com`) — do NOT set yet; swap in at domain cutover (see §4 domain swap checklist).
+  - At domain cutover: change `NEXT_PUBLIC_GA_ID` in Vercel from `G-NFTWPSVJCF` → `G-CRXBY86BFJ` → redeploy. That's the only change needed; code is already correct.
+  - Code is complete and consent-gated (`src/components/Analytics/Analytics.tsx`). Fires only after cookie banner accepted.
+- **Google OAuth — DONE 2026-08-12:** `AUTH_GOOGLE_ID` + `AUTH_GOOGLE_SECRET` set in Vercel. Google Sign-In working end-to-end. See 1.4 for full details.
 - **WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED by client decision 2026-08-11:** not building until explicitly requested by client. Will resume when asked.
 
 ---
 
-## 4. Explicitly deferred / later phase (from brief §20 launch-vs-later split)
+## 4. Domain swap checklist — when the real domain arrives
+
+Every place the temp URLs (`nostrum-rho.vercel.app` / `nostrum-production.up.railway.app`) appear and must be replaced with the real domain (e.g. `nostrumoils.com` / `api.nostrumoils.com`). Treat this as a single coordinated switch — do all of them in one go.
+
+### 4A. Frontend domain (`nostrum-rho.vercel.app` → `nostrumoils.com`)
+
+| # | Where | What to change | How |
+|---|-------|---------------|-----|
+| 1 | **Vercel → Settings → Domains** | Add `nostrumoils.com` as a custom domain; Vercel gives you the DNS records to add at your registrar | Vercel dashboard |
+| 2 | **Vercel → Settings → Environment Variables** | `AUTH_URL` → `https://nostrumoils.com` | Vercel dashboard → redeploy |
+| 3 | **Vercel → Settings → Environment Variables** | `NEXT_PUBLIC_GA_ID` → swap from `G-NFTWPSVJCF` (dev stream) to `G-CRXBY86BFJ` (production stream) → redeploy | Vercel dashboard |
+| 4 | **Google Cloud Console** → Nostrum project → Clients → Nostrum Web | Add `https://nostrumoils.com` to Authorised JavaScript origins | Google Cloud Console |
+| 5 | **Google Cloud Console** → same client | Add `https://nostrumoils.com/api/auth/callback/google` to Authorised redirect URIs | Google Cloud Console |
+| 6 | **Railway → Nostrum backend → Variables** | `CORS_ORIGIN` → `https://nostrumoils.com` (replace the Vercel URL) | Railway dashboard → redeploy |
+| 7 | **Railway → Nostrum backend → Variables** | `FRONTEND_URL` → `https://nostrumoils.com` | Railway dashboard → redeploy |
+| 8 | **`.env.local`** (local dev file — not deployed) | `AUTH_URL` stays `http://localhost:3000` for local dev; no action needed | — |
+
+### 4B. Backend domain (`nostrum-production.up.railway.app` → e.g. `api.nostrumoils.com`)
+
+Only needed if the client wants a branded API subdomain (e.g. `api.nostrumoils.com`). Railway supports custom domains natively.
+
+| # | Where | What to change | How |
+|---|-------|---------------|-----|
+| 1 | **Railway → Settings → Networking** | Add custom domain `api.nostrumoils.com`; Railway gives DNS record | Railway dashboard |
+| 2 | **Vercel → Settings → Environment Variables** | `NEXT_PUBLIC_API_URL` → `https://api.nostrumoils.com` | Vercel dashboard → redeploy |
+| 3 | **`.env.local`** (local dev) | `NEXT_PUBLIC_API_URL` stays `http://localhost:5000` for local dev; no action needed | — |
+
+### 4C. Email domain (`onboarding@resend.dev` → `no-reply@nostrumoils.com`)
+
+Already documented in §1.3 but repeated here for completeness:
+
+| # | Where | What to change | How |
+|---|-------|---------------|-----|
+| 1 | **Resend dashboard** | Verify `nostrumoils.com` domain → add 3 DNS records at registrar | Resend dashboard → Domains |
+| 2 | **Vercel env vars** | Add `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` | Vercel dashboard → redeploy |
+| 3 | **Railway env vars** | Add `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` | Railway dashboard → redeploy |
+| 4 | **Code** | No change needed — both mailers already read `RESEND_FROM` from env | — |
+
+### 4D. Nothing to change in code
+
+The following are already using env vars or the real brand email — no code edits needed at domain-swap time:
+- `src/lib/auth/email-templates.ts` — uses `office@nostrumoils.com` (correct already)
+- `backend/src/services/email-templates.js` — uses `office@nostrumoils.com` (correct already)
+- `src/lib/auth/mailer.ts` and `backend/src/services/mailer.service.js` — read `RESEND_FROM` from env
+
+---
+
+## 5. Explicitly deferred / later phase (from brief §20 launch-vs-later split)
 
 - ZH (Chinese) locale, honey product line, subscriptions, richer B2B section, extra content modules.
 
@@ -122,11 +175,13 @@ Verified: frontend `tsc --noEmit` and `next build` clean; no backend changes thi
 
 ## Suggested order of attack
 
-1. DONE: sections 2.1 to 2.7 (contact, newsletter, unsubscribe, order-confirmation seam, order-fulfilment plumbing, backend hardening, frontend gap round incl. /track page + audit tab + portal premium pass), plus the unblocked section 3 chores.
-2. Chase client on the five blockers in section 1 (commerce decision is the critical path to launch); send him the Stripe recommendation in 1.1 with the Redsys/PayPal question, plus the nav-search "skip or build" question (2.7).
-3. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook), then 1.2 (real catalog + public products API).
-4. Unpark when ready: WhatsApp bubble + B2B end-of-shop block (2.7, both buildable with placeholders any time).
-5. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
+1. DONE: sections 2.1 to 2.7, backend hardening, deployment (Railway + Vercel), Resend email wiring + branded templates, Google OAuth (1.4), Vercel env vars (`ADMIN_EMAILS`, `AUTH_URL`).
+2. **Next: set `NEXT_PUBLIC_GA_ID` in Vercel** — create GA4 property (analytics.google.com), copy Measurement ID (`G-XXXXXXXXXX`), add to Vercel env vars, redeploy. Verify in GA4 Realtime.
+3. **Next: Resend custom domain** — client adds 3 DNS records in Resend dashboard, then set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in Vercel + Railway. No code change needed.
+4. Chase client on the remaining blockers in section 1: commerce decision (Stripe — critical path), real catalog (1.2), legal texts + WhatsApp + invoice identity (1.5).
+5. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook), then 1.2 (real catalog + public products API).
+6. WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED until client asks for them.
+7. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
 
 ---
 
