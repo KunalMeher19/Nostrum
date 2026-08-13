@@ -1,10 +1,28 @@
-// Tiny client for the Express API (port 5000). The session cookie is
-// shared (same AUTH_SECRET), so credentials: "include" is all we need.
+// Backend URL — used server-side (Next.js pages/actions call Railway directly;
+// the cookie is forwarded by the proxy route for browser-side calls).
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
+// Browser-side API client. Routes through /api/proxy/... so the session
+// cookie (vercel.app domain) stays on the same origin and never needs to
+// travel cross-domain to Railway. The proxy route forwards it server-side.
+// In local dev, NEXT_PUBLIC_API_URL is localhost:5000 (same machine, no
+// cross-domain problem), so we call it directly.
+const IS_BROWSER = typeof window !== "undefined";
+const IS_PROD = process.env.NODE_ENV === "production";
+
+function proxyPath(path: string): string {
+  // path looks like "/api/admin/orders" — strip the /api/ prefix
+  // so the proxy route receives it as [...path] = ["admin","orders"].
+  if (IS_BROWSER && IS_PROD) {
+    return path.replace(/^\/api\//, "/api/proxy/");
+  }
+  return `${API_URL}${path}`;
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const url = proxyPath(path);
+  const res = await fetch(url, {
     credentials: "include",
     headers: { "Content-Type": "application/json", ...init?.headers },
     ...init,
