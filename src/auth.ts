@@ -29,6 +29,15 @@ declare module "next-auth" {
   }
 }
 
+// In production the Next.js frontend (vercel.app) and the Express API
+// (railway.app) are on different domains. The browser will only send the
+// session cookie on cross-origin fetch() calls when the cookie carries
+// SameSite=None + Secure. Auth.js defaults to SameSite=Lax, which blocks
+// those requests with a plain 401. We override the two session cookie
+// names (http dev + https prod) here; all other cookie attributes
+// (httpOnly, path, maxAge) are preserved from the Auth.js defaults.
+const IS_PROD = process.env.NODE_ENV === "production";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(getClientPromise),
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
@@ -36,6 +45,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/en/account", // locale-aware pages redirect as needed
     error: "/en/account",
   },
+  ...(IS_PROD && {
+    cookies: {
+      sessionToken: {
+        name: "__Secure-authjs.session-token",
+        options: {
+          httpOnly: true,
+          sameSite: "none" as const,
+          path: "/",
+          secure: true,
+        },
+      },
+    },
+  }),
   providers: [
     Google({
       // Reads AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET from env automatically.
