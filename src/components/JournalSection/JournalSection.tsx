@@ -350,49 +350,94 @@ export default function JournalSection({
 
       {/* ── The stories (blog) ───────────────────────────────────── */}
       <section className="jr__stories" aria-label={t("journal.stories_title")}>
-        <header className="jr__stories-head">
-          <p className="jr__eyebrow">{t("journal.stories_eyebrow")}</p>
-          <h2 className="jr__stories-title">{t("journal.stories_title")}</h2>
-        </header>
+        {/* Posts column: header + 2-col grid of cards */}
+        <div className="jr__stories-main">
+          <header className="jr__stories-head">
+            <p className="jr__eyebrow">{t("journal.stories_eyebrow")}</p>
+            <h2 className="jr__stories-title">{t("journal.stories_title")}</h2>
+          </header>
 
-        {posts.length === 0 && (
-          <p className="jr__empty">{t("journal.stories_empty")}</p>
-        )}
+          {posts.length === 0 && (
+            <p className="jr__empty">{t("journal.stories_empty")}</p>
+          )}
 
-        <ol className="jr__list">
-          {posts.map((p) => (
-            <li key={p.id} data-jr-story>
-              <Link href={`/${locale}/journal/${p.slug}`} className="jr__story">
-                {p.coverImage && (
-                  <span className="jr__story-media">
-                    <Image
-                      src={p.coverImage}
-                      alt=""
-                      fill
-                      sizes="(max-width: 760px) 92vw, 34vw"
-                    />
-                  </span>
-                )}
-                <span className="jr__story-body">
-                  <span className="jr__story-date">{dateFmt(p.publishedAt)}</span>
-                  <span className="jr__story-title">{p.title}</span>
-                  <span className="jr__story-excerpt">{p.excerpt}</span>
-                  <span className="jr__story-more">
-                    {t("journal.read_story")}
-                    <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
-                      <path
-                        d="M1 13 13 1M4 1h9v9"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
+          <ol className="jr__list">
+            {posts.map((p) => (
+              <li key={p.id} data-jr-story>
+                <Link href={`/${locale}/journal/${p.slug}`} className="jr__story">
+                  {p.coverImage && (
+                    <span className="jr__story-media">
+                      <Image
+                        src={p.coverImage}
+                        alt=""
+                        fill
+                        sizes="(max-width: 760px) 92vw, 28vw"
                       />
-                    </svg>
+                    </span>
+                  )}
+                  <span className="jr__story-body">
+                    <span className="jr__story-date">{dateFmt(p.publishedAt)}</span>
+                    <span className="jr__story-title">{p.title}</span>
+                    <span className="jr__story-excerpt">{p.excerpt}</span>
+                    <span className="jr__story-more">
+                      {t("journal.read_story")}
+                      <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
+                        <path
+                          d="M1 13 13 1M4 1h9v9"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                        />
+                      </svg>
+                    </span>
                   </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ol>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Sticky olive branch — stays fixed in view while posts scroll.
+            Same hand-drawn family as the hero branch, slightly larger. */}
+        <div className="jr__leaves" aria-hidden="true">
+          <svg viewBox="0 0 280 520" fill="none" className="jr__leaves-svg">
+            {/* Main stem: long living curve */}
+            <path
+              d="M140 508 C 148 480 154 460 162 436 C 170 412 176 390 185 364
+                 C 194 338 200 314 210 288 C 220 262 228 238 238 212
+                 C 248 186 256 162 264 136 C 272 110 278 86 280 60
+                 C 281 42 278 24 272 8"
+              strokeWidth="1.5"
+            />
+            {/* Leaves alternating sides, growing from stem nodes */}
+            <path d="M162 436 Q118 446 86 478 Q128 466 162 436" />
+            <path d="M185 364 Q224 382 262 376 Q222 356 185 364" />
+            <path d="M210 288 Q168 288 134 312 Q174 312 210 288" />
+            <path d="M238 212 Q280 218 310 196 Q270 190 238 212" strokeWidth="1.4" />
+            <path d="M264 136 Q228 110 188 106 Q222 130 264 136" />
+            <path d="M280 60 Q308 68 334 52 Q300 44 280 60" strokeWidth="1.4" />
+            <path d="M272 8 Q292 -4 300 -28 Q280 -14 272 8" strokeWidth="1.3" />
+            {/* Faint midribs — hand-sketched interior detail */}
+            <g opacity="0.45" strokeWidth="0.9">
+              <path d="M156 439 Q124 453 96 470" />
+              <path d="M191 366 Q222 374 254 372" />
+              <path d="M204 291 Q174 299 148 308" />
+              <path d="M244 212 Q272 206 298 198" />
+              <path d="M258 133 Q230 120 202 110" />
+              <path d="M286 61 Q308 61 328 54" />
+            </g>
+            {/* Two olives dangling from a lower node */}
+            <path d="M174 408 Q182 428 176 444" strokeWidth="1.2" />
+            <path d="M174 408 Q196 422 206 436" strokeWidth="1.2" />
+            <path d="M176 444 a 11 14 -10 1 1 0.1 0" strokeWidth="1.4" />
+            <path d="M206 436 a 10 13 -24 1 1 0.1 0" strokeWidth="1.4" />
+            {/* Second cluster higher up */}
+            <path d="M222 262 Q230 278 224 292" strokeWidth="1.2" />
+            <path d="M222 262 Q242 272 250 284" strokeWidth="1.2" />
+            <path d="M224 292 a 9 12 -8 1 1 0.1 0" strokeWidth="1.3" />
+            <path d="M250 284 a 9 12 -22 1 1 0.1 0" strokeWidth="1.3" />
+          </svg>
+        </div>
       </section>
     </div>
   );
