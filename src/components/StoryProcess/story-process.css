@@ -62,7 +62,7 @@
 
 /* Section intro sits above the first step. */
 .story-process__intro {
-  position: relative;
+  /* position: relative; */
   min-height: 25vh;
   display: flex;
   flex-flow: column;
@@ -73,11 +73,11 @@
   padding: 8vh clamp(1.5rem, 5vw, 5rem) 2vh;
   max-width: 78rem;
   margin: 0 auto;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 /* Stock harvest photo as a subtle background behind the intro heading */
-.story-process__intro::before {
+/* .story-process__intro::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -92,10 +92,10 @@
 }
 
 /* Keep intro content above the photo */
-.story-process__intro > * {
+/* .story-process__intro > * {
   position: relative;
   z-index: 1;
-}
+} */ 
 
 .story-process__title-wrap {
   display: flex;
