@@ -118,7 +118,7 @@ export default function ContactSection() {
       {/* ── LEFT · the brand card ─────────────────────────────── */}
       <aside className="ct__panel">
         {/* Stock photo: olive oil pour — overlaid with dark gradient for legibility */}
-        <div className="ct__panel-photo" aria-hidden="true" />
+        {/* <div className="ct__panel-photo" aria-hidden="true" /> */}
         <div className="ct__panel-glow" aria-hidden="true" />
         <div className="ct__panel-grain" aria-hidden="true" />
 
