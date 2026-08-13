@@ -36,17 +36,24 @@ app.use(helmet());
 // headers at all (same-origin / server-to-server calls still work).
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGIN || 'http://localhost:3000')
   .split(',')
-  .map((s) => s.trim())
+  .map((s) => s.trim().replace(/\/+$/, '')) // strip trailing slashes
   .filter(Boolean);
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, origin ?? false);
-      cb(null, false);
-    },
-    credentials: true,
-  })
-);
+
+const corsMiddleware = cors({
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, origin ?? false);
+    cb(null, false);
+  },
+  credentials: true,
+});
+
+app.use(corsMiddleware);
+
+// OPTIONS preflight must be answered immediately — before any auth
+// middleware runs. Without this, a disallowed-origin OPTIONS request
+// falls through to requireAdmin and returns 401 with no CORS headers,
+// which the browser reports as a CORS error instead of an auth error.
+app.options('*', corsMiddleware, (req, res) => res.sendStatus(204));
 
 // Cross-site mutation guard: browsers attach the Origin header to every
 // cross-origin (and most same-origin) non-GET request. A mutation
