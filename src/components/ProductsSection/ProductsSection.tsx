@@ -30,15 +30,29 @@ type Product = {
   detailKey: string;
   price: string;
   image?: string;
+  /* Set when the tile came from the products API rather than the static
+     fallback: nameKey/detailKey then hold literal text, not i18n keys. */
+  live?: boolean;
 };
 
-// x1 / x2 / x3 of the 5L bottle (§7 — mainly 5L, sold as packs; ~€35/5L,
-// price not final). Names/details are i18n keys resolved via t() at render.
+// Static fallback — x1 / x2 / x3 of the 5L bottle (§7). Shown until the
+// admin marks products "featured on home", and whenever the products API
+// is unreachable, so this section never renders empty.
 const PRODUCTS: Product[] = [
   { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/1.webp" },
   { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66", image: "/products/11.webp" },
   { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio", price: "€95", image: "/products/2.webp" },
 ];
+
+/* Shape returned by GET /api/products/featured. */
+type LiveProduct = {
+  slug: string;
+  name: string;
+  subtitle: string;
+  images: string[];
+  sizes: { id: string; label: string; price: number; stock: number }[];
+  defaultSizeId: string | null;
+};
 
 export default function ProductsSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -52,23 +66,77 @@ export default function ProductsSection() {
   const [addedId, setAddedId] = useState<string | null>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Featured products come from the admin (products marked "featured on
+  // home"). Until any are marked — or if the API is unreachable — the
+  // static trio above stands in, so the grid is never empty.
+  const [tiles, setTiles] = useState<Product[]>(PRODUCTS);
+  const liveRef = useRef<Map<string, LiveProduct>>(new Map());
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/proxy/products/featured")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { products?: LiveProduct[] } | null) => {
+        if (!alive || !d?.products?.length) return;
+        liveRef.current = new Map(d.products.map((p) => [p.slug, p]));
+        setTiles(
+          d.products.map((p) => {
+            const size =
+              p.sizes.find((s) => s.id === p.defaultSizeId) ?? p.sizes[0];
+            return {
+              id: p.slug,
+              nameKey: p.name,
+              detailKey: p.subtitle,
+              price: size ? `€${size.price}` : "",
+              image: p.images[0],
+              live: true,
+            };
+          })
+        );
+      })
+      .catch(() => {
+        /* keep the static fallback */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const quickAdd = (id: string) => {
-    const entry = getCatalogEntry(id);
-    if (!entry) return;
-    const { product, qty } = entry;
-    const size =
-      product.sizes.find((s) => s.id === product.defaultSizeId) ??
-      product.sizes[0];
-    addItem(
-      {
-        slug: product.slug,
-        name: product.name,
-        subtitle: product.subtitle,
-        sizeId: size.id,
-        sizeLabel: size.label,
-      },
-      qty
-    );
+    // Live product: add straight from the API payload.
+    const live = liveRef.current.get(id);
+    if (live) {
+      const size =
+        live.sizes.find((s) => s.id === live.defaultSizeId) ?? live.sizes[0];
+      if (!size) return;
+      addItem(
+        {
+          slug: live.slug,
+          name: live.name,
+          subtitle: live.subtitle,
+          sizeId: size.id,
+          sizeLabel: size.label,
+        },
+        1
+      );
+    } else {
+      const entry = getCatalogEntry(id);
+      if (!entry) return;
+      const { product, qty } = entry;
+      const size =
+        product.sizes.find((s) => s.id === product.defaultSizeId) ??
+        product.sizes[0];
+      addItem(
+        {
+          slug: product.slug,
+          name: product.name,
+          subtitle: product.subtitle,
+          sizeId: size.id,
+          sizeLabel: size.label,
+        },
+        qty
+      );
+    }
     setAddedId(id);
     if (addedTimer.current) clearTimeout(addedTimer.current);
     addedTimer.current = setTimeout(() => setAddedId(null), 1600);
@@ -321,7 +389,11 @@ export default function ProductsSection() {
         </div>
 
         <ul className="shop__grid">
-          {PRODUCTS.map((product) => (
+          {tiles.map((product) => {
+            // Live tiles carry literal copy; static tiles carry i18n keys.
+            const name = product.live ? product.nameKey : t(product.nameKey);
+            const detail = product.live ? product.detailKey : t(product.detailKey);
+            return (
             <li key={product.id} className="shop-card">
               <div className="shop-card__media">
                 {product.image && (
@@ -335,7 +407,7 @@ export default function ProductsSection() {
                 <LocaleLink
                   href={`/product/${product.id}`}
                   className="shop-card__link"
-                  aria-label={`${t(product.nameKey)}, ${t(product.detailKey)}`}
+                  aria-label={`${name}, ${detail}`}
                 />
                 <button
                   type="button"
@@ -346,14 +418,15 @@ export default function ProductsSection() {
                 </button>
               </div>
               <div className="shop-card__meta">
-                <h3 className="shop-card__name">{t(product.nameKey)}</h3>
+                <h3 className="shop-card__name">{name}</h3>
                 <div className="shop-card__line">
-                  <p className="shop-card__detail">{t(product.detailKey)}</p>
+                  <p className="shop-card__detail">{detail}</p>
                   <p className="shop-card__price">{product.price}</p>
                 </div>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
 
         <p className="shop__note">{t("shop.note")}</p>

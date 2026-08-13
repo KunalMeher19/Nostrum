@@ -473,138 +473,330 @@ function AuditView() {
   );
 }
 
-/* ── Shop management (products / prices / stock / sizes / packs) ───── */
+/* ── Shop management (products / prices / stock / images / featured) ── */
+
+const STATIC_IMAGES = [
+  ...[1,2,3,4,5,11,12,13,14].map((n) => `/products/${n}.webp`),
+  ...[1,2,3,4,5].map((n) => `/images/${n}.png`),
+  ...[1,2,3].map((n) => `/images/origin_${n}.png`),
+  "/images/stock-grove.jpg",
+  "/images/stock-harvest.jpg",
+  "/images/stock-olives.jpg",
+  "/images/stock-pour.jpg",
+];
+
+const EMPTY_PRODUCT = {
+  name: "",
+  subtitle: "",
+  description: "",
+  category: "",
+  images: [] as string[],
+  sizes: [{ id: "default", label: "", price: 0, stock: 0 }],
+  defaultSizeId: "default" as string | null,
+  packs: [] as { qty: number; discount: number }[],
+  active: true,
+  featured: false,
+};
 
 function ShopView() {
   const { t } = useLocale();
   const [products, setProducts] = useState<AdminProduct[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = () =>
     api<{ products: AdminProduct[] }>("/api/admin/products")
       .then((d) => setProducts(d.products))
       .catch(() => setFailed(true));
-  }, []);
+
+  useEffect(() => { void load(); }, []);
+
+  const onCreated = (p: AdminProduct) => {
+    setProducts((cur) => [p, ...(cur ?? [])]);
+    setCreating(false);
+    setOpen(p.id);
+  };
+
+  const onSaved = (upd: AdminProduct) =>
+    setProducts((cur) => cur?.map((x) => (x.id === upd.id ? upd : x)) ?? null);
+
+  const onDeleted = (id: string) =>
+    setProducts((cur) => cur?.filter((x) => x.id !== id) ?? null);
 
   return (
     <div className="ad__view">
       <p className="ad__note">{t("admin.shop_note")}</p>
-      {products === null && !failed && (
-        <p className="ad__quiet">{t("portal.loading")}</p>
-      )}
-      {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
-      {products?.map((p) => (
+      <div className="ad__view-bar">
+        <p className="ad__quiet">
+          {products ? `${products.length} ${t("admin.products_count")}` : ""}
+        </p>
+        <button
+          type="button"
+          className="ad__add"
+          onClick={() => setCreating((c) => !c)}
+        >
+          + {t("admin.new_product")}
+        </button>
+      </div>
+
+      {creating && (
         <ProductEditor
-          key={p.id}
-          product={p}
-          onSaved={(upd) =>
-            setProducts((cur) => cur?.map((x) => (x.id === upd.id ? upd : x)) ?? null)
-          }
+          isNew
+          onDone={(saved, p) => { if (saved && p) onCreated(p); else setCreating(false); }}
         />
-      ))}
+      )}
+
+      {products === null && !failed && <p className="ad__quiet">{t("portal.loading")}</p>}
+      {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
+
+      <ul className="ad__list">
+        {(products ?? []).map((p) => (
+          <li key={p.id} className={`ad__order${open === p.id ? " is--open" : ""}`}>
+            <button
+              type="button"
+              className="ad__order-row"
+              aria-expanded={open === p.id}
+              onClick={() => setOpen((o) => (o === p.id ? null : p.id))}
+            >
+              {p.images[0] ? (
+                <span className="ad__exhibit-thumb">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.images[0]} alt="" style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                </span>
+              ) : (
+                <span className="ad__exhibit-thumb ad__exhibit-thumb--empty" aria-hidden="true">·</span>
+              )}
+              <span className="ad__order-number">{p.name}</span>
+              <span className="ad__order-date">{p.category || "·"}</span>
+              <span className={`ad__status ad__status--${p.active ? "delivered" : "placed"}`}>
+                {p.active ? t("admin.active") : t("admin.inactive")}
+              </span>
+              {p.featured && (
+                <span className="ad__status ad__status--confirmed">{t("admin.featured")}</span>
+              )}
+            </button>
+            {open === p.id && (
+              <ProductEditor
+                product={p}
+                onDone={(saved, upd) => {
+                  if (saved && upd) onSaved(upd);
+                  else if (saved && !upd) { onDeleted(p.id); setOpen(null); }
+                  else setOpen(null);
+                }}
+              />
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 function ProductEditor({
   product,
-  onSaved,
+  isNew,
+  onDone,
 }: {
-  product: AdminProduct;
-  onSaved: (p: AdminProduct) => void;
+  product?: AdminProduct;
+  isNew?: boolean;
+  onDone: (saved: boolean, updated?: AdminProduct) => void;
 }) {
   const { t } = useLocale();
-  const [draft, setDraft] = useState<AdminProduct>(product);
+  const [draft, setDraft] = useState<typeof EMPTY_PRODUCT & { id?: string; slug?: string }>(
+    product
+      ? {
+          name: product.name,
+          subtitle: product.subtitle,
+          description: product.description ?? "",
+          category: product.category ?? "",
+          images: product.images ?? [],
+          sizes: product.sizes,
+          defaultSizeId: product.defaultSizeId ?? null,
+          packs: product.packs,
+          active: product.active,
+          featured: product.featured,
+          id: product.id,
+          slug: product.slug,
+        }
+      : { ...EMPTY_PRODUCT }
+  );
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "error">("idle");
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
-  const setSize = (i: number, key: "label" | "price" | "stock", value: string) => {
+  // ── Size helpers ──────────────────────────────────────────────────
+  const setSize = (i: number, key: "label" | "price" | "stock", val: string) =>
     setDraft((d) => ({
       ...d,
       sizes: d.sizes.map((s, j) =>
-        j === i
-          ? { ...s, [key]: key === "label" ? value : Number(value) || 0 }
-          : s
+        j === i ? { ...s, [key]: key === "label" ? val : Number(val) || 0 } : s
       ),
     }));
-  };
-
   const addSize = () =>
     setDraft((d) => ({
       ...d,
       sizes: [...d.sizes, { id: `size-${Date.now()}`, label: "", price: 0, stock: 0 }],
     }));
-
   const removeSize = (i: number) =>
     setDraft((d) => ({ ...d, sizes: d.sizes.filter((_, j) => j !== i) }));
 
-  const setPack = (i: number, key: "qty" | "discount", value: string) => {
+  // ── Pack helpers ──────────────────────────────────────────────────
+  const setPack = (i: number, key: "qty" | "discount", val: string) =>
     setDraft((d) => ({
       ...d,
       packs: d.packs.map((p, j) =>
         j === i
-          ? {
-              ...p,
-              [key]: key === "qty" ? Math.max(1, Number(value) || 1) : (Number(value) || 0) / 100,
-            }
+          ? { ...p, [key]: key === "qty" ? Math.max(1, Number(val) || 1) : (Number(val) || 0) / 100 }
           : p
       ),
     }));
-  };
-
   const addPack = () =>
     setDraft((d) => ({ ...d, packs: [...d.packs, { qty: d.packs.length + 1, discount: 0 }] }));
-
   const removePack = (i: number) =>
     setDraft((d) => ({ ...d, packs: d.packs.filter((_, j) => j !== i) }));
 
+  // ── Image helpers ─────────────────────────────────────────────────
+  const addImage = (url: string) => {
+    if (draft.images.includes(url)) return;
+    setDraft((d) => ({ ...d, images: [...d.images, url] }));
+    setImagePickerOpen(false);
+  };
+  const removeImage = (url: string) =>
+    setDraft((d) => ({ ...d, images: d.images.filter((u) => u !== url) }));
+  const moveImage = (from: number, to: number) => {
+    setDraft((d) => {
+      const imgs = [...d.images];
+      const [item] = imgs.splice(from, 1);
+      imgs.splice(to, 0, item);
+      return { ...d, images: imgs };
+    });
+  };
+
+  // ── File upload to ImageKit ───────────────────────────────────────
+  const uploadFile = async (file: File) => {
+    setUploadState("uploading");
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/proxy/admin/upload", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("upload_failed");
+      const data = await res.json() as { url: string };
+      addImage(data.url);
+      setUploadState("idle");
+    } catch {
+      setUploadState("error");
+      setTimeout(() => setUploadState("idle"), 3000);
+    }
+  };
+
+  // ── Save ──────────────────────────────────────────────────────────
   const save = async () => {
-    if (state === "saving") return;
+    if (state === "saving" || !draft.name.trim() || !draft.sizes.length) return;
     setState("saving");
     try {
-      const d = await api<{ product: AdminProduct }>(
-        `/api/admin/products/${draft.id}`,
-        {
+      const payload = {
+        name: draft.name,
+        subtitle: draft.subtitle,
+        description: draft.description,
+        category: draft.category,
+        images: draft.images,
+        active: draft.active,
+        featured: draft.featured,
+        sizes: draft.sizes,
+        packs: draft.packs,
+        defaultSizeId: draft.defaultSizeId,
+      };
+      let result: AdminProduct;
+      if (isNew) {
+        const d = await api<{ product: AdminProduct }>("/api/admin/products", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        result = d.product;
+      } else {
+        const d = await api<{ product: AdminProduct }>(`/api/admin/products/${draft.id}`, {
           method: "PATCH",
-          body: JSON.stringify({
-            name: draft.name,
-            subtitle: draft.subtitle,
-            active: draft.active,
-            sizes: draft.sizes,
-            packs: draft.packs,
-            defaultSizeId: draft.defaultSizeId ?? undefined,
-          }),
-        }
-      );
-      onSaved(d.product);
-      setDraft(d.product);
+          body: JSON.stringify(payload),
+        });
+        result = d.product;
+      }
       setState("saved");
-      window.setTimeout(() => setState("idle"), 2800);
+      setTimeout(() => setState("idle"), 2800);
+      onDone(true, result);
     } catch {
       setState("error");
     }
   };
 
+  // ── Delete ────────────────────────────────────────────────────────
+  const remove = async () => {
+    if (!product || state === "saving") return;
+    if (!window.confirm(t("admin.delete_confirm"))) return;
+    setState("saving");
+    try {
+      await api(`/api/admin/products/${product.id}`, { method: "DELETE" });
+      onDone(true);
+    } catch {
+      setState("error");
+    }
+  };
+
+  const uid = product?.id ?? "new";
+
   return (
-    <article className="ad__product">
-      <header className="ad__product-head">
+    <div className="ad__order-detail ad__editor">
+      {/* Basic info */}
+      <div className="ad__track-fields">
         <div className="ad__field is--grow">
-          <label htmlFor={`ad-name-${draft.id}`}>{t("admin.product_name")}</label>
+          <label htmlFor={`ad-name-${uid}`}>{t("admin.product_name")}</label>
           <input
-            id={`ad-name-${draft.id}`}
+            id={`ad-name-${uid}`}
             type="text"
             value={draft.name}
+            maxLength={120}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
           />
         </div>
         <div className="ad__field is--grow">
-          <label htmlFor={`ad-sub-${draft.id}`}>{t("admin.product_subtitle")}</label>
+          <label htmlFor={`ad-cat-${uid}`}>{t("admin.product_category")}</label>
           <input
-            id={`ad-sub-${draft.id}`}
+            id={`ad-cat-${uid}`}
             type="text"
-            value={draft.subtitle}
-            onChange={(e) => setDraft((d) => ({ ...d, subtitle: e.target.value }))}
+            value={draft.category}
+            maxLength={60}
+            placeholder="e.g. Olive Oil"
+            onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
           />
         </div>
+      </div>
+      <div className="ad__field is--grow">
+        <label htmlFor={`ad-sub-${uid}`}>{t("admin.product_subtitle")}</label>
+        <input
+          id={`ad-sub-${uid}`}
+          type="text"
+          value={draft.subtitle}
+          maxLength={160}
+          onChange={(e) => setDraft((d) => ({ ...d, subtitle: e.target.value }))}
+        />
+      </div>
+      <div className="ad__field is--grow">
+        <label htmlFor={`ad-desc-${uid}`}>{t("admin.product_description")}</label>
+        <textarea
+          id={`ad-desc-${uid}`}
+          rows={3}
+          value={draft.description}
+          maxLength={2000}
+          onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+        />
+      </div>
+
+      {/* Toggles: active + featured */}
+      <div className="ad__track-fields">
         <label className="ad__switch">
           <input
             type="checkbox"
@@ -616,8 +808,62 @@ function ProductEditor({
             {draft.active ? t("admin.active") : t("admin.inactive")}
           </span>
         </label>
-      </header>
+        <label className="ad__switch">
+          <input
+            type="checkbox"
+            checked={draft.featured}
+            onChange={(e) => setDraft((d) => ({ ...d, featured: e.target.checked }))}
+          />
+          <span className="ad__switch-track" aria-hidden="true" />
+          <span className="ad__switch-label">
+            {draft.featured ? t("admin.featured") : t("admin.not_featured")}
+          </span>
+        </label>
+      </div>
 
+      {/* Images */}
+      <h3 className="ad__mini-title">{t("admin.product_images")}</h3>
+      <div className="ad__img-strip">
+        {draft.images.map((url, i) => (
+          <div key={url} className="ad__img-thumb">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" />
+            {i > 0 && (
+              <button type="button" className="ad__img-move" title="Move left" onClick={() => moveImage(i, i - 1)}>‹</button>
+            )}
+            {i < draft.images.length - 1 && (
+              <button type="button" className="ad__img-move ad__img-move--right" title="Move right" onClick={() => moveImage(i, i + 1)}>›</button>
+            )}
+            <button type="button" className="ad__img-remove" onClick={() => removeImage(url)} aria-label="Remove image">×</button>
+          </div>
+        ))}
+      </div>
+      <div className="ad__img-actions">
+        <button type="button" className="ad__add" onClick={() => setImagePickerOpen((o) => !o)}>
+          {t("admin.pick_image")}
+        </button>
+        <label className="ad__add ad__upload-label">
+          {uploadState === "uploading" ? t("account.working") : uploadState === "error" ? t("account.error_generic") : t("admin.upload_image")}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style={{ display: "none" }}
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadFile(f); e.target.value = ""; }}
+          />
+        </label>
+      </div>
+      {imagePickerOpen && (
+        <div className="ad__imagepick-grid" role="listbox" aria-label={t("admin.pick_image")}>
+          {STATIC_IMAGES.filter((u) => !draft.images.includes(u)).map((src) => (
+            <button key={src} type="button" className="ad__imagepick-cell" onClick={() => addImage(src)}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Sizes, prices and stock */}
       <h3 className="ad__mini-title">{t("admin.sizes_title")}</h3>
       <div className="ad__rows">
         <div className="ad__row is--head">
@@ -629,49 +875,23 @@ function ProductEditor({
         </div>
         {draft.sizes.map((s, i) => (
           <div className="ad__row" key={i}>
-            <input
-              aria-label={t("admin.size_label")}
-              type="text"
-              value={s.label}
-              onChange={(e) => setSize(i, "label", e.target.value)}
-            />
-            <input
-              aria-label={t("admin.size_price")}
-              type="number"
-              min={0}
-              step="0.5"
-              value={s.price}
-              onChange={(e) => setSize(i, "price", e.target.value)}
-            />
-            <input
-              aria-label={t("admin.size_stock")}
-              type="number"
-              min={0}
-              value={s.stock}
-              onChange={(e) => setSize(i, "stock", e.target.value)}
-            />
-            <input
-              aria-label={t("admin.size_default")}
-              type="radio"
-              name={`ad-default-${draft.id}`}
+            <input aria-label={t("admin.size_label")} type="text" value={s.label}
+              onChange={(e) => setSize(i, "label", e.target.value)} />
+            <input aria-label={t("admin.size_price")} type="number" min={0} step="0.5" value={s.price}
+              onChange={(e) => setSize(i, "price", e.target.value)} />
+            <input aria-label={t("admin.size_stock")} type="number" min={0} value={s.stock}
+              onChange={(e) => setSize(i, "stock", e.target.value)} />
+            <input aria-label={t("admin.size_default")} type="radio"
+              name={`ad-default-${uid}`}
               checked={draft.defaultSizeId === s.id}
-              onChange={() => setDraft((d) => ({ ...d, defaultSizeId: s.id }))}
-            />
-            <button
-              type="button"
-              className="ad__row-x"
-              aria-label={t("admin.remove")}
-              onClick={() => removeSize(i)}
-            >
-              ×
-            </button>
+              onChange={() => setDraft((d) => ({ ...d, defaultSizeId: s.id }))} />
+            <button type="button" className="ad__row-x" aria-label={t("admin.remove")} onClick={() => removeSize(i)}>×</button>
           </div>
         ))}
       </div>
-      <button type="button" className="ad__add" onClick={addSize}>
-        + {t("admin.add_size")}
-      </button>
+      <button type="button" className="ad__add" onClick={addSize}>+ {t("admin.add_size")}</button>
 
+      {/* Pack discounts */}
       <h3 className="ad__mini-title">{t("admin.packs_title")}</h3>
       <div className="ad__rows is--packs">
         <div className="ad__row is--head">
@@ -681,57 +901,38 @@ function ProductEditor({
         </div>
         {draft.packs.map((p, i) => (
           <div className="ad__row" key={i}>
-            <input
-              aria-label={t("admin.pack_qty")}
-              type="number"
-              min={1}
-              value={p.qty}
-              onChange={(e) => setPack(i, "qty", e.target.value)}
-            />
-            <input
-              aria-label={t("admin.pack_discount")}
-              type="number"
-              min={0}
-              max={90}
+            <input aria-label={t("admin.pack_qty")} type="number" min={1} value={p.qty}
+              onChange={(e) => setPack(i, "qty", e.target.value)} />
+            <input aria-label={t("admin.pack_discount")} type="number" min={0} max={90}
               value={Math.round(p.discount * 100)}
-              onChange={(e) => setPack(i, "discount", e.target.value)}
-            />
-            <button
-              type="button"
-              className="ad__row-x"
-              aria-label={t("admin.remove")}
-              onClick={() => removePack(i)}
-            >
-              ×
-            </button>
+              onChange={(e) => setPack(i, "discount", e.target.value)} />
+            <button type="button" className="ad__row-x" aria-label={t("admin.remove")} onClick={() => removePack(i)}>×</button>
           </div>
         ))}
       </div>
-      <button type="button" className="ad__add" onClick={addPack}>
-        + {t("admin.add_pack")}
-      </button>
+      <button type="button" className="ad__add" onClick={addPack}>+ {t("admin.add_pack")}</button>
 
+      {/* Save / delete */}
       <div className="ad__save-row">
-        <button
-          type="button"
-          className="ad__save"
-          disabled={state === "saving"}
-          onClick={() => void save()}
-        >
-          <span>{state === "saving" ? t("account.working") : t("portal.save")}</span>
+        <button type="button" className="ad__save is--primary"
+          disabled={state === "saving" || !draft.name.trim()}
+          onClick={() => void save()}>
+          <span>{state === "saving" ? t("account.working") : isNew ? t("admin.create_product") : t("portal.save")}</span>
           <span className="ad__save-line" aria-hidden="true" />
         </button>
-        {state === "saved" && (
-          <p className="ad__saved" role="status">
-            {t("portal.saved")}
-          </p>
+        {!isNew && (
+          <button type="button" className="ad__chip is--danger"
+            disabled={state === "saving"}
+            onClick={() => void remove()}>
+            {t("admin.delete")}
+          </button>
         )}
-        {state === "error" && (
-          <p className="ad__saved is--error" role="alert">
-            {t("account.error_generic")}
-          </p>
-        )}
+        <button type="button" className="ad__chip" onClick={() => onDone(false)}>
+          {t("admin.cancel")}
+        </button>
+        {state === "saved" && <p className="ad__saved" role="status">{t("portal.saved")}</p>}
+        {state === "error" && <p className="ad__saved is--error" role="alert">{t("account.error_generic")}</p>}
       </div>
-    </article>
+    </div>
   );
 }

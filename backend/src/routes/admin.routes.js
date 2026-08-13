@@ -24,6 +24,8 @@ router.use('/newsletter/subscribers.csv', heavyLimiter);
 router.use('/orders/:id/invoice', heavyLimiter);
 router.use('/orders/:id/status', writeLimiter);
 router.use('/products/:id', writeLimiter);
+router.use('/products', writeLimiter);
+router.use('/upload', writeLimiter);
 router.use('/posts', writeLimiter);
 router.use('/exhibits', writeLimiter);
 
@@ -249,8 +251,14 @@ router.patch('/products/:id', requireObjectId('id'), async (req, res, next) => {
     const updates = {};
     if (typeof b.name === 'string' && b.name.trim()) updates.name = b.name.trim().slice(0, 120);
     if (typeof b.subtitle === 'string') updates.subtitle = b.subtitle.trim().slice(0, 160);
+    if (typeof b.description === 'string') updates.description = b.description.trim().slice(0, 2000);
+    if (typeof b.category === 'string') updates.category = b.category.trim().slice(0, 60);
     if (typeof b.active === 'boolean') updates.active = b.active;
+    if (typeof b.featured === 'boolean') updates.featured = b.featured;
     if (typeof b.defaultSizeId === 'string') updates.defaultSizeId = b.defaultSizeId;
+    if (Array.isArray(b.images)) {
+      updates.images = b.images.filter((u) => typeof u === 'string' && u.trim()).slice(0, 10);
+    }
     if (Array.isArray(b.sizes)) {
       updates.sizes = b.sizes
         .filter((s) => s && typeof s.id === 'string' && s.id.trim())
@@ -281,6 +289,173 @@ router.patch('/products/:id', requireObjectId('id'), async (req, res, next) => {
       fields: Object.keys(updates),
     });
     res.json({ product: { ...product, id: String(product._id), _id: undefined } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Create new product
+router.post('/products', async (req, res, next) => {
+  try {
+    const b = req.body || {};
+    if (!b.name || !String(b.name).trim()) {
+      return res.status(400).json({ error: 'name_required' });
+    }
+    // Auto-generate slug from name; ensure uniqueness
+    const base = String(b.name).toLowerCase().normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'product';
+    let slug = base;
+    for (let n = 2; await Product.exists({ slug }); n++) slug = `${base}-${n}`;
+
+    const sizes = Array.isArray(b.sizes)
+      ? b.sizes.filter((s) => s && typeof s.id === 'string' && s.id.trim()).map((s) => ({
+          id: s.id.trim().slice(0, 30),
+          label: String(s.label ?? s.id).slice(0, 30),
+          price: Math.max(0, Number(s.price) || 0),
+          stock: Math.max(0, Math.floor(Number(s.stock) || 0)),
+        }))
+      : [];
+    if (!sizes.length) return res.status(400).json({ error: 'at_least_one_size' });
+
+    const product = await Product.create({
+      slug,
+      name: String(b.name).trim().slice(0, 120),
+      subtitle: typeof b.subtitle === 'string' ? b.subtitle.trim().slice(0, 160) : '',
+      description: typeof b.description === 'string' ? b.description.trim().slice(0, 2000) : '',
+      category: typeof b.category === 'string' ? b.category.trim().slice(0, 60) : '',
+      images: Array.isArray(b.images) ? b.images.filter((u) => typeof u === 'string').slice(0, 10) : [],
+      sizes,
+      defaultSizeId: sizes[0]?.id ?? null,
+      packs: [],
+      active: b.active !== false,
+      featured: b.featured === true,
+    });
+    recordAudit(req, 'product.create', slug, { name: product.name });
+    res.status(201).json({ product: { ...product.toObject(), id: String(product._id), _id: undefined } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Delete product
+router.delete('/products/:id', requireObjectId('id'), async (req, res, next) => {
+  try {
+    const gone = await Product.findByIdAndDelete(req.params.id).lean();
+    if (!gone) return res.status(404).json({ error: 'Product not found' });
+    recordAudit(req, 'product.delete', gone.slug);
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Image upload via ImageKit (multipart/form-data, single file "image")
+router.post('/upload', async (req, res, next) => {
+  try {
+    const IMAGEKIT_PRIVATE_KEY = process.env.IMAGEKIT_PRIVATE_KEY;
+    const IMAGEKIT_URL_ENDPOINT = process.env.IMAGEKIT_URL_ENDPOINT;
+    if (!IMAGEKIT_PRIVATE_KEY || !IMAGEKIT_URL_ENDPOINT) {
+      return res.status(503).json({ error: 'imagekit_not_configured' });
+    }
+
+    // Collect the raw multipart body manually (no disk writes — stream into memory)
+    const chunks = [];
+    await new Promise((resolve, reject) => {
+      req.on('data', (c) => chunks.push(c));
+      req.on('end', resolve);
+      req.on('error', reject);
+    });
+    const rawBody = Buffer.concat(chunks);
+
+    // Parse boundary from Content-Type header
+    const ct = req.headers['content-type'] || '';
+    const boundaryMatch = ct.match(/boundary=([^\s;]+)/);
+    if (!boundaryMatch) return res.status(400).json({ error: 'missing_boundary' });
+    const boundary = boundaryMatch[1];
+
+    // Split parts by boundary
+    const parts = rawBody.toString('binary').split(`--${boundary}`);
+    let fileBuffer = null;
+    let fileName = 'upload.jpg';
+    let mimeType = 'image/jpeg';
+
+    for (const part of parts) {
+      if (!part.includes('Content-Disposition')) continue;
+      const [headerSection, ...bodyParts] = part.split('\r\n\r\n');
+      if (!headerSection.includes('filename=')) continue;
+      const nameMatch = headerSection.match(/filename="([^"]+)"/);
+      const ctMatch = headerSection.match(/Content-Type:\s*([^\r\n]+)/);
+      if (nameMatch) fileName = nameMatch[1];
+      if (ctMatch) mimeType = ctMatch[1].trim();
+      // body is everything after the double CRLF, minus the trailing \r\n
+      const bodyStr = bodyParts.join('\r\n\r\n').replace(/\r\n$/, '');
+      fileBuffer = Buffer.from(bodyStr, 'binary');
+      break;
+    }
+
+    if (!fileBuffer) return res.status(400).json({ error: 'no_file' });
+    if (fileBuffer.length > 8 * 1024 * 1024) return res.status(413).json({ error: 'file_too_large' });
+
+    // Validate MIME
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(mimeType)) return res.status(400).json({ error: 'invalid_file_type' });
+
+    // Upload to ImageKit via their REST API
+    const FormData = (await import('node:stream')).Transform; // just checking node version
+    const https = require('https');
+    const boundary2 = `----NodeBoundary${Date.now()}`;
+    const base64File = fileBuffer.toString('base64');
+
+    const ikBody = [
+      `--${boundary2}`,
+      `Content-Disposition: form-data; name="file"`,
+      '',
+      base64File,
+      `--${boundary2}`,
+      `Content-Disposition: form-data; name="fileName"`,
+      '',
+      fileName,
+      `--${boundary2}`,
+      `Content-Disposition: form-data; name="folder"`,
+      '',
+      '/nostrum/products',
+      `--${boundary2}--`,
+    ].join('\r\n');
+
+    const auth = Buffer.from(`${IMAGEKIT_PRIVATE_KEY}:`).toString('base64');
+
+    const ikUrl = new URL('https://upload.imagekit.io/api/v1/files/upload');
+    const ikResult = await new Promise((resolve, reject) => {
+      const req2 = https.request({
+        hostname: ikUrl.hostname,
+        path: ikUrl.pathname,
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': `multipart/form-data; boundary=${boundary2}`,
+          'Content-Length': Buffer.byteLength(ikBody),
+        },
+      }, (resp) => {
+        let data = '';
+        resp.on('data', (d) => (data += d));
+        resp.on('end', () => {
+          try { resolve({ status: resp.statusCode, body: JSON.parse(data) }); }
+          catch { resolve({ status: resp.statusCode, body: data }); }
+        });
+      });
+      req2.on('error', reject);
+      req2.write(ikBody);
+      req2.end();
+    });
+
+    if (ikResult.status !== 200) {
+      console.error('ImageKit upload failed:', ikResult.body);
+      return res.status(502).json({ error: 'upload_failed' });
+    }
+
+    recordAudit(req, 'image.upload', ikResult.body.fileId, { name: fileName });
+    res.json({ url: ikResult.body.url, fileId: ikResult.body.fileId });
   } catch (err) {
     next(err);
   }

@@ -28,11 +28,14 @@ const productSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     subtitle: { type: String, default: '' },
+    description: { type: String, default: '' },
     category: { type: String, default: '' },
+    images: { type: [String], default: [] }, // ImageKit URLs or /public paths
     sizes: { type: [sizeSchema], default: [] },
     defaultSizeId: { type: String, default: null },
     packs: { type: [packSchema], default: [] },
     active: { type: Boolean, default: true },
+    featured: { type: Boolean, default: false }, // shown in home page grid
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

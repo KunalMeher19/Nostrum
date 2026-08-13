@@ -399,7 +399,18 @@
     "col_when": "Quan",
     "col_actor": "Autor",
     "col_action": "Acció",
-    "col_target": "Objectiu"
+    "col_target": "Objectiu",
+    "product_description": "Description",
+    "product_category": "Category",
+    "product_images": "Photos",
+    "pick_image": "Pick existing photo",
+    "upload_image": "Upload new photo",
+    "new_product": "New product",
+    "create_product": "Create product",
+    "products_count": "products",
+    "featured": "Featured on home",
+    "not_featured": "Not featured",
+    "cancel": "Cancel"
   },
   "journal": {
     "eyebrow": "El diari",

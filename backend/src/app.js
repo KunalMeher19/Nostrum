@@ -16,6 +16,7 @@ const adminRoutes = require('./routes/admin.routes');
 const journalRoutes = require('./routes/journal.routes');
 const contactRoutes = require('./routes/contact.routes');
 const newsletterRoutes = require('./routes/newsletter.routes');
+const productsRoutes = require('./routes/products.routes');
 
 const app = express();
 
@@ -68,13 +69,17 @@ app.use((req, res, next) => {
   res.status(403).json({ error: 'origin_not_allowed' });
 });
 
-// Body limits: portal payloads are tiny (profile, status changes,
-// product edits, journal posts). 200kb caps memory abuse while leaving
-// generous headroom for post content. JSON ONLY — no urlencoded parser:
-// nothing consumes form bodies, and refusing them removes the classic
-// no-preflight HTML-form request class entirely.
-app.use(express.json({ limit: '200kb' }));
-app.use(sanitizeBody);
+// Body parsing: JSON for all routes except /api/admin/upload which reads
+// the raw multipart stream itself. Applying express.json to that route
+// would consume the stream before the handler sees it.
+app.use((req, res, next) => {
+  if (req.path === '/api/admin/upload') return next();
+  express.json({ limit: '200kb' })(req, res, next);
+});
+app.use((req, res, next) => {
+  if (req.path === '/api/admin/upload') return next();
+  sanitizeBody(req, res, next);
+});
 
 // Rate limiting: global backstop for every request, plus a tighter
 // budget for cookie-less traffic (scanners / brute-force probes).
@@ -93,6 +98,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/journal', journalRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/products', productsRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -116,11 +116,14 @@ export type AdminProduct = {
   slug: string;
   name: string;
   subtitle: string;
+  description: string;
   category: string;
+  images: string[];
   sizes: { id: string; label: string; price: number; stock: number }[];
   defaultSizeId: string | null;
   packs: { qty: number; discount: number }[];
   active: boolean;
+  featured: boolean;
 };
 
 /* ── Journal (blog + digital museum) ─────────────────────────────── */

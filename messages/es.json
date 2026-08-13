@@ -399,7 +399,18 @@
     "col_when": "Cuándo",
     "col_actor": "Autor",
     "col_action": "Acción",
-    "col_target": "Objetivo"
+    "col_target": "Objetivo",
+    "product_description": "Description",
+    "product_category": "Category",
+    "product_images": "Photos",
+    "pick_image": "Pick existing photo",
+    "upload_image": "Upload new photo",
+    "new_product": "New product",
+    "create_product": "Create product",
+    "products_count": "products",
+    "featured": "Featured on home",
+    "not_featured": "Not featured",
+    "cancel": "Cancel"
   },
   "journal": {
     "eyebrow": "El diario",
