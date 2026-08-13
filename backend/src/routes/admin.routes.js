@@ -105,6 +105,7 @@ async function customerRows() {
       role: u.role ?? 'customer',
       locale: u.locale ?? '',
       gdprConsentAt: u.gdprConsentAt ?? null,
+      marketingConsentAt: u.marketingConsentAt ?? null,
       createdAt: u.createdAt ?? null,
       orderCount: c ? c.count : 0,
       orderTotal: c ? Math.round(c.total * 100) / 100 : 0,

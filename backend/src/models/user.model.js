@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, select: false },
     locale: { type: String },
     gdprConsentAt: { type: Date },
+    marketingConsentAt: { type: Date },
     createdAt: { type: Date, default: Date.now },
     // Customer portal: editable shipping details
     shipping: {

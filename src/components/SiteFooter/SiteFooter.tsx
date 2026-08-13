@@ -23,11 +23,7 @@ const NAV_LINKS = [
   { href: "/track", labelKey: "footer.track" },
 ];
 
-const SOCIALS = [
-  { href: "https://instagram.com", label: "Instagram" },
-  { href: "https://facebook.com", label: "Facebook" },
-  { href: "https://linkedin.com", label: "LinkedIn" },
-];
+// No social media accounts.
 
 export default function SiteFooter() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -169,22 +165,28 @@ export default function SiteFooter() {
         </button>
       </div>
 
-      {/* ── Body: address · nav · socials ── */}
+      {/* ── Body: address · nav ── */}
       <div className="nf__body">
         <div className="nf__col">
           <h4 className="nf__col-title">Nostrum</h4>
           <address className="nf__address">
-            Olive Groves, Catalonia
+            El Perelló, Catalonia
             <br />
             Spain, EU
           </address>
           <ul className="nf__contact">
             <li>
-              <a href="mailto:hola@nostrum.com">hola@nostrum.com</a>
+              <a href="mailto:office@nostrumoils.com">office@nostrumoils.com</a>
+            </li>
+            <li>
+              <a href="mailto:sales@nostrumoils.com">sales@nostrumoils.com</a>
+            </li>
+            <li>
+              <a href="tel:+34680889399">+34 680 889 399</a>
             </li>
             <li>
               <a
-                href="https://wa.me/34600000000"
+                href="https://wa.me/34680889399"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="nf__wa"
@@ -213,19 +215,6 @@ export default function SiteFooter() {
             ))}
           </ul>
         </nav>
-
-        <div className="nf__col">
-          <h4 className="nf__col-title">{t("footer.follow")}</h4>
-          <ul className="nf__socials">
-            {SOCIALS.map(({ href, label }) => (
-              <li key={label}>
-                <a href={href} target="_blank" rel="noopener noreferrer">
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
       </div>
 
       {/* ── Poster wordmark — cursor-pressure variable type ── */}

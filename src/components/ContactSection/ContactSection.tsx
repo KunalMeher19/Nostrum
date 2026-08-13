@@ -25,21 +25,14 @@ import { submitContact, type ContactTopic } from "@/lib/api";
 /* (or immediately on a hard load). Pure CSS transitions, no GSAP.      */
 /* ------------------------------------------------------------------ */
 
-/* Placeholder contact details (§20.6 — client hasn't provided real ones).
-   Kept in sync with SiteFooter's placeholders. */
 const CONTACT = {
-  email: "hola@nostrum.com",
-  phone: "+34 600 000 000",
-  address: ["Olive Groves, Catalonia", "Spain, EU"],
+  email: "office@nostrumoils.com",
+  salesEmail: "sales@nostrumoils.com",
+  phone: "+34 680 889 399",
+  address: ["El Perelló, Catalonia", "Spain, EU"],
   whatsapp:
-    "https://wa.me/34600000000?text=Hola%20Nostrum%2C%20me%20gustar%C3%ADa%20hablar%20con%20vosotros.",
+    "https://wa.me/34680889399?text=Hola%20Nostrum%2C%20me%20gustar%C3%ADa%20hablar%20con%20vosotros.",
 };
-
-const SOCIALS = [
-  { href: "https://instagram.com", label: "Instagram" },
-  { href: "https://facebook.com", label: "Facebook" },
-  { href: "https://linkedin.com", label: "LinkedIn" },
-];
 
 // Labels are i18n keys resolved via t() at render.
 const TOPICS = [
@@ -124,6 +117,8 @@ export default function ContactSection() {
     <section ref={rootRef} className="ct" aria-labelledby="ct-title">
       {/* ── LEFT · the brand card ─────────────────────────────── */}
       <aside className="ct__panel">
+        {/* Stock photo: olive oil pour — overlaid with dark gradient for legibility */}
+        <div className="ct__panel-photo" aria-hidden="true" />
         <div className="ct__panel-glow" aria-hidden="true" />
         <div className="ct__panel-grain" aria-hidden="true" />
 
@@ -187,15 +182,7 @@ export default function ContactSection() {
           </a>
         </div>
 
-        <ul className="ct__socials" data-ct-reveal>
-          {SOCIALS.map(({ href, label }) => (
-            <li key={label}>
-              <a href={href} target="_blank" rel="noopener noreferrer">
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
+        {/* Socials removed — client has no social media accounts */}
       </aside>
 
       {/* ── RIGHT · the form ──────────────────────────────────── */}

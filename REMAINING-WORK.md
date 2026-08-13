@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live).
+> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
 > What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11.**
 
@@ -92,6 +92,26 @@ Re-audited the frontend against the original client brief (`assests/Nostrum.pdf`
 - **Signature motion ideas (brief §07: light streaks, spinning olives, sketch illustration, pour CTA, leaf-sound toggle) — still open, optional.** Brief says "options to explore, pick what looks best"; none built (frame-sequence hero was disabled after feedback 1.0). Propose one (spinning olives or pour CTA) or close the topic with the client.
 
 Verified: frontend `tsc --noEmit` and `next build` clean; no backend changes this round.
+
+### 2.8 Client feedback round 3 — DONE 2026-08-13
+
+All items from `Nostrum feedback.3.pdf` implemented. Item-by-item:
+
+- **Shop: 5L + 2L only** — sizes reduced to 5L and 2L in `src/lib/products.ts`. 5L shows two photo options (1.webp / 11.webp, toggled via dot buttons). 2L shows an oil-variety sub-selector (Picual → 4.webp, Arbequina → 14.webp). *5L oil-type selector is deferred until the client resolves the photo inconsistency — his note says "do it with only the 2L option".*
+- **B2B button in the specific product section** — B2B enquiry link (→ /contact) added below trust badges on every product detail page (`pdp__b2b-row`). The listing page also carries a B2B button in the head row (was already there).
+- **Delete socials** — removed from `SiteFooter.tsx` (column gone) and `ContactSection.tsx` (list removed). `UnderlayNav` had a `SOCIAL_LINKS` constant that was already unused / never rendered — left as dead code, no visible change.
+- **Contact info updated everywhere** — emails → `office@nostrumoils.com` + `sales@nostrumoils.com`; phone → `+34 680 889 399`; address → "El Perelló, Catalonia"; WhatsApp → `wa.me/34680889399`. Updated in `ContactSection.tsx`, `SiteFooter.tsx`, and all 5 locale JSON files.
+- **Track-order in nav** — intentionally kept (freelancer decision agreed with client: useful for guests without login; also present in the customer portal). Explained to client.
+- **Marketing consent on signup** — optional "I accept marketing communications" checkbox added to the create-account form (`AccountSection.tsx`). Stored as `marketingConsentAt` on the User model (both `src/lib/auth/users.ts` and `backend/src/models/user.model.js`). Passed through the register API route.
+- **Admin customer spreadsheet** — `marketingConsentAt` column added to the Customers tab in `AdminPortal.tsx` (shows ✓ / ·). All 5 locale files have `admin.col_marketing` key. Backend `customerRows()` already returns the field.
+- **Journal: sticky leaves + posts grid** — `JournalSection.tsx` gets a `jr__leaves` div (hand-drawn SVG olive branch, same family as the hero branch) that sticks on the right side while posts scroll. `journal.css` updated: `.jr__stories` is now a two-column grid (posts left, leaves right); leaves hidden on mobile.
+- **Location → "El Perelló, Catalonia, Spain"** everywhere — map labels, footer address, contact panel address updated. All 5 locale `map.label1/label2` keys updated.
+- **Google Maps link on the pulsing map dot** — the SVG marker group in `OriginMap.tsx` now wraps the dot in an `<a>` that opens `https://maps.app.goo.gl/t5ik6a4FMCbJEJbW6` in a new tab. The text label below the map is also a link (added previously).
+- **Easter egg: existing ● in quote → getkinetia.com** — the yellow ● between "Nostrum is born of the grove" and "pressed within hours" in `StoryParallax.tsx` is now an invisible link to `https://www.getkinetia.com` (new tab, `tabIndex=-1`, `aria-hidden`). No hover state, no label — just the easter egg the client asked for.
+- **All external redirects open in new tab** — `target="_blank" rel="noopener noreferrer"` confirmed on all external hrefs (Maps, WhatsApp, getkinetia, Resend).
+- **Stock photos placed** — 4 photos copied to `public/images/` (stock-grove, stock-harvest, stock-olives, stock-pour). Placed: pour → ContactSection left-panel CSS background (opacity 0.18, luminosity blend); grove → OriginNumbers section CSS background (opacity 0.08); harvest → StoryProcess intro CSS background (opacity 0.07); olives → home shop tile #3 image.
+- **Hero thumbnail strip removed** — `crisp-header__slider-nav { display: none }` added to `crisp-header.css`. The JS slideshow still functions; only the visual rail is hidden.
+- **Verified:** `tsc --noEmit` clean (0 errors); `backend npm test` 80/80 green.
 
 ---
 

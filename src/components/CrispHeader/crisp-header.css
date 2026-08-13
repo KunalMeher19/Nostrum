@@ -555,20 +555,12 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
   overflow: hidden;
 }
 
-/* Vertical thumbnail rail, anchored toward the bottom-right of the hero.
-   Pulled out of the bottom-center flow (its sibling caption keeps that slot)
-   and pinned to the right edge as a column. overflow is visible on purpose so
-   the reveal-in slide (translateX from off-screen right) isn't clipped. */
+/* Thumbnail rail hidden — client feedback 3 (2026-08-13): remove the
+   right-side thumbnail strip from the hero. The slider still works
+   internally (JS references the buttons for slide switching); we only
+   hide the visual rail. */
 .crisp-header__slider-nav {
-  grid-column-gap: .5em;
-  grid-row-gap: .5em;
-  padding: 1em;
-  flex-flow: column;
-  display: flex;
-  position: absolute;
-  right: 1.5em;
-  bottom: 8em;
-  z-index: 2;
+  display: none;
 }
 
 .crisp-header__slider-nav-btn {

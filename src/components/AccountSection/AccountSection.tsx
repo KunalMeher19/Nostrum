@@ -36,6 +36,7 @@ export default function AccountSection() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [gdpr, setGdpr] = useState(false);
+  const [marketing, setMarketing] = useState(false);
 
   /* Entry choreography (same beat as ContactSection). */
   useEffect(() => {
@@ -131,6 +132,7 @@ export default function AccountSection() {
             password,
             locale,
             gdprConsent: gdpr,
+            marketingConsent: marketing,
           }),
         });
         if (!res.ok) {
@@ -270,19 +272,33 @@ export default function AccountSection() {
           )}
 
           {mode === "create" && (
-            <label className="ac__gdpr" data-ac-reveal>
-              <input
-                type="checkbox"
-                checked={gdpr}
-                onChange={(e) => setGdpr(e.target.checked)}
-                required
-              />
-              <span className="ac__gdpr-box" aria-hidden="true" />
-              <span className="ac__gdpr-text">
-                {t("account.gdpr_label")}{" "}
-                <a href={`/${locale}/privacy`}>{t("account.gdpr_link")}</a>
-              </span>
-            </label>
+            <>
+              <label className="ac__gdpr" data-ac-reveal>
+                <input
+                  type="checkbox"
+                  checked={gdpr}
+                  onChange={(e) => setGdpr(e.target.checked)}
+                  required
+                />
+                <span className="ac__gdpr-box" aria-hidden="true" />
+                <span className="ac__gdpr-text">
+                  {t("account.gdpr_label")}{" "}
+                  <a href={`/${locale}/privacy`}>{t("account.gdpr_link")}</a>
+                </span>
+              </label>
+              {/* Optional marketing consent (client feedback 3) */}
+              <label className="ac__gdpr" data-ac-reveal>
+                <input
+                  type="checkbox"
+                  checked={marketing}
+                  onChange={(e) => setMarketing(e.target.checked)}
+                />
+                <span className="ac__gdpr-box" aria-hidden="true" />
+                <span className="ac__gdpr-text">
+                  {t("account.marketing_label")}
+                </span>
+              </label>
+            </>
           )}
 
           <div className="ac__submit-row" data-ac-reveal>

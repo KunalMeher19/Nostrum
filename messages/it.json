@@ -31,9 +31,11 @@
     "product_single": "Singolo",
     "product_duo": "Duo",
     "product_trio": "Trio",
+    "product_twolitre": "Bottiglia 2L",
     "detail_single": "5L · Extravergine",
     "detail_duo": "2 × 5L",
     "detail_trio": "3 × 5L",
+    "detail_twolitre": "2L · Extra Vergine",
     "note": "Spremuto a freddo · imbottigliato su ordinazione · spedizioni in Spagna e UE",
     "b2b": "Richieste B2B"
   },
@@ -145,12 +147,13 @@
     "step5_copy": "Sigillato appena uscito dal frantoio, solo prima spremitura a freddo."
   },
   "map": {
-    "aria": "Dove si trova l'uliveto",
+    "aria": "Dove si trova il bosco",
     "eyebrow": "Il luogo",
-    "title": "Qui, in nessun altro posto.",
-    "label1": "l'uliveto, Baix Ebre,",
-    "label2": "Catalunya",
-    "sea": "Mar Mediterrània"
+    "title": "Qui, da nessun'altra parte.",
+    "label1": "El Perelló, Catalogna,",
+    "label2": "Spagna",
+    "sea": "Mar Mediterrània",
+    "maps_aria": "Visualizza El Perelló su Google Maps (si apre in una nuova scheda)"
   },
   "product": {
     "breadcrumb_shop": "Shop",
@@ -202,7 +205,9 @@
     "view_bottle": "Bottiglia",
     "view_label": "Etichetta",
     "view_grove": "L'uliveto",
-    "view_estate": "La tenuta"
+    "view_estate": "La tenuta",
+    "oil_type": "Varietà di olio",
+    "b2b_enquiry": "Richieste B2B"
   },
   "origins": {
     "cta": "Acquista la collezione"
@@ -252,6 +257,7 @@
     "field_password": "Password",
     "gdpr_label": "Accetto il trattamento dei miei dati come descritto nella",
     "gdpr_link": "informativa sulla privacy",
+    "marketing_label": "Accetto comunicazioni di marketing (facoltativo)",
     "submit_signin": "Accedi",
     "submit_create": "Crea account",
     "submit_forgot": "Invia link",
@@ -340,6 +346,7 @@
     "col_joined": "Iscrizione",
     "col_orders": "Ordini",
     "col_total": "Totale",
+    "col_marketing": "Marketing",
     "shop_note": "Questa è la copia di lavoro del catalogo. Il negozio pubblico mantiene i prezzi provvisori finché la casa non conferma la gamma definitiva.",
     "product_name": "Nome",
     "product_subtitle": "Sottotitolo",

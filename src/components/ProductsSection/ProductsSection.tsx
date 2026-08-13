@@ -29,14 +29,15 @@ type Product = {
   nameKey: string;
   detailKey: string;
   price: string;
+  image?: string;
 };
 
 // x1 / x2 / x3 of the 5L bottle (§7 — mainly 5L, sold as packs; ~€35/5L,
 // price not final). Names/details are i18n keys resolved via t() at render.
 const PRODUCTS: Product[] = [
-  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35" },
-  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66" },
-  { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio", price: "€95" },
+  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/1.webp" },
+  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66", image: "/products/11.webp" },
+  { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio", price: "€95", image: "/products/2.webp" },
 ];
 
 export default function ProductsSection() {
@@ -323,6 +324,14 @@ export default function ProductsSection() {
           {PRODUCTS.map((product) => (
             <li key={product.id} className="shop-card">
               <div className="shop-card__media">
+                {product.image && (
+                  <img
+                    src={product.image}
+                    alt=""
+                    className="shop-card__img"
+                    aria-hidden="true"
+                  />
+                )}
                 <LocaleLink
                   href={`/product/${product.id}`}
                   className="shop-card__link"

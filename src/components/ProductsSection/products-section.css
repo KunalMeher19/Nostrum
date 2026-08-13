@@ -218,6 +218,17 @@
   gap: clamp(1rem, 1.6vw, 1.5rem);
 }
 
+/* Real product photo inside the home shop tile */
+.shop-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+}
+
 /* Big product-first placeholder — tall portrait, no border chaos, just a
    quiet warm fill that lets photography (dropped in later) do the talking. */
 .shop-card__media {

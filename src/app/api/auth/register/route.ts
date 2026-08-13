@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     password?: string;
     locale?: string;
     gdprConsent?: boolean;
+    marketingConsent?: boolean;
   };
   try {
     body = await req.json();
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
     password,
     locale: body.locale,
     gdprConsent: true,
+    marketingConsent: !!body.marketingConsent,
   });
 
   // Email verification: token issued now, email is a console stub until

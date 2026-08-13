@@ -85,6 +85,19 @@
   pointer-events: none;
 }
 
+/* Stock photo behind the contact card — olive oil pour, very dark overlay */
+.ct__panel-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background-image: url("/images/stock-pour.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.18;
+  mix-blend-mode: luminosity;
+}
+
 /* Film grain over the gradient so the card reads as material, not vector. */
 .ct__panel-grain {
   position: absolute;

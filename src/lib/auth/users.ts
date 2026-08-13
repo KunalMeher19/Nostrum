@@ -19,6 +19,7 @@ export interface DbUser {
   passwordHash?: string;
   locale?: string;
   gdprConsentAt?: Date;
+  marketingConsentAt?: Date;
   createdAt?: Date;
 }
 
@@ -47,6 +48,7 @@ export async function createCredentialsUser(opts: {
   password: string;
   locale?: string;
   gdprConsent: boolean;
+  marketingConsent?: boolean;
 }): Promise<DbUser> {
   const db = await getDb();
   const email = normalizeEmail(opts.email);
@@ -61,6 +63,7 @@ export async function createCredentialsUser(opts: {
     passwordHash,
     locale: opts.locale,
     gdprConsentAt: opts.gdprConsent ? new Date() : undefined,
+    marketingConsentAt: opts.marketingConsent ? new Date() : undefined,
     createdAt: new Date(),
   };
   await db.collection("users").insertOne(doc);

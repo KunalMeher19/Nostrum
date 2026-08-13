@@ -31,9 +31,11 @@
     "product_single": "Single",
     "product_duo": "Duo",
     "product_trio": "Trio",
+    "product_twolitre": "2L Bottle",
     "detail_single": "5L · Extra Virgin",
     "detail_duo": "2 × 5L",
     "detail_trio": "3 × 5L",
+    "detail_twolitre": "2L · Extra Virgin",
     "note": "Cold-pressed · bottled to order · shipped across Spain & the EU",
     "b2b": "B2B enquiries"
   },
@@ -148,9 +150,10 @@
     "aria": "Where the grove is",
     "eyebrow": "The place",
     "title": "Here, nowhere else.",
-    "label1": "the grove, Baix Ebre,",
-    "label2": "Catalunya",
-    "sea": "Mar Mediterrània"
+    "label1": "El Perelló, Catalonia,",
+    "label2": "Spain",
+    "sea": "Mar Mediterrània",
+    "maps_aria": "View El Perelló on Google Maps (opens in new tab)"
   },
   "product": {
     "breadcrumb_shop": "Shop",
@@ -202,7 +205,9 @@
     "view_bottle": "Bottle",
     "view_label": "Label",
     "view_grove": "The grove",
-    "view_estate": "The estate"
+    "view_estate": "The estate",
+    "oil_type": "Oil variety",
+    "b2b_enquiry": "B2B enquiries"
   },
   "origins": {
     "cta": "Shop the collection"
@@ -252,6 +257,7 @@
     "field_password": "Password",
     "gdpr_label": "I agree to the processing of my data as described in the",
     "gdpr_link": "privacy policy",
+    "marketing_label": "I accept marketing communications (optional)",
     "submit_signin": "Sign in",
     "submit_create": "Create account",
     "submit_forgot": "Send link",
@@ -340,6 +346,7 @@
     "col_joined": "Joined",
     "col_orders": "Orders",
     "col_total": "Total",
+    "col_marketing": "Marketing",
     "shop_note": "This is the working copy of the catalogue. The public Shop keeps its placeholder prices until the house confirms the final range.",
     "product_name": "Name",
     "product_subtitle": "Subtitle",

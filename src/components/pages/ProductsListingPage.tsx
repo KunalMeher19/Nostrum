@@ -24,14 +24,13 @@ type Tile = {
   nameKey: string;
   detailKey: string;
   price: string;
+  image?: string;
 };
 
-// Same trio as the home Collection teaser (§7 — ×1/×2/×3 of the 5L,
-// placeholder prices per the brief).
+// Only 5L single and 2L single — client reduced from the original trio.
 const TILES: Tile[] = [
-  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35" },
-  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66" },
-  { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio", price: "€95" },
+  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/1.webp" },
+  { id: "two-litre", nameKey: "shop.product_twolitre", detailKey: "shop.detail_twolitre", price: "€16", image: "/products/4.webp" },
 ];
 
 export default function ProductsPage() {
@@ -170,6 +169,14 @@ export default function ProductsPage() {
           {TILES.map((tile) => (
             <li key={tile.id} className="pcard" data-tile>
               <div className="pcard__media">
+                {tile.image && (
+                  <img
+                    src={tile.image}
+                    alt=""
+                    className="pcard__img"
+                    aria-hidden="true"
+                  />
+                )}
                 <LocaleLink
                   href={`/product/${tile.id}`}
                   className="pcard__link"

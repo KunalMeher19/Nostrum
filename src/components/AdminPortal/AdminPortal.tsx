@@ -372,6 +372,7 @@ function CustomersView() {
                 <th>{t("account.field_name")}</th>
                 <th>{t("account.field_email")}</th>
                 <th>{t("admin.col_consent")}</th>
+                <th>{t("admin.col_marketing")}</th>
                 <th>{t("admin.col_joined")}</th>
                 <th className="is--num">{t("admin.col_orders")}</th>
                 <th className="is--num">{t("admin.col_total")}</th>
@@ -388,6 +389,7 @@ function CustomersView() {
                   </td>
                   <td>{c.email}</td>
                   <td>{dateFmt(c.gdprConsentAt)}</td>
+                  <td>{c.marketingConsentAt ? "✓" : "·"}</td>
                   <td>{dateFmt(c.createdAt)}</td>
                   <td className="is--num">{c.orderCount}</td>
                   <td className="is--num">{euro(c.orderTotal)}</td>

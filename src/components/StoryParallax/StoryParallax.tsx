@@ -375,9 +375,20 @@ export default function StorySection() {
           <div className="story-spotlight__sticky">
             <h2 className="story-spotlight__quote">
               {t("story.quote")}{" "}
-              <span className="story-spotlight__dot" aria-hidden="true">
-                ●
-              </span>{" "}
+              {/* Easter egg: the yellow ● between the two halves of the quote
+                  links quietly to getkinetia.com — no hover state, no label,
+                  just the dot. Client's ask: "no animation, no nothing, just
+                  an easter egg". tabIndex -1 keeps it off the keyboard path. */}
+              <a
+                href="https://www.getkinetia.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="story-spotlight__dot-link"
+                aria-hidden="true"
+                tabIndex={-1}
+              >
+                <span className="story-spotlight__dot">●</span>
+              </a>{" "}
               {t("story.quote2")}
             </h2>
             <p className="story-spotlight__label">

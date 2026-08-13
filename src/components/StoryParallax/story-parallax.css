@@ -323,6 +323,18 @@
   color: color-mix(in srgb, var(--story-fg) 85%, transparent);
 }
 
+/* Easter-egg dot link — no underline, cursor pointer but visually seamless */
+.story-spotlight__dot-link {
+  text-decoration: none;
+  cursor: default;
+  display: inline;
+}
+.story-spotlight__dot-link:hover .story-spotlight__dot,
+.story-spotlight__dot-link:focus-visible .story-spotlight__dot {
+  opacity: 0.7;
+  cursor: pointer;
+}
+
 .story-spotlight__label strong {
   font-weight: 600;
 }

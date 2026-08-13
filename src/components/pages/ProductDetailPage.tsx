@@ -44,6 +44,8 @@ export default function ProductPage() {
   const { addItem } = useCart();
 
   const [sizeId, setSizeId] = useState(product?.defaultSizeId ?? "");
+  const [oilTypeId, setOilTypeId] = useState<string | null>(null);
+  const [photoVariantIdx, setPhotoVariantIdx] = useState(0);
   const [qty, setQty] = useState(entry?.qty ?? 1);
   const [customQty, setCustomQty] = useState(false);
   const [added, setAdded] = useState(false);
@@ -52,6 +54,12 @@ export default function ProductPage() {
   const gridRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Reset oil type selection when size changes
+  useEffect(() => {
+    setOilTypeId(null);
+    setPhotoVariantIdx(0);
+  }, [sizeId]);
 
   /* ---- Light theme: pin the shop inversion + ink nav on this route --- */
   useEffect(() => {
@@ -271,18 +279,50 @@ export default function ProductPage() {
         </nav>
 
         <div className="pdp__grid" ref={gridRef}>
-          {/* ---- Gallery — one photo per product (client feedback 1.0:
-                  thumbnail row below the main image removed) ------------ */}
+          {/* Gallery — real product photos */}
           <section className="pdp__gallery" aria-label="Product image">
             <div className="pdp__media" data-unveil>
-              {/* Placeholder tile (Collection-style N monogram) — the real
-                  product photo drops straight in here later. */}
-              <div className="pdp__media-tile">
-                <span className="pdp__media-mark" aria-hidden="true">
-                  N
-                </span>
-                <span className="pdp__media-view">{t("product.view_bottle")}</span>
-              </div>
+              {(() => {
+                const currentSize = product.sizes.find(s => s.id === sizeId) ?? product.sizes[0];
+                const oilType = currentSize.oilTypes?.find(o => o.id === oilTypeId) ?? currentSize.oilTypes?.[0];
+                const mainImg = oilType?.image ?? (photoVariantIdx === 1 && currentSize.altImage ? currentSize.altImage : currentSize.image);
+                if (mainImg) {
+                  return (
+                    <div className="pdp__media-photo">
+                      <img src={mainImg} alt={`${product.name} ${currentSize.label}`} />
+                    </div>
+                  );
+                }
+                return (
+                  <div className="pdp__media-tile">
+                    <span className="pdp__media-mark" aria-hidden="true">N</span>
+                    <span className="pdp__media-view">{t("product.view_bottle")}</span>
+                  </div>
+                );
+              })()}
+              {/* Photo variant toggle for 5L (two photos) */}
+              {(() => {
+                const currentSize = product.sizes.find(s => s.id === sizeId) ?? product.sizes[0];
+                if (!currentSize.oilTypes && currentSize.altImage) {
+                  return (
+                    <div className="pdp__photo-toggle">
+                      <button
+                        type="button"
+                        className={`pdp__photo-dot${photoVariantIdx === 0 ? " is--active" : ""}`}
+                        onClick={() => setPhotoVariantIdx(0)}
+                        aria-label="Photo 1"
+                      />
+                      <button
+                        type="button"
+                        className={`pdp__photo-dot${photoVariantIdx === 1 ? " is--active" : ""}`}
+                        onClick={() => setPhotoVariantIdx(1)}
+                        aria-label="Photo 2"
+                      />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
           </section>
 
@@ -316,6 +356,30 @@ export default function ProductPage() {
                 ))}
               </div>
             </fieldset>
+
+            {/* ---- Oil type selector — shown only for 2L --------- */}
+            {size.oilTypes && size.oilTypes.length > 0 && (
+              <fieldset className="pdp__field" data-rise>
+                <legend className="pdp__label">{t("product.oil_type")}</legend>
+                <div className="pdp__segments" role="radiogroup" aria-label={t("product.oil_type")}>
+                  {size.oilTypes.map((ot) => {
+                    const active = (oilTypeId ?? size.oilTypes![0].id) === ot.id;
+                    return (
+                      <button
+                        key={ot.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        className={`pdp__segment${active ? " is--active" : ""}`}
+                        onClick={() => setOilTypeId(ot.id)}
+                      >
+                        {ot.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
 
             {/* ---- Quantity — ×1/×2/×3 tiers + free custom amount ------ */}
             <fieldset className="pdp__field" data-rise>
@@ -438,6 +502,16 @@ export default function ProductPage() {
                 </span>
               </li>
             </ul>
+
+            {/* ---- B2B enquiry link ----------------------------------- */}
+            <div className="pdp__b2b-row" data-fade>
+              <LocaleLink href="/contact" className="pdp__b2b-link">
+                {t("product.b2b_enquiry")}
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" aria-hidden="true">
+                  <path d="M4 12h15M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </LocaleLink>
+            </div>
           </section>
         </div>
 

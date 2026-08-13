@@ -87,6 +87,7 @@ export type AdminCustomer = {
   role: string;
   locale: string;
   gdprConsentAt: string | null;
+  marketingConsentAt: string | null;
   createdAt: string | null;
   orderCount: number;
   orderTotal: number;

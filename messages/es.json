@@ -31,9 +31,11 @@
     "product_single": "Individual",
     "product_duo": "Dúo",
     "product_trio": "Trío",
+    "product_twolitre": "Botella 2L",
     "detail_single": "5L · Virgen Extra",
     "detail_duo": "2 × 5L",
     "detail_trio": "3 × 5L",
+    "detail_twolitre": "2L · Virgen Extra",
     "note": "Prensado en frío · embotellado bajo pedido · envíos a España y la UE",
     "b2b": "Consultas B2B"
   },
@@ -148,9 +150,10 @@
     "aria": "Dónde está el olivar",
     "eyebrow": "El lugar",
     "title": "Aquí, en ningún otro sitio.",
-    "label1": "el olivar, Baix Ebre,",
-    "label2": "Catalunya",
-    "sea": "Mar Mediterrània"
+    "label1": "El Perelló, Cataluña,",
+    "label2": "España",
+    "sea": "Mar Mediterrània",
+    "maps_aria": "Ver El Perelló en Google Maps (se abre en nueva pestaña)"
   },
   "product": {
     "breadcrumb_shop": "Tienda",
@@ -202,7 +205,9 @@
     "view_bottle": "Botella",
     "view_label": "Etiqueta",
     "view_grove": "El olivar",
-    "view_estate": "La finca"
+    "view_estate": "La finca",
+    "oil_type": "Variedad de aceite",
+    "b2b_enquiry": "Consultas B2B"
   },
   "origins": {
     "cta": "Compra la colección"
@@ -252,6 +257,7 @@
     "field_password": "Contraseña",
     "gdpr_label": "Acepto el tratamiento de mis datos según se describe en la",
     "gdpr_link": "política de privacidad",
+    "marketing_label": "Acepto comunicaciones de marketing (opcional)",
     "submit_signin": "Entrar",
     "submit_create": "Crear cuenta",
     "submit_forgot": "Enviar enlace",
@@ -340,6 +346,7 @@
     "col_joined": "Alta",
     "col_orders": "Pedidos",
     "col_total": "Total",
+    "col_marketing": "Marketing",
     "shop_note": "Esta es la copia de trabajo del catálogo. La tienda pública mantiene sus precios provisionales hasta que la casa confirme la gama final.",
     "product_name": "Nombre",
     "product_subtitle": "Subtítulo",

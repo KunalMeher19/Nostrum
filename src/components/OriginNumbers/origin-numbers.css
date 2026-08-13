@@ -5,9 +5,25 @@
 /* ------------------------------------------------------------------ */
 
 .origin-numbers {
+  position: relative;
   background-color: #14160f;
   color: #edebe3;
   padding: clamp(6rem, 16vh, 11rem) clamp(1.5rem, 6vw, 6rem);
+  overflow: hidden;
+}
+
+/* Stock photo — grove, very dark so the numbers stay readable */
+.origin-numbers::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/stock-grove.jpg");
+  background-size: cover;
+  background-position: center 40%;
+  background-repeat: no-repeat;
+  opacity: 0.08;
+  mix-blend-mode: luminosity;
+  pointer-events: none;
 }
 
 .origin-numbers__eyebrow {

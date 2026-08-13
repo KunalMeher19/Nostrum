@@ -174,14 +174,21 @@ export default function OriginMap() {
             strokeLinejoin="round"
           />
 
-          {/* The factory — client feedback 2.0 moved the pin UP the coast:
-              his arrow tip lands just INLAND (west) of the bend above the
-              hooked spit, so the dot sits off the coast stroke, not on it.
-              Bloom + rings via CSS. */}
+          {/* The factory dot — clicking opens Google Maps in a new tab.
+              Bloom + rings via CSS (.is--marked class). */}
           <g className="origin-map__marker" transform="translate(285, 420)">
             <circle className="origin-map__marker-ring" r="16" />
             <circle className="origin-map__marker-ring origin-map__marker-ring--late" r="16" />
-            <circle className="origin-map__marker-dot" r="5" />
+            <a
+              href="https://maps.app.goo.gl/t5ik6a4FMCbJEJbW6"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("map.maps_aria")}
+              className="origin-map__marker-link"
+            >
+              <circle className="origin-map__marker-dot" r="12" fillOpacity="0" />
+              <circle className="origin-map__marker-dot-fill" r="5" />
+            </a>
           </g>
 
           {/* Esbozo annotation — same hand as the StoryScenes callouts.
@@ -212,9 +219,17 @@ export default function OriginMap() {
 
         {/* Label lives in HTML (not SVG text) for crisp type + easy i18n. */}
         <p className="origin-map__label">
-          {t("map.label1")}
-          <br />
-          {t("map.label2")}
+          <a
+            href="https://maps.app.goo.gl/t5ik6a4FMCbJEJbW6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="origin-map__label-link"
+            aria-label={t("map.maps_aria")}
+          >
+            {t("map.label1")}
+            <br />
+            {t("map.label2")}
+          </a>
         </p>
         <p className="origin-map__sea">{t("map.sea")}</p>
       </div>

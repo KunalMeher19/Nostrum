@@ -31,9 +31,11 @@
     "product_single": "Individual",
     "product_duo": "Duo",
     "product_trio": "Trio",
+    "product_twolitre": "Ampolla 2L",
     "detail_single": "5L · Verge Extra",
     "detail_duo": "2 × 5L",
     "detail_trio": "3 × 5L",
+    "detail_twolitre": "2L · Verge Extra",
     "note": "Premsat en fred · embotellat sota comanda · enviaments a Espanya i la UE",
     "b2b": "Consultes B2B"
   },
@@ -145,12 +147,13 @@
     "step5_copy": "Segellat acabat de sortir del molí, només primera premsada en fred."
   },
   "map": {
-    "aria": "On és l'oliverar",
+    "aria": "On és el camp",
     "eyebrow": "El lloc",
-    "title": "Aquí, enlloc més.",
-    "label1": "l'oliverar, Baix Ebre,",
-    "label2": "Catalunya",
-    "sea": "Mar Mediterrània"
+    "title": "Aquí, a cap altre lloc.",
+    "label1": "El Perelló, Catalunya,",
+    "label2": "Espanya",
+    "sea": "Mar Mediterrània",
+    "maps_aria": "Veure El Perelló a Google Maps (s'obre en una pestanya nova)"
   },
   "product": {
     "breadcrumb_shop": "Botiga",
@@ -202,7 +205,9 @@
     "view_bottle": "Ampolla",
     "view_label": "Etiqueta",
     "view_grove": "L'oliverar",
-    "view_estate": "La finca"
+    "view_estate": "La finca",
+    "oil_type": "Varietat d'oli",
+    "b2b_enquiry": "Consultes B2B"
   },
   "origins": {
     "cta": "Compra la col·lecció"
@@ -252,6 +257,7 @@
     "field_password": "Contrasenya",
     "gdpr_label": "Accepto el tractament de les meves dades tal com es descriu a la",
     "gdpr_link": "política de privacitat",
+    "marketing_label": "Accepto comunicacions de màrqueting (opcional)",
     "submit_signin": "Entrar",
     "submit_create": "Crear compte",
     "submit_forgot": "Enviar enllaç",
@@ -340,6 +346,7 @@
     "col_joined": "Alta",
     "col_orders": "Comandes",
     "col_total": "Total",
+    "col_marketing": "Màrqueting",
     "shop_note": "Aquesta és la còpia de treball del catàleg. La botiga pública manté els preus provisionals fins que la casa confirmi la gamma final.",
     "product_name": "Nom",
     "product_subtitle": "Subtítol",

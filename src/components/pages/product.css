@@ -622,3 +622,60 @@
     animation: none;
   }
 }
+
+/* Real product photo in gallery */
+.pdp__media-photo {
+  position: absolute;
+  inset: 0;
+}
+.pdp__media-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Photo variant toggle dots (5L has two photos) */
+.pdp__photo-toggle {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 2;
+}
+.pdp__photo-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--nostrum-gold-metal, #b98a2e);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s;
+}
+.pdp__photo-dot.is--active {
+  background: var(--nostrum-gold-metal, #b98a2e);
+}
+
+/* B2B enquiry row below trust badges */
+.pdp__b2b-row {
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid color-mix(in srgb, var(--nostrum-shop-ink) 10%, transparent);
+}
+.pdp__b2b-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--nostrum-shop-muted);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.pdp__b2b-link:hover {
+  color: var(--nostrum-shop-ink);
+}

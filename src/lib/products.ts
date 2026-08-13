@@ -9,10 +9,19 @@
 /* Prices are placeholders (~€35/5L, "price not final" per the brief). */
 /* ------------------------------------------------------------------ */
 
+export type OilType = {
+  id: string;
+  label: string;
+  image: string;
+};
+
 export type ProductSize = {
   id: string;
   label: string;
   price: number; // unit price in EUR for this size
+  image?: string;      // primary photo for this size
+  altImage?: string;   // secondary photo (shown alongside primary)
+  oilTypes?: OilType[]; // sub-variants (2L has Picual and Arbequina)
 };
 
 export type PackTier = {
@@ -44,10 +53,23 @@ const OLIVE_OIL: Product = {
   subtitle: "Extra Virgin Olive Oil",
   category: "Olive Oil",
   sizes: [
-    { id: "5l", label: "5L", price: 35 },
-    { id: "3l", label: "3L", price: 24 },
-    { id: "1l", label: "1L", price: 14 },
-    { id: "500ml", label: "500ml", price: 9 },
+    {
+      id: "5l",
+      label: "5L",
+      price: 35,
+      image: "/products/1.webp",
+      altImage: "/products/11.webp",
+    },
+    {
+      id: "2l",
+      label: "2L",
+      price: 16,
+      image: "/products/4.webp",
+      oilTypes: [
+        { id: "picual", label: "Picual", image: "/products/4.webp" },
+        { id: "arbequina", label: "Arbequina", image: "/products/14.webp" },
+      ],
+    },
   ],
   defaultSizeId: "5l",
   packs: [
@@ -86,6 +108,7 @@ const CATALOG: Record<string, { product: Product; qty: number }> = {
   single: { product: OLIVE_OIL, qty: 1 },
   duo: { product: OLIVE_OIL, qty: 2 },
   trio: { product: OLIVE_OIL, qty: 3 },
+  "two-litre": { product: OLIVE_OIL, qty: 1 },
   [OLIVE_OIL.slug]: { product: OLIVE_OIL, qty: 1 },
 };
 
