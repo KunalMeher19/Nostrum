@@ -52,11 +52,20 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
 
   const data = await upstream.arrayBuffer();
 
+  // Forward the headers that make downloads behave: Content-Disposition
+  // triggers the save-as (without it the browser navigates to the CSV/PDF),
+  // cache-control keeps authenticated exports out of shared caches.
+  const responseHeaders: Record<string, string> = {
+    "content-type": upstream.headers.get("content-type") ?? "application/json",
+  };
+  const disposition = upstream.headers.get("content-disposition");
+  if (disposition) responseHeaders["content-disposition"] = disposition;
+  const cacheControl = upstream.headers.get("cache-control");
+  if (cacheControl) responseHeaders["cache-control"] = cacheControl;
+
   return new NextResponse(data, {
     status: upstream.status,
-    headers: {
-      "content-type": upstream.headers.get("content-type") ?? "application/json",
-    },
+    headers: responseHeaders,
   });
 }
 

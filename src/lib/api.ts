@@ -31,6 +31,15 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/* Downloads (CSV export, invoice PDF) fire as a top-level anchor
+   navigation, not a fetch(). A direct <a href> to the backend can never
+   carry the session cookie across domains, so these always go through
+   the same-origin proxy regardless of environment. The proxy forwards
+   the cookie server-side and passes Content-Disposition back. */
+export function downloadPath(path: string): string {
+  return path.replace(/^\/api\//, "/api/proxy/");
+}
+
 /* Shapes served by the backend orders layer (see backend
    src/services/orders.service.js — the storefront swap point). */
 export type OrderSummary = {

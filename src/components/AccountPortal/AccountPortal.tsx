@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import {
   api,
-  API_URL,
+  downloadPath,
   euro,
   type OrderDetail,
   type OrderStatus,
@@ -363,7 +363,7 @@ function OrderRow({
                 )}
                 <a
                   className="pt__invoice"
-                  href={`${API_URL}/api/orders/${order.id}/invoice`}
+                  href={downloadPath(`/api/orders/${order.id}/invoice`)}
                 >
                   {t("portal.invoice")}
                   <span aria-hidden="true"> ↓</span>

@@ -7,7 +7,7 @@ import JournalAdmin from "./JournalAdmin";
 import { MediaGrid } from "./MediaLibrary";
 import {
   api,
-  API_URL,
+  downloadPath,
   euro,
   type AdminCustomer,
   type AdminProduct,
@@ -267,7 +267,7 @@ function OrderDetailPanel({
 
           <a
             className="ad__invoice"
-            href={`${API_URL}/api/admin/orders/${order.id}/invoice`}
+            href={downloadPath(`/api/admin/orders/${order.id}/invoice`)}
           >
             {t("portal.invoice")}
             <span aria-hidden="true"> ↓</span>
@@ -354,7 +354,7 @@ function CustomersView() {
         <p className="ad__quiet">
           {customers ? `${customers.length} ${t("admin.customers_count")}` : ""}
         </p>
-        <a className="ad__export" href={`${API_URL}/api/admin/customers.csv`}>
+        <a className="ad__export" href={downloadPath("/api/admin/customers.csv")}>
           {t("admin.export_csv")}
           <span aria-hidden="true"> ↓</span>
         </a>
