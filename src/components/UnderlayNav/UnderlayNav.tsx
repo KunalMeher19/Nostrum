@@ -47,7 +47,6 @@ const NAV_LINKS: {
   },
   { href: "/journal", labelKey: "nav.journal" },
   { href: "/contact", labelKey: "nav.contact" },
-  { href: "/track", labelKey: "nav.track" },
 ];
 
 // The section ids the scroll-spy watches, in document order. Home is "active"

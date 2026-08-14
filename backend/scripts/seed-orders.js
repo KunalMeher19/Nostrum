@@ -119,7 +119,7 @@ async function main() {
 
   await connectDb();
 
-  const product = await Product.findOne({ slug: 'extra-virgin-olive-oil' }).lean();
+  const product = await Product.findOne({ slug: { $in: ['extra-virgin-olive-oil-5l', 'extra-virgin-olive-oil'] } }).lean();
   if (!product) throw new Error('Run seed:products first.');
 
   const query = targetEmail ? { email: targetEmail } : {};
