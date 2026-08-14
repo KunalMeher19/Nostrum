@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "test": "jest --runInBand",
     "seed:admin": "node scripts/seed-admin.js",
+    "seed:customers": "node scripts/seed-customers.js",
     "seed:products": "node scripts/seed-products.js",
     "seed:orders": "node scripts/seed-orders.js",
     "seed:journal": "node scripts/seed-journal.js"

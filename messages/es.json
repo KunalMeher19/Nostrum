@@ -313,6 +313,8 @@
     "invoice": "Descargar factura",
     "details_title": "Cuenta",
     "shipping_title": "Dirección de envío",
+    "marketing_title": "Preferencias de marketing",
+    "marketing_label": "Quiero recibir novedades, noticias de la cosecha y ofertas de Nostrum (opcional)",
     "field_fullname": "Nombre completo",
     "field_phone": "Teléfono",
     "field_line1": "Dirección",

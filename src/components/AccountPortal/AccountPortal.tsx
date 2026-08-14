@@ -402,6 +402,7 @@ const SHIP_FIELDS: (keyof ShippingAddress)[] = [
 function DetailsForm() {
   const { t } = useLocale();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [marketing, setMarketing] = useState(false);
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">(
     "idle"
   );
@@ -409,7 +410,11 @@ function DetailsForm() {
   useEffect(() => {
     let alive = true;
     api<Profile>("/api/me")
-      .then((p) => alive && setProfile(p))
+      .then((p) => {
+        if (!alive) return;
+        setProfile(p);
+        setMarketing(Boolean(p.marketingConsentAt));
+      })
       .catch(() => alive && setState("error"));
     return () => {
       alive = false;
@@ -426,7 +431,11 @@ function DetailsForm() {
     try {
       await api("/api/me", {
         method: "PATCH",
-        body: JSON.stringify({ name: String(form.get("name") ?? ""), shipping }),
+        body: JSON.stringify({
+          name: String(form.get("name") ?? ""),
+          shipping,
+          marketingConsent: marketing,
+        }),
       });
       setState("saved");
       window.setTimeout(() => setState("idle"), 2800);
@@ -465,6 +474,18 @@ function DetailsForm() {
         <Field name="postalCode" label={t("portal.field_postal")} def={s.postalCode ?? ""} />
         <Field name="country" label={t("portal.field_country")} def={s.country ?? ""} />
       </div>
+
+      <h2 className="pt__section-title">{t("portal.marketing_title")}</h2>
+      <label className="pt__consent">
+        <input
+          type="checkbox"
+          name="marketingConsent"
+          checked={marketing}
+          onChange={(e) => setMarketing(e.target.checked)}
+        />
+        <span className="pt__consent-box" aria-hidden="true" />
+        <span className="pt__consent-text">{t("portal.marketing_label")}</span>
+      </label>
 
       <div className="pt__save-row">
         <button type="submit" className="pt__save" disabled={state === "saving"}>

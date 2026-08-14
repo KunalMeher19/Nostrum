@@ -313,6 +313,8 @@
     "invoice": "Download invoice",
     "details_title": "Account",
     "shipping_title": "Shipping address",
+    "marketing_title": "Marketing preferences",
+    "marketing_label": "I would like to receive news, harvest updates and offers from Nostrum (optional)",
     "field_fullname": "Full name",
     "field_phone": "Phone",
     "field_line1": "Address",

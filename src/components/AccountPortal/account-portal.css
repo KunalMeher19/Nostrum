@@ -650,6 +650,67 @@
   transform: scaleX(1);
 }
 
+/* Marketing-consent toggle (optional, GDPR) — same visual family as the
+   signup checkbox: quiet bordered box, lime fill when opted in. */
+.pt__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 0.35rem;
+}
+
+.pt__consent input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pt__consent-box {
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.1rem;
+  border: 1px solid color-mix(in srgb, var(--pt-fg) 32%, transparent);
+  border-radius: 4px;
+  position: relative;
+  transition: border-color 0.35s ease;
+}
+
+.pt__consent-box::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 2px;
+  background: var(--pt-lime);
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pt__consent input:checked + .pt__consent-box {
+  border-color: var(--pt-lime);
+}
+
+.pt__consent input:checked + .pt__consent-box::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.pt__consent input:focus-visible + .pt__consent-box {
+  outline: 2px solid var(--pt-lime);
+  outline-offset: 2px;
+}
+
+.pt__consent-text {
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--pt-muted);
+}
+
 .pt__save-row {
   display: flex;
   align-items: center;

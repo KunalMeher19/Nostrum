@@ -313,6 +313,8 @@
     "invoice": "Scarica fattura",
     "details_title": "Account",
     "shipping_title": "Indirizzo di spedizione",
+    "marketing_title": "Preferenze di marketing",
+    "marketing_label": "Vorrei ricevere novità, aggiornamenti sul raccolto e offerte da Nostrum (facoltativo)",
     "field_fullname": "Nome completo",
     "field_phone": "Telefono",
     "field_line1": "Indirizzo",

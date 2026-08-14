@@ -14,13 +14,14 @@ import { LocaleLink } from "../LocaleContext/LocaleLink";
 /* ------------------------------------------------------------------ */
 
 // Labels are i18n keys resolved via t() at render.
+// Track-order is intentionally absent: order tracking lives inside the
+// authenticated customer account only (client brief, item 4).
 const NAV_LINKS = [
   { href: "/", labelKey: "footer.home" },
   { href: "/products", labelKey: "footer.shop" },
   { href: "/origins", labelKey: "footer.history" },
   { href: "/journal", labelKey: "footer.journal" },
   { href: "/contact", labelKey: "footer.contact" },
-  { href: "/track", labelKey: "footer.track" },
 ];
 
 // No social media accounts.

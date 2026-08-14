@@ -313,6 +313,8 @@
     "invoice": "Descarregar factura",
     "details_title": "Compte",
     "shipping_title": "Adreça d’enviament",
+    "marketing_title": "Preferències de màrqueting",
+    "marketing_label": "Vull rebre novetats, notícies de la collita i ofertes de Nostrum (opcional)",
     "field_fullname": "Nom complet",
     "field_phone": "Telèfon",
     "field_line1": "Adreça",

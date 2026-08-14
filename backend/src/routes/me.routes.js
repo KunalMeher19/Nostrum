@@ -18,6 +18,8 @@ router.get('/', requireAuth, async (req, res, next) => {
       locale: user.locale ?? null,
       emailVerified: user.emailVerified ?? null,
       shipping: user.shipping ?? null,
+      gdprConsentAt: user.gdprConsentAt ?? null,
+      marketingConsentAt: user.marketingConsentAt ?? null,
       createdAt: user.createdAt ?? null,
     });
   } catch (err) {
@@ -33,6 +35,11 @@ router.patch('/', writeLimiter, requireAuth, async (req, res, next) => {
       updates.name = req.body.name.trim().slice(0, 120);
     }
     if (typeof req.body.locale === 'string') updates.locale = req.body.locale;
+    // Marketing consent is an explicit opt-in/out toggle (GDPR). Google
+    // sign-ins never see the signup checkbox, so this is their control.
+    if (typeof req.body.marketingConsent === 'boolean') {
+      updates.marketingConsentAt = req.body.marketingConsent ? new Date() : null;
+    }
     if (req.body.shipping && typeof req.body.shipping === 'object') {
       const s = req.body.shipping;
       updates.shipping = {
