@@ -40,6 +40,28 @@ export function downloadPath(path: string): string {
   return path.replace(/^\/api\//, "/api/proxy/");
 }
 
+/* In-page download: fetch through the proxy, then click a hidden
+   object-URL anchor. Avoids top-level navigation entirely, so the
+   browser never shows its redirect/loading state while the proxy is
+   talking to the backend. */
+export async function downloadFile(path: string): Promise<void> {
+  const res = await fetch(downloadPath(path), { credentials: "include" });
+  if (!res.ok) throw new Error(`api_${res.status}`);
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const name =
+    disposition.match(/filename="?([^";]+)"?/i)?.[1] ??
+    path.split("/").pop() ??
+    "download";
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /* Shapes served by the backend orders layer (see backend
    src/services/orders.service.js — the storefront swap point). */
 export type OrderSummary = {

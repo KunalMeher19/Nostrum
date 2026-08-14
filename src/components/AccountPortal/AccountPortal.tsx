@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import {
   api,
+  downloadFile,
   downloadPath,
   euro,
   type OrderDetail,
@@ -364,6 +365,12 @@ function OrderRow({
                 <a
                   className="pt__invoice"
                   href={downloadPath(`/api/orders/${order.id}/invoice`)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    downloadFile(`/api/orders/${order.id}/invoice`).catch(() => {
+                      window.location.href = downloadPath(`/api/orders/${order.id}/invoice`);
+                    });
+                  }}
                 >
                   {t("portal.invoice")}
                   <span aria-hidden="true"> ↓</span>
