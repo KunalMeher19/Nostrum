@@ -12,6 +12,7 @@ const Product = require('../models/product.model');
 const User = require('../models/user.model');
 const Post = require('../models/post.model');
 const { Exhibit, MUSEUM_ROOMS } = require('../models/exhibit.model');
+const SiteContent = require('../models/site-content.model');
 const Subscriber = require('../models/subscriber.model');
 const { ContactMessage } = require('../models/contact-message.model');
 
@@ -28,6 +29,7 @@ router.use('/products', writeLimiter);
 router.use('/upload', writeLimiter);
 router.use('/posts', writeLimiter);
 router.use('/exhibits', writeLimiter);
+router.use('/content', writeLimiter);
 
 // requireAdmin re-reads the role from the users collection on every
 // request, so revoking admin in the DB locks this router out instantly.
@@ -625,6 +627,57 @@ router.delete('/exhibits/:id', requireObjectId('id'), async (req, res, next) => 
     if (!gone) return res.status(404).json({ error: 'Exhibit not found' });
     recordAudit(req, 'exhibit.delete', req.params.id);
     res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Site content (editable sections, e.g. /origins process images) ── */
+
+const CONTENT_KEYS = ['process-images'];
+
+function processImageSteps(body) {
+  const raw = body?.steps;
+  if (!Array.isArray(raw)) return null;
+  // Positions are significant (index N = process step N), so cleared
+  // slots are kept as empty urls rather than dropped.
+  return raw.slice(0, 10).map((s) => {
+    // src lands in <img>/next-image — only site paths and https allowed
+    // (blocks javascript:/data: URLs).
+    const url = typeof s?.url === 'string' ? s.url.trim().slice(0, 300) : '';
+    const alt = typeof s?.alt === 'string' ? s.alt.trim().slice(0, 160) : '';
+    return { url: /^(\/|https:\/\/)/.test(url) ? url : '', alt };
+  });
+}
+
+router.get('/content/:key', async (req, res, next) => {
+  try {
+    const { key } = req.params;
+    if (!CONTENT_KEYS.includes(key)) {
+      return res.status(400).json({ error: 'unknown_content_key' });
+    }
+    const doc = await SiteContent.findOne({ key }).lean();
+    res.json({ key, value: doc?.value ?? null });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/content/:key', async (req, res, next) => {
+  try {
+    const { key } = req.params;
+    if (!CONTENT_KEYS.includes(key)) {
+      return res.status(400).json({ error: 'unknown_content_key' });
+    }
+    const steps = processImageSteps(req.body);
+    if (!steps) return res.status(400).json({ error: 'steps_required' });
+    const doc = await SiteContent.findOneAndUpdate(
+      { key },
+      { $set: { value: { steps } } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    recordAudit(req, 'content.update', key, { steps: steps.length });
+    res.json({ key, value: doc.value });
   } catch (err) {
     next(err);
   }

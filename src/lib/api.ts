@@ -202,6 +202,12 @@ export const JOURNAL_IMAGES: string[] = [
   ...Array.from({ length: 14 }, (_, i) => `/products/${i + 1}.webp`),
 ];
 
+/* ── Site content (admin-editable sections) ──────────────────────── */
+
+export type ProcessStepImage = { url: string; alt?: string };
+export type ProcessImagesContent = { steps: ProcessStepImage[] };
+export type SiteContentResponse<T> = { key: string; value: T | null };
+
 /* European price formatting, same as the Shop. */
 export function euro(value: number) {
   return "€" + value.toFixed(2).replace(".", ",");

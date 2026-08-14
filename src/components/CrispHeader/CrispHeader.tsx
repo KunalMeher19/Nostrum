@@ -946,6 +946,11 @@ export default function CrispHeader() {
         // scrollTo. Start it explicitly so the dive always runs; the menu's
         // own unlock-on-close is then a harmless re-start.
         lenis.start();
+        // Lenis caches its scroll limit while stopped (the slides phase keeps
+        // it stopped), so after arriving from ANOTHER route the limit still
+        // reflects the previous page and clamps the dive target. Re-measure
+        // the document first so the full landing-page height is reachable.
+        lenis.resize();
         lenis.scrollTo(target, {
           // Land a few px PAST each section's top so ScrollTrigger boundaries
           // (e.g. the hero pin's onLeave) fire reliably and the nav scroll-spy

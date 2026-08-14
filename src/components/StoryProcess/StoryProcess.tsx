@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import "./story-process.css";
 import { useLocale } from "../LocaleContext/LocaleContext";
+import type { ProcessStepImage } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
 /* StoryProcess                                                        */
@@ -159,7 +160,13 @@ const STEPS: Step[] = [
   },
 ];
 
-export default function StoryProcess() {
+export default function StoryProcess({
+  stepImages,
+}: {
+  /** Admin-curated overrides (Content tab); falls back to the built-in
+      placeholder stills per step when absent. */
+  stepImages?: ProcessStepImage[];
+}) {
   const rootRef = useRef<HTMLElement | null>(null);
   const { t } = useLocale();
 
@@ -555,7 +562,13 @@ export default function StoryProcess() {
         </div>
 
         <div className="story-process__steps">
-          {STEPS.map((step, i) => (
+          {STEPS.map((step, i) => {
+            const override = stepImages?.[i];
+            const overrideUrl = override?.url?.trim();
+            const custom = Boolean(overrideUrl);
+            const imgSrc = overrideUrl || step.img;
+            const imgAlt = override?.alt?.trim() || step.alt;
+            return (
             <article
               key={step.num}
               className="story-process__step"
@@ -565,14 +578,16 @@ export default function StoryProcess() {
               <div className="story-process__visual">
                 <Image
                   className="story-process__image"
-                  src={step.img}
-                  alt={step.alt}
+                  src={imgSrc}
+                  alt={imgAlt}
                   fill
                   sizes="(max-width: 780px) 90vw, 40vw"
                 />
-                <span className="story-process__placeholder-tag">
-                  Placeholder
-                </span>
+                {!custom && (
+                  <span className="story-process__placeholder-tag">
+                    Placeholder
+                  </span>
+                )}
               </div>
               <div className="story-process__text">
                 <span className="story-process__num">
@@ -582,7 +597,8 @@ export default function StoryProcess() {
                 <p className="story-process__copy">{t(step.copy)}</p>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

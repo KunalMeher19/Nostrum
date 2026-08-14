@@ -29,6 +29,21 @@ type QueuedRequest =
 
 let api: SectionScrollApi | null = null;
 let queued: QueuedRequest | null = null;
+// Set when a QUEUED section request is consumed by a newly mounted hero: the
+// Lenis dive then runs asynchronously (pin build + ~2.4s ride), during which
+// callers like RouteCurtain must not snap the scroll position — an immediate
+// scrollTo(0) would cancel it. Synchronously handled requests never race the
+// curtain (they preventDefault, so no navigation happens).
+let diveInFlightUntil = 0;
+
+/**
+ * True while a section-scroll request is queued for a not-yet-mounted hero or
+ * one was consumed so recently that its Lenis dive may still be running.
+ */
+export function isStoryScrollInFlight(): boolean {
+  if (queued && queued.kind === "section") return true;
+  return typeof performance !== "undefined" && performance.now() < diveInFlightUntil;
+}
 
 /**
  * Called by CrispHeader to publish (or, with null, retract on unmount) the
@@ -39,8 +54,12 @@ export function registerStoryScroll(next: SectionScrollApi | null): void {
   if (next && queued) {
     const run = queued;
     queued = null;
-    if (run.kind === "section") next.toSection(run.selector);
-    else next.toTop();
+    if (run.kind === "section") {
+      // Hero init (font wait + pin build) + the dive itself all happen after
+      // this point — guard the scroll position for the whole window.
+      diveInFlightUntil = performance.now() + 4500;
+      next.toSection(run.selector);
+    } else next.toTop();
   }
 }
 

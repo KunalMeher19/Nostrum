@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import "./route-curtain.css";
 import { markClientNavigation, CURTAIN_REVEAL_EVENT } from "./curtainNav";
 import { getLenis } from "../SmoothScroll/lenisStore";
+import { isStoryScrollInFlight } from "../SmoothScroll/storyScroll";
 import { isValidLocale } from "@/lib/i18n";
 import { useLocale } from "../LocaleContext/LocaleContext";
 
@@ -250,10 +251,18 @@ export default function RouteCurtain() {
             // Wait for route to settle
             await settleRoute(path);
 
-            const lenis = getLenis();
-            lenis?.scrollTo(0, { immediate: true, force: true });
-            if (path !== "/") lenis?.start();
-            window.scrollTo(0, 0);
+            // A queued landing-page section dive (nav section link clicked from
+            // another route) may be running/about to run — snapping scroll to
+            // top here would cancel it. The dive lands on its own target. The
+            // dive only ever runs on the landing page, so every OTHER
+            // destination always gets the normal reset (otherwise a quick
+            // onward hop within the guard window could land mid-page).
+            if (stripLocale(path) !== "/" || !isStoryScrollInFlight()) {
+              const lenis = getLenis();
+              lenis?.scrollTo(0, { immediate: true, force: true });
+              if (path !== "/") lenis?.start();
+              window.scrollTo(0, 0);
+            }
 
             await wait(250); // a short hold on the name — trimmed per feedback 1.0
             await hideLabel();
@@ -288,11 +297,19 @@ export default function RouteCurtain() {
       }
       if (url.origin !== window.location.origin) return;
 
+      // Normalize the pathname: landing-section hrefs look like "/en/#products",
+      // whose URL pathname carries a trailing slash ("/en/"). Next reports the
+      // locale root WITHOUT one ("/en"), so an un-normalized path would never
+      // match in settleRoute — the drape would hang on its 4s fallback timeout
+      // and then snap the scroll back to top, killing the queued section dive.
+      let navPath = url.pathname;
+      if (navPath.length > 1 && navPath.endsWith("/")) navPath = navPath.slice(0, -1);
+
       const isSectionLink =
         a.hasAttribute("data-section-link") || a.hasAttribute("data-home-link");
       if (isSectionLink && stripLocale(pathnameRef.current) === "/") return;
 
-      if (url.pathname === pathnameRef.current) return;
+      if (navPath === pathnameRef.current) return;
 
       if (transitioning) {
         e.preventDefault();
@@ -307,16 +324,16 @@ export default function RouteCurtain() {
       // exempt; /products (the listing) and every other route keep the
       // curtain. The page itself resets the scroll + plays its own
       // entrance on mount (it can't ride the reveal event — none fires).
-      const isProductDetail = /^\/product\/.+/.test(stripLocale(url.pathname));
+      const isProductDetail = /^\/product\/.+/.test(stripLocale(navPath));
 
       if (prefersReducedMotion || !runTransition || isProductDetail) {
         markClientNavigation();
         sessionStorage.setItem("nostrum_fresh_nav", "true");
-        router.push(url.pathname + url.hash);
+        router.push(navPath + url.hash);
         return;
       }
 
-      runTransition(url.pathname, tRef.current(routeNameFor(url.pathname)));
+      runTransition(navPath, tRef.current(routeNameFor(navPath)));
     };
 
     document.addEventListener("click", onClick, true);

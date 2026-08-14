@@ -41,7 +41,7 @@ export default function JournalAdmin() {
 
 /* ── Image picker (shared) ─────────────────────────────────────────── */
 
-function ImagePicker({
+export function ImagePicker({
   value,
   onChange,
 }: {

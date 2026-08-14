@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import JournalAdmin from "./JournalAdmin";
+import ContentView from "./ContentView";
 import { MediaGrid } from "./MediaLibrary";
 import {
   api,
@@ -40,7 +41,7 @@ const STATUSES: OrderStatus[] = [
   "cancelled",
 ];
 
-type View = "orders" | "customers" | "shop" | "journal" | "audit";
+type View = "orders" | "customers" | "shop" | "journal" | "content" | "audit";
 
 export default function AdminPortal({ name }: { name: string | null }) {
   const { t, locale } = useLocale();
@@ -64,7 +65,7 @@ export default function AdminPortal({ name }: { name: string | null }) {
         </header>
 
         <nav className="ad__tabs" role="tablist">
-          {(["orders", "customers", "shop", "journal", "audit"] as View[]).map((v) => (
+          {(["orders", "customers", "shop", "journal", "content", "audit"] as View[]).map((v) => (
             <button
               key={v}
               type="button"
@@ -82,6 +83,7 @@ export default function AdminPortal({ name }: { name: string | null }) {
         {view === "customers" && <CustomersView />}
         {view === "shop" && <ShopView />}
         {view === "journal" && <JournalAdmin />}
+        {view === "content" && <ContentView />}
         {view === "audit" && <AuditView />}
 
         <footer className="ad__foot">
