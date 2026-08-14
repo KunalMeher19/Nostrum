@@ -136,7 +136,7 @@ export function MediaGrid({
           onClick={() => onPick(src)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt="" loading="lazy" />
+          <img src={src} alt="" loading="lazy" decoding="async" />
         </button>
       ))}
     </div>

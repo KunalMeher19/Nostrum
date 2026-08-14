@@ -897,6 +897,15 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr));
   gap: 0.5rem;
+  /* content-visibility lets the browser skip rendering off-screen cells
+     entirely until they scroll into view — eliminates the opening spike */
+  content-visibility: auto;
+  contain: layout style;
+  /* max-height so the grid scrolls rather than expanding the panel
+     to show all 25+ images at once, reducing the initial paint area */
+  max-height: 22rem;
+  overflow-y: auto;
+  padding-right: 2px; /* room for scrollbar */
 }
 
 .ad__imagepick-cell {
@@ -908,14 +917,24 @@
   background: none;
   cursor: pointer;
   padding: 0;
-  transition: border-color 0.3s ease, opacity 0.3s ease;
-  opacity: 0.75;
+  /* Use outline for focus + selection highlight instead of border-color so
+     the hover repaint only touches the outline layer, not layout */
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  /* Promote each cell to its own compositing layer so hover state changes
+     don't repaint sibling cells */
+  will-change: outline-color;
+  /* opacity transition removed — the full-grid repaint it triggered was
+     the main source of hover lag; a simple outline swap is GPU-free */
 }
 
 .ad__imagepick-cell:hover,
 .ad__imagepick-cell.is--on {
-  opacity: 1;
-  border-color: var(--ad-lime);
+  outline-color: var(--ad-lime);
+}
+
+.ad__imagepick-cell.is--on {
+  outline-width: 2px;
 }
 
 .ad__imagepick-cell img {
