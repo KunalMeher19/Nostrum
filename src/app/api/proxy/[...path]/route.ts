@@ -37,17 +37,17 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
     headers.set("x-proxy-user-role", session.user.role ?? "customer");
   }
 
+  // Body must be forwarded as raw bytes. Using req.text() here would
+  // UTF-8-decode binary payloads (image uploads) and corrupt them.
   const body =
     req.method !== "GET" && req.method !== "HEAD"
-      ? await req.text()
+      ? await req.arrayBuffer()
       : undefined;
 
   const upstream = await fetch(target, {
     method: req.method,
     headers,
     body,
-    // @ts-expect-error — Node 18 fetch duplex flag
-    duplex: body ? "half" : undefined,
   });
 
   const data = await upstream.arrayBuffer();

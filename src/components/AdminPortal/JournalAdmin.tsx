@@ -9,12 +9,12 @@ import Image from "next/image";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import {
   api,
-  JOURNAL_IMAGES,
   MUSEUM_ROOMS,
   type AdminExhibit,
   type AdminPost,
   type MuseumRoom,
 } from "@/lib/api";
+import { MediaGrid } from "./MediaLibrary";
 
 export default function JournalAdmin() {
   const { t } = useLocale();
@@ -44,11 +44,10 @@ export default function JournalAdmin() {
 function ImagePicker({
   value,
   onChange,
-  idBase,
 }: {
   value: string | null;
   onChange: (v: string | null) => void;
-  idBase: string;
+  idBase?: string;
 }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
@@ -71,31 +70,23 @@ function ImagePicker({
         <span>{t("admin.choose_image")}</span>
       </button>
       {open && (
-        <div className="ad__imagepick-grid" role="listbox" aria-label={t("admin.choose_image")}>
-          <button
-            type="button"
-            className={`ad__imagepick-cell is--none${value === null ? " is--on" : ""}`}
-            onClick={() => {
-              onChange(null);
-              setOpen(false);
-            }}
-          >
-            ×
-          </button>
-          {JOURNAL_IMAGES.map((src) => (
-            <button
-              key={src}
-              type="button"
-              className={`ad__imagepick-cell${value === src ? " is--on" : ""}`}
-              onClick={() => {
-                onChange(src);
-                setOpen(false);
-              }}
-            >
-              <Image src={src} alt="" fill sizes="88px" id={`${idBase}-${src}`} />
-            </button>
-          ))}
-        </div>
+        <MediaGrid
+          selected={value ? [value] : []}
+          onPick={(url) => {
+            onChange(url);
+            setOpen(false);
+          }}
+          onClear={() => {
+            onChange(null);
+            setOpen(false);
+          }}
+          labels={{
+            upload: t("admin.upload_image"),
+            uploading: t("account.working"),
+            failed: t("account.error_generic"),
+            none: t("admin.no_image"),
+          }}
+        />
       )}
     </div>
   );

@@ -919,12 +919,53 @@
 }
 
 .ad__imagepick-cell img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
 .ad__imagepick-cell.is--none {
   color: var(--ad-muted);
   font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Upload tile — first cell of the grid, dashed to read as an action. */
+.ad__imagepick-cell--upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-style: dashed;
+  border-color: var(--ad-hair);
+  color: var(--ad-muted);
+  opacity: 1;
+  text-align: center;
+}
+
+.ad__imagepick-cell--upload:hover {
+  border-color: var(--ad-lime);
+  color: var(--ad-fg);
+}
+
+.ad__imagepick-cell--upload.is--error {
+  border-color: #c0522f;
+  color: #e0805f;
+}
+
+.ad__imagepick-upload-mark {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.ad__imagepick-upload-text {
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0 0.3rem;
 }
 
 /* ── Audit trail ──────────────────────────────────────────────────── */

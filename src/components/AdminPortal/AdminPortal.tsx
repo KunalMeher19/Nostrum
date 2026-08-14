@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import JournalAdmin from "./JournalAdmin";
+import { MediaGrid } from "./MediaLibrary";
 import {
   api,
   API_URL,
@@ -475,16 +476,6 @@ function AuditView() {
 
 /* ── Shop management (products / prices / stock / images / featured) ── */
 
-const STATIC_IMAGES = [
-  ...[1,2,3,4,5,11,12,13,14].map((n) => `/products/${n}.webp`),
-  ...[1,2,3,4,5].map((n) => `/images/${n}.png`),
-  ...[1,2,3].map((n) => `/images/origin_${n}.png`),
-  "/images/stock-grove.jpg",
-  "/images/stock-harvest.jpg",
-  "/images/stock-olives.jpg",
-  "/images/stock-pour.jpg",
-];
-
 const EMPTY_PRODUCT = {
   name: "",
   subtitle: "",
@@ -622,7 +613,6 @@ function ProductEditor({
       : { ...EMPTY_PRODUCT }
   );
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "error">("idle");
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
   // ── Size helpers ──────────────────────────────────────────────────
@@ -671,27 +661,6 @@ function ProductEditor({
       imgs.splice(to, 0, item);
       return { ...d, images: imgs };
     });
-  };
-
-  // ── File upload to ImageKit ───────────────────────────────────────
-  const uploadFile = async (file: File) => {
-    setUploadState("uploading");
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await fetch("/api/proxy/admin/upload", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("upload_failed");
-      const data = await res.json() as { url: string };
-      addImage(data.url);
-      setUploadState("idle");
-    } catch {
-      setUploadState("error");
-      setTimeout(() => setUploadState("idle"), 3000);
-    }
   };
 
   // ── Save ──────────────────────────────────────────────────────────
@@ -838,30 +807,38 @@ function ProductEditor({
           </div>
         ))}
       </div>
-      <div className="ad__img-actions">
-        <button type="button" className="ad__add" onClick={() => setImagePickerOpen((o) => !o)}>
-          {t("admin.pick_image")}
-        </button>
-        <label className="ad__add ad__upload-label">
-          {uploadState === "uploading" ? t("account.working") : uploadState === "error" ? t("account.error_generic") : t("admin.upload_image")}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            style={{ display: "none" }}
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadFile(f); e.target.value = ""; }}
-          />
-        </label>
-      </div>
-      {imagePickerOpen && (
-        <div className="ad__imagepick-grid" role="listbox" aria-label={t("admin.pick_image")}>
-          {STATIC_IMAGES.filter((u) => !draft.images.includes(u)).map((src) => (
-            <button key={src} type="button" className="ad__imagepick-cell" onClick={() => addImage(src)}>
+      <div className="ad__imagepick">
+        <button
+          type="button"
+          className="ad__imagepick-toggle"
+          aria-expanded={imagePickerOpen}
+          onClick={() => setImagePickerOpen((o) => !o)}
+        >
+          {draft.images[0] ? (
+            <span className="ad__imagepick-thumb">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" />
-            </button>
-          ))}
-        </div>
-      )}
+              <img src={draft.images[0]} alt="" />
+            </span>
+          ) : (
+            <span className="ad__imagepick-none">{t("admin.no_image")}</span>
+          )}
+          <span>{t("admin.choose_image")}</span>
+        </button>
+        {imagePickerOpen && (
+          <MediaGrid
+            selected={draft.images}
+            onPick={(url) =>
+              draft.images.includes(url) ? removeImage(url) : addImage(url)
+            }
+            labels={{
+              upload: t("admin.upload_image"),
+              uploading: t("account.working"),
+              failed: t("account.error_generic"),
+              none: t("admin.no_image"),
+            }}
+          />
+        )}
+      </div>
 
       {/* Sizes, prices and stock */}
       <h3 className="ad__mini-title">{t("admin.sizes_title")}</h3>

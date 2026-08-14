@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below).
+> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
 > What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11.**
 
@@ -21,10 +21,11 @@
   5. Frontend: enable the CartPage button → call `/api/checkout` → `window.location = url`; success/cancel pages under `/[locale]/shop/checkout/…` (5 locales).
   6. Shipping rates + free-shipping threshold: client must supply the numbers (currently a per-order `shippingCost` field exists; expose config via env or an admin setting).
 
-### 1.2 Real shop catalog
-- Public Shop intentionally still reads static placeholders in `src/lib/products.ts` (sizes / prices / photos / oil types unconfirmed by client).
-- The MongoDB `products` collection + admin shop editor is ready to become the source of truth once real data arrives. Task then: point the public Shop at the products API.
-- **Build recipe when real data arrives:** enter the catalog through the admin shop editor; add a public `GET /api/products` (active only, cached) to `backend`; swap `src/lib/products.ts` consumers to fetch it server-side (keep the type shape, it already mirrors the model); product photos to `public/` or a CDN. Stock now matters: `createOrder` consumes per-size stock (see 2.5), so real counts must be set before checkout goes live.
+### 1.2 Real shop catalog — TOOLING DONE 2026-08-14, DATA STILL BLOCKED
+- **What changed 2026-08-14:** the admin can now enter the entire catalogue itself (create/delete products, sizes, prices, stock, categories, descriptions, multi-image galleries with ImageKit upload, featured-on-home flag). Public `GET /api/products` + `GET /api/products/featured` now exist, and the home page grid already reads the featured endpoint. Two placeholder products (Nostrum 5L + 2L) are seeded in Atlas.
+- **What is still blocked:** the client's real photography, final prices, and confirmed size range. Those are data, not code — the client enters them through the admin whenever they arrive, no developer involvement needed.
+- **Remaining code task (small):** point the public Shop pages at the API too. `ProductsListingPage.tsx` and `ProductDetailPage.tsx` still read the static `src/lib/products.ts` catalogue (which carries the rich per-size copy: oil-type sub-variants, description/details/shipping tabs, gallery captions). Migrating them means either extending the product model to hold that richer copy, or keeping the static file as the copy layer and merging live prices/stock over it. Recommend the latter — less schema churn, and the marketing copy genuinely does belong in version control rather than a DB text field.
+- Stock now matters: `createOrder` consumes per-size stock (see 2.5), so real counts must be set in the admin before checkout goes live.
 
 ### 1.3 Email provider (Resend) — WIRED + BRANDED 2026-08-11
 - Both mailers now use Resend when `RESEND_API_KEY` is set; gracefully fall back to console-log when unset (dev/CI safe). Was: pure console stubs.
@@ -113,9 +114,29 @@ All items from `Nostrum feedback.3.pdf` implemented. Item-by-item:
 - **Hero thumbnail strip removed** — `crisp-header__slider-nav { display: none }` added to `crisp-header.css`. The JS slideshow still functions; only the visual rail is hidden.
 - **Verified:** `tsc --noEmit` clean (0 errors); `backend npm test` 80/80 green.
 
----
+### 2.9 Production plumbing fixes + full shop admin — DONE 2026-08-14
 
-## 3. Pre-launch hardening / deployment chores
+**Production connectivity chain (all fixed this session):**
+- `NEXT_PUBLIC_API_URL` was `http://` → corrected to `https://` in Vercel. Mixed-content block resolved.
+- `CORS_ORIGIN` in Railway was `https://nostrum.vercel.app` (missing `-rho`) → corrected to `https://nostrum-rho.vercel.app`. CORS preflight now returns `access-control-allow-origin` correctly.
+- OPTIONS preflight was hitting `requireAdmin` before the CORS handler → added `app.options('*', corsMiddleware, ...)` in `backend/src/app.js` so preflights are answered immediately (4xx → 204).
+- Session cookie (`SameSite=Lax`) wouldn't travel cross-domain (vercel.app → railway.app) → added Next.js proxy route `src/app/api/proxy/[...path]/route.ts`; all browser `api()` calls in production rewrite `/api/*` → `/api/proxy/*`, so the session cookie stays on the same origin and is forwarded server-side to Railway. Verified: admin portal loads all tabs, Journal shows 3 seeded posts + 8 exhibits.
+- Added `SameSite=None; Secure` cookie override in `src/auth.ts` for production (belt-and-braces on top of the proxy fix).
+
+**Full shop product management — DONE 2026-08-14:**
+- `backend/src/models/product.model.js`: added `images: [String]`, `featured: Boolean`, `description: String` fields.
+- `backend/src/routes/admin.routes.js`: `POST /api/admin/products` (create, auto-slug), `DELETE /api/admin/products/:id`, `POST /api/admin/upload` (ImageKit REST upload, raw multipart parsed in-handler — skips `express.json` in `app.js`), `PATCH` extended for images/featured/description/category.
+- `backend/src/routes/products.routes.js` (new): public `GET /api/products` (all active) and `GET /api/products/featured` (featured only, ≤3, for home page).
+- `AdminPortal.tsx` ShopView rewritten: product list with thumbnails + Active/Featured chips, `+ New product` button, expand-to-edit with full `ProductEditor` — name, subtitle, description, category, images strip (reorder ‹›, remove ×), "Pick existing photo" from `/public` library, "Upload new photo" to ImageKit, Active + Featured toggles, sizes/packs/stock rows, Delete with confirmation.
+- `ProductsSection.tsx` (home page): fetches `/api/proxy/products/featured` on mount; if any featured products exist in DB, renders them instead of the static single/duo/trio trio. Falls back to static silently if API is unreachable or nothing is featured yet.
+- `src/lib/api.ts`: `AdminProduct` type extended with `images`, `featured`, `description`.
+- 11 new i18n keys added to all 5 locale files (`product_description`, `product_category`, `product_images`, `pick_image`, `upload_image`, `new_product`, `create_product`, `products_count`, `featured`, `not_featured`, `cancel`).
+- `scripts/seed-products.js` updated: two products seeded to Atlas (Nostrum 5L + 2L, matching client feedback 3 spec — 5L images 1.webp/11.webp, 2L images 4.webp/14.webp, both featured=true). Seed run against production Atlas confirmed.
+- **ImageKit upload** — auth-protected route (`POST /api/admin/upload`) streams file to ImageKit REST API using private key. Requires `IMAGEKIT_PRIVATE_KEY` + `IMAGEKIT_URL_ENDPOINT` in Railway env vars. Without them the endpoint returns `503 imagekit_not_configured` gracefully. Client has the keys; needs to add to Railway.
+- **Stock enforcement** — already in place (unchanged): `orders.service.createOrder()` atomically checks `stock >= qty` per size before decrementing. Now that real stock numbers are editable in the admin, this guard becomes meaningful.
+- **Verified:** `tsc --noEmit` clean, `next build` clean, backend 80/80 green. Admin Shop tab confirmed in Playwright: 2 products visible with full editor, all fields populated.
+
+---
 
 - **Redis for rate limiting — DONE (env-gated):** set `REDIS_URL` and all limiter tiers share buckets via rate-limit-redis (`backend/src/db/redis.js`); unset = in-memory as before.
 - **Shared validator layer — RESOLVED:** deleted the empty `validator.middleware.js` stub; inline validation is the project convention across all routes.
@@ -195,18 +216,22 @@ The following are already using env vars or the real brand email — no code edi
 
 ## Suggested order of attack
 
-1. DONE: sections 2.1 to 2.7, backend hardening, deployment (Railway + Vercel), Resend email wiring + branded templates, Google OAuth (1.4), Vercel env vars (`ADMIN_EMAILS`, `AUTH_URL`).
-2. **Next: set `NEXT_PUBLIC_GA_ID` in Vercel** — create GA4 property (analytics.google.com), copy Measurement ID (`G-XXXXXXXXXX`), add to Vercel env vars, redeploy. Verify in GA4 Realtime.
-3. **Next: Resend custom domain** — client adds 3 DNS records in Resend dashboard, then set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in Vercel + Railway. No code change needed.
-4. Chase client on the remaining blockers in section 1: commerce decision (Stripe — critical path), real catalog (1.2), legal texts + WhatsApp + invoice identity (1.5).
-5. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook), then 1.2 (real catalog + public products API).
-6. WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED until client asks for them.
-7. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
+1. DONE: sections 2.1 to 2.9, backend hardening, deployment (Railway + Vercel), Resend email wiring + branded templates, Google OAuth (1.4), Vercel env vars (`ADMIN_EMAILS`, `AUTH_URL`), production connectivity chain (https/CORS/preflight/cross-domain cookie proxy), full shop product management with ImageKit uploads + featured-on-home flag.
+2. **Next: add ImageKit keys to Railway** — `IMAGEKIT_PRIVATE_KEY` + `IMAGEKIT_URL_ENDPOINT`. Until set, "Upload new photo" returns a clean 503; "Pick existing photo" works regardless.
+3. **Next: set `NEXT_PUBLIC_GA_ID` in Vercel** — create GA4 property (analytics.google.com), copy Measurement ID (`G-XXXXXXXXXX`), add to Vercel env vars, redeploy. Verify in GA4 Realtime.
+4. **Next: Resend custom domain** — client adds 3 DNS records in Resend dashboard, then set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in Vercel + Railway. No code change needed.
+5. Chase client on the remaining blockers in section 1: commerce decision (Stripe — critical path), real catalog photos/prices (1.2 — the admin can now enter them directly), legal texts + WhatsApp + invoice identity (1.5).
+6. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook). The public products API (1.2) now exists; remaining work there is pointing the public Shop pages at it (home page already reads it).
+7. WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED until client asks for them.
+8. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
 
 ---
 
 ## Decision log (client + project decisions, newest first)
 
+- **2026-08-14** · Client request: full product management in the admin, and a customer spreadsheet. Built (2.9): the Shop tab now creates/deletes products, edits every field, manages multi-image galleries (pick from the `/public` library or upload to ImageKit), and carries a "featured on home" flag that drives the home page grid. **ImageKit chosen over Cloudinary and over server-disk uploads** at the client's request — Vercel's filesystem is ephemeral, so server-disk was never viable; uploads go server-side through the backend using the private key, so nothing ImageKit-related is exposed to the browser. **Featured-flag chosen over hardcoded home tiles** so the client controls the home page without a code change; the static single/duo/trio trio remains as a silent fallback when nothing is featured or the API is down. The customer-spreadsheet half of the request was already delivered in feedback round 3 (2.8) — Customers tab with 7 columns + CSV export, verified live in the browser this session, no rework needed.
+- **2026-08-14** · Production connectivity chain debugged end-to-end (2.9). Four separate faults stacked on top of each other, each masking the next: http-vs-https env var → wrong CORS origin value → preflight hitting auth before CORS → session cookie unable to cross domains. The last one is architectural, not a config typo: a cookie set on `vercel.app` will never be sent to `railway.app` no matter what `SameSite` says, so a same-origin Next.js proxy route (`/api/proxy/[...path]`) was added and the browser-side `api()` client rewrites production calls through it. Kept the `SameSite=None; Secure` cookie override too, as belt-and-braces.
+- **2026-08-14** · Seeded two real products to production Atlas (Nostrum 5L + 2L) matching the feedback-3 spec, replacing the stale 4-size seed (5L/3L/1L/500ml) that predated the client's reduction to two sizes. The `products` collection had never been seeded, which is why the Shop tab read "0 products" — the admin UI was correct, the data was simply absent.
 - **2026-08-06** · Client request: Track-order link added to the side menu (`UnderlayNav`, `nav.track` in 5 locales) in addition to the footer, and the footer nav purged of dead links: `/history` repointed to the real `/origins` route (label stays "History"), dead `/b2b` link replaced with Journal (`footer.journal` in 5 locales; a `/b2b` page does not exist — B2B remains the top-of-shop button → contact form, block itself still parked per 2.7). Footer legal row (`/privacy`, `/cookies`, `/legal`) deliberately KEPT although the pages don't exist yet: client confirmed the footer should carry only links we have or will have, and legal pages are coming (blocked on 1.5 texts). Verified: `tsc --noEmit` + `next build` clean.
 
 - **2026-08-06** · Frontend gap round vs. the brief PDF (2.7): built the guest /track page (5 locales, footer-linked), the admin Audit tab, and a premium pass on the customer portal (stats strip, gold keyline, row ticks). Parked by project decision: floating WhatsApp bubble and B2B end-of-shop block (both buildable with placeholders, do when unparked); nav search ON HOLD pending a "skip or build" answer from the client; signature motion ideas from brief §07 remain open options.

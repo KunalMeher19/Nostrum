@@ -7,18 +7,18 @@ const { connectDb, mongoose } = require('../src/db/db');
 const Product = require('../src/models/product.model');
 
 // Mirror of frontend src/lib/products.ts (placeholder pricing, §7).
+// Client feedback 3 (2026-08-13): catalogue reduced to 5L and 2L only,
+// with two photo options per size while the client resolves which stays.
 const CATALOG = [
   {
-    slug: 'extra-virgin-olive-oil',
-    name: 'Nostrum',
+    slug: 'extra-virgin-olive-oil-5l',
+    name: 'Nostrum 5L',
     subtitle: 'Extra Virgin Olive Oil',
+    description:
+      'Our flagship format. Cold pressed within hours of picking, from the old rows at El Perello.',
     category: 'Olive Oil',
-    sizes: [
-      { id: '5l', label: '5L', price: 35, stock: 120 },
-      { id: '3l', label: '3L', price: 24, stock: 80 },
-      { id: '1l', label: '1L', price: 14, stock: 200 },
-      { id: '500ml', label: '500ml', price: 9, stock: 150 },
-    ],
+    images: ['/products/1.webp', '/products/11.webp'],
+    sizes: [{ id: '5l', label: '5L', price: 35, stock: 120 }],
     defaultSizeId: '5l',
     packs: [
       { qty: 1, discount: 0 },
@@ -26,6 +26,25 @@ const CATALOG = [
       { qty: 3, discount: 0.1 },
     ],
     active: true,
+    featured: true,
+  },
+  {
+    slug: 'extra-virgin-olive-oil-2l',
+    name: 'Nostrum 2L',
+    subtitle: 'Extra Virgin Olive Oil',
+    description:
+      'The kitchen format, in two varieties. Picual for its pepper and body, Arbequina for its softer, sweeter finish.',
+    category: 'Olive Oil',
+    images: ['/products/4.webp', '/products/14.webp'],
+    sizes: [{ id: '2l', label: '2L', price: 16, stock: 200 }],
+    defaultSizeId: '2l',
+    packs: [
+      { qty: 1, discount: 0 },
+      { qty: 2, discount: 0.05 },
+      { qty: 3, discount: 0.1 },
+    ],
+    active: true,
+    featured: true,
   },
 ];
 
