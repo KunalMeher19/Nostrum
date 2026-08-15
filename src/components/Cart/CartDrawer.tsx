@@ -12,7 +12,9 @@ import {
   formatEuro,
   getProduct,
   lineTotal,
+  sizeImage,
   tierFor,
+  tileImage,
   tilePrice,
 } from "@/lib/products";
 
@@ -154,6 +156,7 @@ export default function CartDrawer() {
               <ul className="cart-drawer__suggest-list">
                 {COLLECTION_TILES.map((tile) => {
                   const price = tilePrice(tile.id);
+                  const image = tileImage(tile.id);
                   return (
                     <li key={tile.id}>
                       <LocaleLink
@@ -164,7 +167,7 @@ export default function CartDrawer() {
                           className="cart-drawer__suggest-media"
                           aria-hidden="true"
                         >
-                          N
+                          {image ? <img src={image} alt="" /> : "N"}
                         </span>
                         <span className="cart-drawer__suggest-meta">
                           <span className="cart-drawer__suggest-name">
@@ -195,10 +198,11 @@ export default function CartDrawer() {
                 if (!product) return null;
                 const total = lineTotal(product, it.sizeId, it.qty);
                 const tier = tierFor(product, it.qty);
+                const image = sizeImage(product, it.sizeId);
                 return (
                   <li key={it.key} className="cart-drawer__row">
                     <div className="cart-drawer__row-media" aria-hidden="true">
-                      N
+                      {image ? <img src={image} alt="" /> : "N"}
                     </div>
                     <div className="cart-drawer__row-info">
                       <p className="cart-drawer__row-name">{it.name}</p>

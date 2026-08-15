@@ -11,7 +11,9 @@ import {
   formatEuro,
   getProduct,
   lineTotal,
+  sizeImage,
   tierFor,
+  tileImage,
   tilePrice,
 } from "@/lib/products";
 
@@ -122,6 +124,7 @@ export default function CartPage() {
               <ul className="cart__suggest-grid">
                 {COLLECTION_TILES.map((tile) => {
                   const price = tilePrice(tile.id);
+                  const image = tileImage(tile.id);
                   return (
                     <li key={tile.id}>
                       <LocaleLink
@@ -129,7 +132,7 @@ export default function CartPage() {
                         className="cart__suggest-card"
                       >
                         <span className="cart__suggest-media" aria-hidden="true">
-                          N
+                          {image ? <img src={image} alt="" /> : "N"}
                         </span>
                         <span className="cart__suggest-name">
                           {t(tile.nameKey)}
@@ -160,10 +163,11 @@ export default function CartPage() {
                 if (!product) return null;
                 const total = lineTotal(product, it.sizeId, it.qty);
                 const tier = tierFor(product, it.qty);
+                const image = sizeImage(product, it.sizeId);
                 return (
                   <li key={it.key} className="cart__row">
                     <div className="cart__row-media" aria-hidden="true">
-                      N
+                      {image ? <img src={image} alt="" /> : "N"}
                     </div>
                     <div className="cart__row-info">
                       <p className="cart__row-name">{it.name}</p>

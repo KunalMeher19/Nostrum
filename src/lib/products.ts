@@ -133,6 +133,18 @@ export function lineTotal(product: Product, sizeId: string, qty: number) {
   return size.price * qty * (1 - tierFor(product, qty).discount);
 }
 
+/* Primary photo for a size — cart rows/thumbnails. Same fallback as lineTotal. */
+export function sizeImage(product: Product, sizeId: string): string | null {
+  const size = product.sizes.find((s) => s.id === sizeId) ?? product.sizes[0];
+  return size.image ?? null;
+}
+
+export function tileImage(id: string): string | null {
+  const entry = CATALOG[id];
+  if (!entry) return null;
+  return sizeImage(entry.product, entry.product.defaultSizeId);
+}
+
 /* European price formatting — "€35,00", as in the client's mock. */
 export function formatEuro(value: number) {
   return "€" + value.toFixed(2).replace(".", ",");

@@ -201,6 +201,7 @@
   aspect-ratio: 4 / 4.6;
   display: grid;
   place-items: center;
+  overflow: hidden;
   background:
     radial-gradient(
       80% 60% at 50% 35%,
@@ -214,6 +215,14 @@
   font-size: 1.5rem;
   color: color-mix(in srgb, var(--nostrum-gold-metal) 45%, transparent);
   user-select: none;
+}
+
+.cart-drawer__row-media img,
+.cart-drawer__suggest-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .cart-drawer__row-name {
@@ -498,6 +507,7 @@
   aspect-ratio: 4 / 4.6;
   display: grid;
   place-items: center;
+  overflow: hidden;
   background-color: color-mix(in srgb, var(--nostrum-warm-white) 5%, transparent);
   border: 1px solid
     color-mix(in srgb, var(--nostrum-gold-metal) 28%, transparent);
