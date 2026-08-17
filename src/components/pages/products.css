@@ -166,6 +166,11 @@
   pointer-events: none;
 }
 
+/* Hide the "N" placeholder when an actual product image is present */
+.pcard__media:has(.pcard__img)::after {
+  content: none;
+}
+
 .pcard__link {
   position: absolute;
   inset: 0;
@@ -288,4 +293,6 @@
   object-fit: cover;
   object-position: center;
   pointer-events: none;
+  /* Scale up slightly to fill the container and remove gaps */
+  transform: scale(1.15);
 }

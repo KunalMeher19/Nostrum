@@ -7,8 +7,7 @@ const { connectDb, mongoose } = require('../src/db/db');
 const Product = require('../src/models/product.model');
 
 // Mirror of frontend src/lib/products.ts (placeholder pricing, §7).
-// Client feedback 3 (2026-08-13): catalogue reduced to 5L and 2L only,
-// with two photo options per size while the client resolves which stays.
+// Updated to include Duo (2×5L) pack as the third product.
 const CATALOG = [
   {
     slug: 'extra-virgin-olive-oil-5l',
@@ -17,13 +16,30 @@ const CATALOG = [
     description:
       'Our flagship format. Cold pressed within hours of picking, from the old rows at El Perello.',
     category: 'Olive Oil',
-    images: ['/products/1.webp', '/products/11.webp'],
+    images: ['/products/11.webp', '/products/1.webp'],
     sizes: [{ id: '5l', label: '5L', price: 35, stock: 120 }],
     defaultSizeId: '5l',
     packs: [
       { qty: 1, discount: 0 },
       { qty: 2, discount: 0.05 },
       { qty: 3, discount: 0.1 },
+    ],
+    active: true,
+    featured: true,
+  },
+  {
+    slug: 'extra-virgin-olive-oil-duo',
+    name: 'Duo',
+    subtitle: '2 × 5L',
+    description:
+      'Two 5L bottles. Perfect for regular use or sharing with family.',
+    category: 'Olive Oil',
+    images: ['/products/2.webp'],
+    sizes: [{ id: 'duo', label: '2 × 5L', price: 66, stock: 100 }],
+    defaultSizeId: 'duo',
+    packs: [
+      { qty: 1, discount: 0 },
+      { qty: 2, discount: 0.05 },
     ],
     active: true,
     featured: true,

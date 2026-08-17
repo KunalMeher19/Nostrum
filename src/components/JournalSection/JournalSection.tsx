@@ -9,10 +9,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import {
-  MUSEUM_ROOMS,
   type JournalPost,
   type MuseumExhibit,
-  type MuseumRoom,
 } from "@/lib/api";
 import "./journal.css";
 
@@ -118,59 +116,6 @@ export default function JournalSection({
           },
         });
 
-        // Each room: number + title unmask as the room enters.
-        gsap.utils.toArray<HTMLElement>("[data-jr-room]").forEach((room) => {
-          const head = room.querySelectorAll("[data-jr-room-head] > *");
-          gsap.fromTo(
-            head,
-            { autoAlpha: 0, y: 34 },
-            {
-              autoAlpha: 1,
-              y: 0,
-              duration: 1,
-              ease: "power3.out",
-              stagger: 0.1,
-              scrollTrigger: { trigger: room, start: "top 72%" },
-            }
-          );
-        });
-
-        // Each exhibit: frame reveals with a clip mask, image drifts to
-        // rest, caption follows a beat later.
-        gsap.utils.toArray<HTMLElement>("[data-jr-exhibit]").forEach((ex) => {
-          const frame = ex.querySelector("[data-jr-frame]");
-          const img = ex.querySelector("img");
-          const cap = ex.querySelector("[data-jr-caption]");
-          const tl = gsap.timeline({
-            scrollTrigger: { trigger: ex, start: "top 78%" },
-          });
-          if (frame)
-            tl.fromTo(
-              frame,
-              { clipPath: "inset(8% 6% 8% 6%)", autoAlpha: 0 },
-              {
-                clipPath: "inset(0% 0% 0% 0%)",
-                autoAlpha: 1,
-                duration: 1.2,
-                ease: "expo.out",
-              }
-            );
-          if (img)
-            tl.fromTo(
-              img,
-              { scale: 1.12 },
-              { scale: 1, duration: 1.6, ease: "power3.out" },
-              "<"
-            );
-          if (cap)
-            tl.fromTo(
-              cap,
-              { autoAlpha: 0, y: 18 },
-              { autoAlpha: 1, y: 0, duration: 0.9, ease: "power3.out" },
-              "-=0.9"
-            );
-        });
-
         // Stories: rows rise as they enter.
         gsap.utils.toArray<HTMLElement>("[data-jr-story]").forEach((row) => {
           gsap.fromTo(
@@ -196,10 +141,6 @@ export default function JournalSection({
     };
   }, [posts.length, exhibits.length]);
 
-  const byRoom = (room: MuseumRoom) =>
-    exhibits.filter((e) => e.room === room);
-  const rooms = MUSEUM_ROOMS.filter((r) => byRoom(r).length > 0);
-
   const dateFmt = (iso: string | null) =>
     iso
       ? new Date(iso).toLocaleDateString(locale, {
@@ -214,8 +155,8 @@ export default function JournalSection({
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <header className="jr__hero" data-jr-hero>
         {/* Golden horizon streak, drifting slowly behind the headline. */}
-        <span className="jr__hero-streak" data-jr-streak aria-hidden="true" />
-
+        {/* <span className="jr__hero-streak" data-jr-streak aria-hidden="true" />
+ */}
         {/* Hand-drawn olive branch (esbozo) that sketches itself in. */}
         <svg
           className="jr__hero-branch"
@@ -280,7 +221,7 @@ export default function JournalSection({
             <span className="jr__hint-line" />
             {t("journal.scroll_hint")}
           </p>
-          <p className="jr__hero-index">
+          {/* <p className="jr__hero-index">
             {rooms.length > 0 && (
               <span>
                 {["I", "II", "III", "IV"][rooms.length - 1]}{" "}
@@ -296,57 +237,9 @@ export default function JournalSection({
                 {t("journal.hero_notes")}
               </span>
             )}
-          </p>
+          </p> */}
         </div>
       </header>
-
-      {/* ── The museum ───────────────────────────────────────────── */}
-      {rooms.length > 0 && (
-        <section className="jr__museum" aria-label={t("journal.museum_title")}>
-          <div className="jr__museum-door">
-            <p className="jr__eyebrow">{t("journal.museum_eyebrow")}</p>
-            <h2 className="jr__museum-title">{t("journal.museum_title")}</h2>
-            <p className="jr__museum-lede">{t("journal.museum_lede")}</p>
-          </div>
-
-          {rooms.map((room, ri) => (
-            <article className="jr__room" data-jr-room key={room}>
-              <header className="jr__room-head" data-jr-room-head>
-                <span className="jr__room-no">
-                  {["I", "II", "III", "IV"][ri]}
-                </span>
-                <h3 className="jr__room-title">{t(`journal.room_${room}`)}</h3>
-                <p className="jr__room-sub">{t(`journal.room_${room}_sub`)}</p>
-              </header>
-
-              <div className="jr__pieces">
-                {byRoom(room).map((ex, i) => (
-                  <figure
-                    className={`jr__exhibit${i % 2 ? " is--right" : ""}`}
-                    data-jr-exhibit
-                    key={ex.id}
-                  >
-                    <div className="jr__frame" data-jr-frame>
-                      <Image
-                        src={ex.image}
-                        alt={ex.title}
-                        fill
-                        sizes="(max-width: 760px) 92vw, 60vw"
-                      />
-                    </div>
-                    <figcaption className="jr__caption" data-jr-caption>
-                      <span className="jr__caption-title">{ex.title}</span>
-                      <span className="jr__caption-text">{ex.caption}</span>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </article>
-          ))}
-
-          <p className="jr__museum-close">{t("journal.museum_close")}</p>
-        </section>
-      )}
 
       {/* ── The stories (blog) ───────────────────────────────────── */}
       <section className="jr__stories" aria-label={t("journal.stories_title")}>

@@ -227,6 +227,8 @@
   object-fit: cover;
   object-position: center;
   pointer-events: none;
+  /* Scale up slightly to fill the container and remove gaps */
+  transform: scale(1.15);
 }
 
 /* Big product-first placeholder — tall portrait, no border chaos, just a
@@ -265,6 +267,11 @@
   font-size: clamp(3.5rem, 7vw, 6rem);
   color: color-mix(in srgb, var(--nostrum-gold-metal) 18%, transparent);
   pointer-events: none;
+}
+
+/* Hide the "N" placeholder when an actual product image is present */
+.shop-card__media:has(.shop-card__img)::after {
+  content: none;
 }
 
 /* Stretched link covers the media so the whole tile is clickable */

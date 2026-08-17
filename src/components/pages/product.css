@@ -94,6 +94,22 @@
   user-select: none;
 }
 
+/* Real product photo */
+.pdp__media-photo {
+  position: absolute;
+  inset: 0;
+  animation: pdp-media-in 0.7s var(--ease-lux) both;
+}
+
+.pdp__media-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  /* Scale up slightly to fill the container and remove gaps */
+  transform: scale(1.15);
+}
+
 .pdp__media-view {
   position: absolute;
   left: 1.4rem;
@@ -631,8 +647,10 @@
 .pdp__media-photo img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
+  /* Scale up slightly to fill the container and remove gaps */
+  transform: scale(1.15);
 }
 
 /* Photo variant toggle dots (5L has two photos) */

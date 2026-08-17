@@ -39,9 +39,9 @@ type Product = {
 // admin marks products "featured on home", and whenever the products API
 // is unreachable, so this section never renders empty.
 const PRODUCTS: Product[] = [
-  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/1.webp" },
-  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66", image: "/products/11.webp" },
-  { id: "trio", nameKey: "shop.product_trio", detailKey: "shop.detail_trio", price: "€95", image: "/products/2.webp" },
+  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/11.webp" },
+  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66", image: "/products/2.webp" },
+  { id: "two-litre", nameKey: "shop.product_twolitre", detailKey: "shop.detail_twolitre", price: "€16", image: "/products/4.webp" },
 ];
 
 /* Shape returned by GET /api/products/featured. */
@@ -70,6 +70,7 @@ export default function ProductsSection() {
   // home"). Until any are marked — or if the API is unreachable — the
   // static trio above stands in, so the grid is never empty.
   const [tiles, setTiles] = useState<Product[]>(PRODUCTS);
+  const [loading, setLoading] = useState(true);
   const liveRef = useRef<Map<string, LiveProduct>>(new Map());
 
   useEffect(() => {
@@ -77,7 +78,9 @@ export default function ProductsSection() {
     fetch("/api/proxy/products/featured")
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { products?: LiveProduct[] } | null) => {
-        if (!alive || !d?.products?.length) return;
+        if (!alive) return;
+        setLoading(false);
+        if (!d?.products?.length) return;
         liveRef.current = new Map(d.products.map((p) => [p.slug, p]));
         setTiles(
           d.products.map((p) => {
@@ -95,6 +98,7 @@ export default function ProductsSection() {
         );
       })
       .catch(() => {
+        setLoading(false);
         /* keep the static fallback */
       });
     return () => {

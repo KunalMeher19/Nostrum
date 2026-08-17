@@ -1,0 +1,177 @@
+/* OriginMuseum · "A house you can walk through" section adapted from
+   Journal to Origins page. Dark background with gold accents, matching
+   the origins page aesthetic. */
+
+.origin-museum {
+  background: linear-gradient(
+    180deg,
+    var(--nostrum-black, #14160f),
+    #1e2a16 34%,
+    #2c2117 78%,
+    var(--nostrum-black, #14160f)
+  );
+  padding: clamp(4rem, 10vh, 8rem) 0;
+}
+
+.origin-museum__door {
+  text-align: center;
+  padding: clamp(3rem, 9vh, 7rem) clamp(1.4rem, 6vw, 6rem);
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.origin-museum__eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nostrum-white, #edebe3) 52%, transparent);
+  margin: 0 0 1.1rem;
+}
+
+.origin-museum__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 6.4vw, 5.6rem);
+  line-height: 1.02;
+  font-weight: 500;
+  margin: 0;
+  color: var(--nostrum-white, #edebe3);
+}
+
+.origin-museum__lede {
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--nostrum-white, #edebe3) 70%, transparent);
+  max-width: 30rem;
+  margin: 1.6rem auto 0;
+}
+
+.origin-museum__room {
+  padding: clamp(4rem, 12vh, 9rem) clamp(1.4rem, 6vw, 6rem);
+  max-width: 88rem;
+  margin: 0 auto;
+}
+
+.origin-museum__room-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: clamp(1.2rem, 3vw, 2.6rem);
+  align-items: baseline;
+  margin-bottom: clamp(2.6rem, 7vh, 5rem);
+}
+
+.origin-museum__room-no {
+  grid-row: 1 / span 2;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 7vw, 6rem);
+  line-height: 1;
+  color: var(--nostrum-gold, #e6b422);
+  opacity: 0.85;
+}
+
+.origin-museum__room-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4.6vw, 3.8rem);
+  line-height: 1.04;
+  font-weight: 500;
+  margin: 0;
+  color: var(--nostrum-white, #edebe3);
+}
+
+.origin-museum__room-sub {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--nostrum-white, #edebe3) 62%, transparent);
+  max-width: 30rem;
+  margin: 0.5rem 0 0;
+}
+
+.origin-museum__pieces {
+  display: grid;
+  gap: clamp(3rem, 9vh, 6rem);
+}
+
+.origin-museum__exhibit {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: clamp(1.6rem, 4vw, 3.6rem);
+  align-items: end;
+  margin: 0;
+}
+
+.origin-museum__exhibit.is--right {
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+}
+
+.origin-museum__exhibit.is--right .origin-museum__frame {
+  order: 2;
+}
+
+.origin-museum__frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #0d0f0a;
+}
+
+.origin-museum__frame img {
+  object-fit: cover;
+}
+
+.origin-museum__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--nostrum-gold, #e6b422) 32%, transparent);
+  max-width: 24rem;
+}
+
+.origin-museum__caption-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  line-height: 1.15;
+  color: var(--nostrum-white, #edebe3);
+}
+
+.origin-museum__caption-text {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--nostrum-white, #edebe3) 66%, transparent);
+  padding-bottom: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+  .origin-museum__exhibit,
+  .origin-museum__exhibit.is--right {
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+  }
+
+  .origin-museum__exhibit.is--right .origin-museum__frame {
+    order: 1;
+  }
+
+  .origin-museum__room-head {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .origin-museum__room-no {
+    grid-row: 1;
+  }
+}
+
+/* Reduced motion */
+.origin-museum.is--static [data-origin-room-head] > *,
+.origin-museum.is--static [data-origin-frame],
+.origin-museum.is--static [data-origin-caption] {
+  opacity: 1 !important;
+  transform: none !important;
+}

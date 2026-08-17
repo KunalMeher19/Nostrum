@@ -109,6 +109,11 @@ const CATALOG: Record<string, { product: Product; qty: number }> = {
   duo: { product: OLIVE_OIL, qty: 2 },
   trio: { product: OLIVE_OIL, qty: 3 },
   "two-litre": { product: OLIVE_OIL, qty: 1 },
+  "2l": { product: OLIVE_OIL, qty: 1 },
+  "nostrum-2l": { product: OLIVE_OIL, qty: 1 },
+  "extra-virgin-olive-oil-2l": { product: OLIVE_OIL, qty: 1 },
+  "extra-virgin-olive-oil-5l": { product: OLIVE_OIL, qty: 1 },
+  "extra-virgin-olive-oil-duo": { product: OLIVE_OIL, qty: 2 },
   [OLIVE_OIL.slug]: { product: OLIVE_OIL, qty: 1 },
 };
 

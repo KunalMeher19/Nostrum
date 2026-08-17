@@ -13,6 +13,7 @@ import {
   getCatalogEntry,
   lineTotal,
   tierFor,
+  type Product,
 } from "@/lib/products";
 
 /* ------------------------------------------------------------------ */
@@ -49,11 +50,59 @@ export default function ProductPage() {
   const [qty, setQty] = useState(entry?.qty ?? 1);
   const [customQty, setCustomQty] = useState(false);
   const [added, setAdded] = useState(false);
+  const [liveProduct, setLiveProduct] = useState<Product | null>(null);
 
   const rootRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // If not in static catalog, try to fetch from API
+  useEffect(() => {
+    if (product || !id) return;
+    let alive = true;
+    fetch(`/api/proxy/products/${id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!alive || !data?.product) return;
+        const p = data.product;
+        const size = p.sizes.find((s: any) => s.id === p.defaultSizeId) ?? p.sizes[0];
+        // Convert API product to internal Product format
+        setLiveProduct({
+          slug: p.slug,
+          name: p.name,
+          subtitle: p.subtitle,
+          category: "Olive Oil",
+          sizes: p.sizes.map((s: any) => ({
+            id: s.id,
+            label: s.label,
+            price: s.price,
+            image: p.images[0],
+          })),
+          defaultSizeId: p.defaultSizeId ?? size.id,
+          packs: [
+            { qty: 1, discount: 0 },
+            { qty: 2, discount: 0.05 },
+            { qty: 3, discount: 0.1 },
+          ],
+          description: [],
+          details: [],
+          shipping: [],
+          highlights: [],
+          views: [],
+        });
+        setSizeId(size.id);
+        setQty(1);
+      })
+      .catch(() => {
+        // Product not found
+      });
+    return () => {
+      alive = false;
+    };
+  }, [id, product]);
+
+  const activeProduct = liveProduct ?? product;
 
   // Reset oil type selection when size changes
   useEffect(() => {
@@ -86,7 +135,7 @@ export default function ProductPage() {
   /* ---- Entrance choreography (GSAP, reduced-motion-safe) ------------- */
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || !product) return;
+    if (!root || !activeProduct) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let cancelled = false;
@@ -132,7 +181,7 @@ export default function ProductPage() {
     };
     // Entrance runs once per product route.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product?.slug]);
+  }, [activeProduct?.slug]);
 
   /* ---- Spotlight sticky — image scrolls, panel sticks (≥900px) -------- */
   /* Mirrors StorySection's spotlight sticky: transform-driven via
@@ -185,7 +234,7 @@ export default function ProductPage() {
       cancelled = true;
       ctx?.revert();
     };
-  }, [product?.slug]);
+  }, [activeProduct?.slug]);
 
   useEffect(
     () => () => {
@@ -197,11 +246,11 @@ export default function ProductPage() {
   const [tab, setTab] = useState<TabKey>("tab_description");
 
   const size = useMemo(
-    () => product?.sizes.find((s) => s.id === sizeId) ?? product?.sizes[0],
-    [product, sizeId]
+    () => activeProduct?.sizes.find((s) => s.id === sizeId) ?? activeProduct?.sizes[0],
+    [activeProduct, sizeId]
   );
 
-  if (!product || !size) {
+  if (!activeProduct || !size) {
     return (
       <main data-main className="pdp pdp--missing">
         <div className="pdp-missing">
@@ -218,14 +267,14 @@ export default function ProductPage() {
     );
   }
 
-  const tier = tierFor(product, qty);
-  const total = lineTotal(product, size.id, qty);
+  const tier = tierFor(activeProduct, qty);
+  const total = lineTotal(activeProduct, size.id, qty);
 
   const doAdd = (opts?: { openDrawer?: boolean }) => {
     addItem(
       {
-        slug: product.slug,
-        name: product.name,
+        slug: activeProduct.slug,
+        name: activeProduct.name,
         subtitle: t("product.subtitle"),
         sizeId: size.id,
         sizeLabel: size.label,
@@ -283,13 +332,13 @@ export default function ProductPage() {
           <section className="pdp__gallery" aria-label="Product image">
             <div className="pdp__media" data-unveil>
               {(() => {
-                const currentSize = product.sizes.find(s => s.id === sizeId) ?? product.sizes[0];
+                const currentSize = activeProduct.sizes.find(s => s.id === sizeId) ?? activeProduct.sizes[0];
                 const oilType = currentSize.oilTypes?.find(o => o.id === oilTypeId) ?? currentSize.oilTypes?.[0];
                 const mainImg = oilType?.image ?? (photoVariantIdx === 1 && currentSize.altImage ? currentSize.altImage : currentSize.image);
                 if (mainImg) {
                   return (
                     <div className="pdp__media-photo">
-                      <img src={mainImg} alt={`${product.name} ${currentSize.label}`} />
+                      <img src={mainImg} alt={`${activeProduct.name} ${currentSize.label}`} />
                     </div>
                   );
                 }
@@ -302,7 +351,7 @@ export default function ProductPage() {
               })()}
               {/* Photo variant toggle for 5L (two photos) */}
               {(() => {
-                const currentSize = product.sizes.find(s => s.id === sizeId) ?? product.sizes[0];
+                const currentSize = activeProduct.sizes.find(s => s.id === sizeId) ?? activeProduct.sizes[0];
                 if (!currentSize.oilTypes && currentSize.altImage) {
                   return (
                     <div className="pdp__photo-toggle">
@@ -329,7 +378,7 @@ export default function ProductPage() {
           {/* ---- Details column -------------------------------------- */}
           <section className="pdp__panel" aria-label="Product details" ref={panelRef}>
             <header className="pdp__head" data-rise>
-              <h1 className="pdp__name">{product.name}</h1>
+              <h1 className="pdp__name">{activeProduct.name}</h1>
               <p className="pdp__subtitle">{t("product.subtitle")}</p>
             </header>
 
@@ -342,7 +391,7 @@ export default function ProductPage() {
             <fieldset className="pdp__field" data-rise>
               <legend className="pdp__label">{t("product.size")}</legend>
               <div className="pdp__segments" role="radiogroup" aria-label={t("product.size")}>
-                {product.sizes.map((s) => (
+                {activeProduct.sizes.map((s) => (
                   <button
                     key={s.id}
                     type="button"
@@ -389,7 +438,7 @@ export default function ProductPage() {
                 role="radiogroup"
                 aria-label={t("product.quantity")}
               >
-                {product.packs.map((p) => {
+                {activeProduct.packs.map((p) => {
                   const active = !customQty && qty === p.qty;
                   return (
                     <button

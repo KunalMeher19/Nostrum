@@ -1,0 +1,37 @@
+<svg width="200" height="600" viewBox="0 0 200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main branch stem -->
+  <path d="M100 0 Q105 150 100 300 Q95 450 100 600" stroke="#8B7355" stroke-width="2" fill="none" opacity="0.6"/>
+
+  <!-- Olive fruits (small circles) -->
+  <circle cx="85" cy="120" r="6" fill="#4A5D3F" opacity="0.7"/>
+  <circle cx="115" cy="180" r="6" fill="#4A5D3F" opacity="0.7"/>
+  <circle cx="88" cy="240" r="6" fill="#4A5D3F" opacity="0.7"/>
+  <circle cx="112" cy="300" r="6" fill="#4A5D3F" opacity="0.7"/>
+  <circle cx="90" cy="360" r="6" fill="#4A5D3F" opacity="0.7"/>
+  <circle cx="110" cy="420" r="6" fill="#4A5D3F" opacity="0.7"/>
+
+  <!-- Leaves (ellipses) -->
+  <ellipse cx="75" cy="80" rx="18" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(-35 75 80)"/>
+  <ellipse cx="125" cy="100" rx="18" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(35 125 100)"/>
+
+  <ellipse cx="70" cy="150" rx="20" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(-30 70 150)"/>
+  <ellipse cx="130" cy="160" rx="20" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(30 130 160)"/>
+
+  <ellipse cx="68" cy="210" rx="19" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(-25 68 210)"/>
+  <ellipse cx="132" cy="220" rx="19" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(25 132 220)"/>
+
+  <ellipse cx="70" cy="270" rx="18" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(-30 70 270)"/>
+  <ellipse cx="130" cy="280" rx="18" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(30 130 280)"/>
+
+  <ellipse cx="72" cy="330" rx="20" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(-28 72 330)"/>
+  <ellipse cx="128" cy="340" rx="20" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(28 128 340)"/>
+
+  <ellipse cx="75" cy="390" rx="19" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(-32 75 390)"/>
+  <ellipse cx="125" cy="400" rx="19" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(32 125 400)"/>
+
+  <ellipse cx="78" cy="450" rx="18" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(-30 78 450)"/>
+  <ellipse cx="122" cy="460" rx="18" ry="6" fill="#6B7F5C" opacity="0.6" transform="rotate(30 122 460)"/>
+
+  <ellipse cx="80" cy="510" rx="17" ry="5" fill="#6B7F5C" opacity="0.6" transform="rotate(-28 80 510)"/>
+  <ellipse cx="120" cy="520" rx="17" ry="5" fill="#6B7F5C" opacity="0.6" transform="rotate(28 120 520)"/>
+</svg>

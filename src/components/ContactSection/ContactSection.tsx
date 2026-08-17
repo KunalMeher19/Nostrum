@@ -26,7 +26,7 @@ import { submitContact, type ContactTopic } from "@/lib/api";
 /* ------------------------------------------------------------------ */
 
 const CONTACT = {
-  email: "office@nostrumoils.com",
+  email: "sales@nostrumoils.com",
   salesEmail: "sales@nostrumoils.com",
   phone: "+34 680 889 399",
   address: ["El Perelló, Catalonia", "Spain, EU"],

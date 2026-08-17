@@ -12,11 +12,8 @@ import { CURTAIN_REVEAL_EVENT } from "@/components/RouteCurtain/curtainNav";
 /* ------------------------------------------------------------------ */
 /* Products listing — LIGHT (§7, the Shop gets out of the way).         */
 /*                                                                     */
-/* Client feedback 1.0: replace the "being bottled" empty state with    */
-/* the home Collection design — "The Collection" head, the three pack   */
-/* tiles (Single/Duo/Trio) with quick add-to-cart, the note line — plus  */
-/* a B2B button that routes to the contact page. Tiles reuse the        */
-/* shop-card look pinned to its LIGHT phase (this whole route is Shop). */
+/* Fetches products from the API and displays them. Falls back to      */
+/* static products if the API is unreachable.                          */
 /* ------------------------------------------------------------------ */
 
 type Tile = {
@@ -27,9 +24,23 @@ type Tile = {
   image?: string;
 };
 
-// Only 5L single and 2L single — client reduced from the original trio.
-const TILES: Tile[] = [
-  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/1.webp" },
+type LiveProduct = {
+  slug: string;
+  name: string;
+  subtitle: string;
+  images: string[];
+  sizes: Array<{
+    id: string;
+    label: string;
+    price: number;
+  }>;
+  defaultSizeId: string;
+};
+
+// Static fallback — shown if the API is unreachable or returns no products
+const FALLBACK_TILES: Tile[] = [
+  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/11.webp" },
+  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66", image: "/products/2.webp" },
   { id: "two-litre", nameKey: "shop.product_twolitre", detailKey: "shop.detail_twolitre", price: "€16", image: "/products/4.webp" },
 ];
 
@@ -40,6 +51,43 @@ export default function ProductsPage() {
   const { addItem } = useCart();
   const [addedId, setAddedId] = useState<string | null>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [tiles, setTiles] = useState<Tile[]>(FALLBACK_TILES);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products from the API
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/proxy/products")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { products?: LiveProduct[] } | null) => {
+        if (!alive) return;
+        setLoading(false);
+        if (!d?.products?.length) return;
+
+        // Convert API products to tiles
+        setTiles(
+          d.products.map((p) => {
+            const size =
+              p.sizes.find((s) => s.id === p.defaultSizeId) ?? p.sizes[0];
+            return {
+              id: p.slug,
+              nameKey: p.name,
+              detailKey: p.subtitle,
+              price: size ? `€${size.price}` : "",
+              image: p.images[0],
+            };
+          })
+        );
+      })
+      .catch(() => {
+        setLoading(false);
+        /* keep the static fallback */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const quickAdd = (id: string) => {
     const entry = getCatalogEntry(id);
@@ -166,7 +214,7 @@ export default function ProductsPage() {
         </div>
 
         <ul className="products__grid">
-          {TILES.map((tile) => (
+          {tiles.map((tile) => (
             <li key={tile.id} className="pcard" data-tile>
               <div className="pcard__media">
                 {tile.image && (
@@ -180,7 +228,7 @@ export default function ProductsPage() {
                 <LocaleLink
                   href={`/product/${tile.id}`}
                   className="pcard__link"
-                  aria-label={`${t(tile.nameKey)}, ${t(tile.detailKey)}`}
+                  aria-label={typeof tile.nameKey === 'string' && tile.nameKey.startsWith('shop.') ? `${t(tile.nameKey)}, ${t(tile.detailKey)}` : `${tile.nameKey}, ${tile.detailKey}`}
                 />
                 <button
                   type="button"
@@ -191,9 +239,9 @@ export default function ProductsPage() {
                 </button>
               </div>
               <div className="pcard__meta">
-                <h2 className="pcard__name">{t(tile.nameKey)}</h2>
+                <h2 className="pcard__name">{typeof tile.nameKey === 'string' && tile.nameKey.startsWith('shop.') ? t(tile.nameKey) : tile.nameKey}</h2>
                 <div className="pcard__line">
-                  <p className="pcard__detail">{t(tile.detailKey)}</p>
+                  <p className="pcard__detail">{typeof tile.detailKey === 'string' && tile.detailKey.startsWith('shop.') ? t(tile.detailKey) : tile.detailKey}</p>
                   <p className="pcard__price">{tile.price}</p>
                 </div>
               </div>

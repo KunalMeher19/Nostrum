@@ -10,10 +10,12 @@ import StoryScenes from "@/components/StoryScenes/StoryScenes";
 import StoryProcess from "@/components/StoryProcess/StoryProcess";
 import OriginMap from "@/components/OriginMap/OriginMap";
 import OriginThread from "@/components/OriginThread/OriginThread";
+import OriginMuseum from "@/components/OriginMuseum/OriginMuseum";
 import {
   API_URL,
   type ProcessImagesContent,
   type SiteContentResponse,
+  type MuseumExhibit,
 } from "@/lib/api";
 import "@/app/origins/origins.css";
 
@@ -45,6 +47,12 @@ export default async function OriginsPage({ params }: Props) {
   const { value: processImages } = await fetchJson<
     SiteContentResponse<ProcessImagesContent>
   >("/api/content/process-images", { key: "process-images", value: null });
+
+  const { exhibits } = await fetchJson<{ exhibits: MuseumExhibit[] }>(
+    "/api/journal/museum",
+    { exhibits: [] }
+  );
+
   return (
     <main data-main className="origins">
       <OriginThread />
@@ -54,6 +62,7 @@ export default async function OriginsPage({ params }: Props) {
       <div data-origin-chapter="The craft">
         <StoryProcess stepImages={processImages?.steps} />
       </div>
+      {/* <OriginMuseum exhibits={exhibits} /> */}
       <div data-origin-chapter="The place">
         <OriginMap />
       </div>
