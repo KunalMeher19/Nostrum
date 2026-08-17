@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { generateLocalizedMetadata } from "@/lib/metadata";
 import { getMessages, isValidLocale, type Locale } from "@/lib/i18n";
@@ -20,7 +21,9 @@ export async function generateMetadata({ params }: Props) {
 export default function CheckoutSuccessPage() {
   return (
     <main data-main>
-      <CheckoutSuccessSection />
+      <Suspense fallback={<div style={{ minHeight: "60vh" }} />}>
+        <CheckoutSuccessSection />
+      </Suspense>
     </main>
   );
 }

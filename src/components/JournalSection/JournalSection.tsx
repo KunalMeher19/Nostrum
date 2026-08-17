@@ -92,8 +92,7 @@ export default function JournalSection({
             );
           });
 
-        // Gentle depth as the hero scrolls away: headline and branch
-        // drift at different speeds.
+        // Gentle depth as the hero scrolls away: headline drifts.
         gsap.to("[data-jr-title]", {
           yPercent: -14,
           autoAlpha: 0.25,
@@ -105,16 +104,32 @@ export default function JournalSection({
             scrub: true,
           },
         });
-        gsap.to("[data-jr-branch]", {
-          y: 110,
-          ease: "none",
-          scrollTrigger: {
-            trigger: "[data-jr-hero]",
-            start: "top top",
-            end: "bottom top",
-            scrub: true,
-          },
-        });
+
+        // Branch travels through the entire page: from the hero down to
+        // the end of the stories section. It is position:fixed (see CSS)
+        // so it can never be clipped by any ancestor's overflow, and its
+        // `top` (a viewport-relative value, not a large translateY) is
+        // scrubbed 1:1 against scroll PROGRESS across that whole range —
+        // so its on-screen speed always matches how far the reader has
+        // actually gotten, never racing ahead of the content. It also
+        // fades down while it drifts past the post cards, so it never
+        // fights for attention with the copy.
+        gsap.fromTo(
+          "[data-jr-branch]",
+          { top: "14vh", autoAlpha: 0.9 },
+          {
+            top: "78vh",
+            autoAlpha: 0.4,
+            ease: "none",
+            scrollTrigger: {
+              trigger: "[data-jr-hero]",
+              start: "top top",
+              endTrigger: "[data-jr-stories]",
+              end: "bottom bottom",
+              scrub: 1,
+            },
+          }
+        );
 
         // Stories: rows rise as they enter.
         gsap.utils.toArray<HTMLElement>("[data-jr-story]").forEach((row) => {
@@ -157,7 +172,7 @@ export default function JournalSection({
         {/* Golden horizon streak, drifting slowly behind the headline. */}
         {/* <span className="jr__hero-streak" data-jr-streak aria-hidden="true" />
  */}
-        {/* Hand-drawn olive branch (esbozo) that sketches itself in. */}
+        {/* Hand-drawn olive branch that travels alongside the entire page */}
         <svg
           className="jr__hero-branch"
           data-jr-branch
@@ -225,8 +240,8 @@ export default function JournalSection({
       </header>
 
       {/* ── The stories (blog) ───────────────────────────────────── */}
-      <section className="jr__stories" aria-label={t("journal.stories_title")}>
-        {/* Posts column: header + 2-col grid of cards */}
+      <section className="jr__stories" data-jr-stories aria-label={t("journal.stories_title")}>
+        {/* Posts column: single column, no sticky sidebar */}
         <div className="jr__stories-main">
           <header className="jr__stories-head">
             <p className="jr__eyebrow">{t("journal.stories_eyebrow")}</p>
@@ -271,48 +286,6 @@ export default function JournalSection({
               </li>
             ))}
           </ol>
-        </div>
-
-        {/* Sticky olive branch — stays fixed in view while posts scroll.
-            Same hand-drawn family as the hero branch, slightly larger. */}
-        <div className="jr__leaves" aria-hidden="true">
-          <svg viewBox="0 0 280 520" fill="none" className="jr__leaves-svg">
-            {/* Main stem: long living curve */}
-            <path
-              d="M140 508 C 148 480 154 460 162 436 C 170 412 176 390 185 364
-                 C 194 338 200 314 210 288 C 220 262 228 238 238 212
-                 C 248 186 256 162 264 136 C 272 110 278 86 280 60
-                 C 281 42 278 24 272 8"
-              strokeWidth="1.5"
-            />
-            {/* Leaves alternating sides, growing from stem nodes */}
-            <path d="M162 436 Q118 446 86 478 Q128 466 162 436" />
-            <path d="M185 364 Q224 382 262 376 Q222 356 185 364" />
-            <path d="M210 288 Q168 288 134 312 Q174 312 210 288" />
-            <path d="M238 212 Q280 218 310 196 Q270 190 238 212" strokeWidth="1.4" />
-            <path d="M264 136 Q228 110 188 106 Q222 130 264 136" />
-            <path d="M280 60 Q308 68 334 52 Q300 44 280 60" strokeWidth="1.4" />
-            <path d="M272 8 Q292 -4 300 -28 Q280 -14 272 8" strokeWidth="1.3" />
-            {/* Faint midribs — hand-sketched interior detail */}
-            <g opacity="0.45" strokeWidth="0.9">
-              <path d="M156 439 Q124 453 96 470" />
-              <path d="M191 366 Q222 374 254 372" />
-              <path d="M204 291 Q174 299 148 308" />
-              <path d="M244 212 Q272 206 298 198" />
-              <path d="M258 133 Q230 120 202 110" />
-              <path d="M286 61 Q308 61 328 54" />
-            </g>
-            {/* Two olives dangling from a lower node */}
-            <path d="M174 408 Q182 428 176 444" strokeWidth="1.2" />
-            <path d="M174 408 Q196 422 206 436" strokeWidth="1.2" />
-            <path d="M176 444 a 11 14 -10 1 1 0.1 0" strokeWidth="1.4" />
-            <path d="M206 436 a 10 13 -24 1 1 0.1 0" strokeWidth="1.4" />
-            {/* Second cluster higher up */}
-            <path d="M222 262 Q230 278 224 292" strokeWidth="1.2" />
-            <path d="M222 262 Q242 272 250 284" strokeWidth="1.2" />
-            <path d="M224 292 a 9 12 -8 1 1 0.1 0" strokeWidth="1.3" />
-            <path d="M250 284 a 9 12 -22 1 1 0.1 0" strokeWidth="1.3" />
-          </svg>
         </div>
       </section>
     </div>

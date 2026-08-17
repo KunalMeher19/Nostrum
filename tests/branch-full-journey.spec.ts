@@ -1,0 +1,67 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('Journal Branch Full Journey', () => {
+  test('verify branch travels through entire blog section', async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto('http://localhost:3000/en/journal');
+    await page.waitForTimeout(3000);
+
+    const branch = page.locator('[data-jr-branch]');
+
+    // Position 1: At the top (hero)
+    const pos1 = await branch.boundingBox();
+    await page.screenshot({ path: 'test-results/branch-journey-1-hero.png' });
+    console.log('1. Hero section - Branch Y:', pos1?.y);
+
+    // Position 2: "Written along the way" title
+    await page.evaluate(() => window.scrollTo(0, 1000));
+    await page.waitForTimeout(500);
+    const pos2 = await branch.boundingBox();
+    await page.screenshot({ path: 'test-results/branch-journey-2-title.png' });
+    console.log('2. Blog title - Branch Y:', pos2?.y);
+
+    // Position 3: First blog post
+    const firstPost = page.locator('[data-jr-story]').first();
+    await firstPost.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    const pos3 = await branch.boundingBox();
+    await page.screenshot({ path: 'test-results/branch-journey-3-first-blog.png' });
+    console.log('3. First blog post - Branch Y:', pos3?.y);
+
+    // Position 4: Middle of blog posts
+    await page.evaluate(() => window.scrollBy(0, 400));
+    await page.waitForTimeout(500);
+    const pos4 = await branch.boundingBox();
+    await page.screenshot({ path: 'test-results/branch-journey-4-mid-blogs.png' });
+    console.log('4. Middle of blogs - Branch Y:', pos4?.y);
+
+    // Position 5: End of page
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(500);
+    const pos5 = await branch.boundingBox();
+    await page.screenshot({ path: 'test-results/branch-journey-5-bottom.png' });
+    console.log('5. Bottom - Branch Y:', pos5?.y);
+
+    // Verify branch moved progressively down
+    expect(pos2!.y).toBeGreaterThan(pos1!.y);
+    expect(pos3!.y).toBeGreaterThan(pos2!.y);
+    expect(pos4!.y).toBeGreaterThan(pos3!.y);
+    expect(pos5!.y).toBeGreaterThan(pos4!.y);
+
+    // Verify branch is always visible
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(300);
+    await expect(branch).toBeVisible();
+
+    await page.evaluate(() => window.scrollTo(0, 1000));
+    await page.waitForTimeout(300);
+    await expect(branch).toBeVisible();
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(300);
+    await expect(branch).toBeVisible();
+
+    console.log('✅ Branch travels through entire page');
+    console.log('✅ Total movement:', (pos5!.y - pos1!.y).toFixed(1), 'pixels');
+  });
+});

@@ -17,18 +17,20 @@ import "./cookie-banner.css";
  *  - Then waits for a quiet moment: no pointer / scroll / key activity
  *    for IDLE_MS before sliding up. Any interaction resets the clock, so
  *    it only ever appears while the visitor is at rest.
+ *  - PERSISTS until user explicitly accepts/rejects — will reappear on
+ *    every page load until a choice is made.
  *
  * The legal pages aren't ready yet, so Preferences currently behaves as
  * a dismissal. The choice IS real consent state now: it is stored in
- * localStorage and only "accept" lets consent-gated scripts (Analytics)
- * load. Swap in a fuller preferences UI when the legal text arrives.
+ * localStorage. "accept" loads full Analytics; "reject" loads basic
+ * (non-sensitive) Analytics only; "preferences" is treated as reject.
  */
 
 const CHOICE_KEY = "nostrum-cookie-choice";
 /** Fired on window whenever a consent choice is made (detail: the choice).
  *  Analytics listens so GA can load the moment "accept" is clicked. */
 export const CONSENT_EVENT = "nostrum-consent";
-const IDLE_MS = 3500; // quiet time required before entering
+const IDLE_MS = 2500; // quiet time required before entering (reduced for better visibility)
 const POLL_MS = 400; // loader / modal / idle check cadence
 const EXIT_MS = 500; // keep in sync with --ck-out in the CSS
 
@@ -40,11 +42,17 @@ export default function CookieBanner() {
   /* ---- Arm: loader gone → Journal modal gone → idle → show -------------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Check if user has already made a choice - if yes, don't show banner
+    let hasChoice = false;
     try {
-      if (localStorage.getItem(CHOICE_KEY)) return;
+      hasChoice = !!localStorage.getItem(CHOICE_KEY);
     } catch {
       /* storage unavailable — still show, just not remembered */
     }
+
+    // Only show if NO choice has been made yet
+    if (hasChoice) return;
 
     lastActivity.current = performance.now();
     const touch = () => {
@@ -136,12 +144,13 @@ export default function CookieBanner() {
 
       <p className="ck-banner__text">
         We use cookies to improve your browsing experience and to better
-        understand how visitors use&nbsp;Nostrum.
+        understand how visitors use Nostrum. Choose "Accept" for full analytics,
+        or "Reject" for basic (non-sensitive) analytics only.
       </p>
 
       <div className="ck-banner__actions">
-        {/* "accept" is the only choice that unlocks consent-gated
-            scripts (Analytics). Preferences pends the legal pages. */}
+        {/* "accept" unlocks full Analytics including user identifiers.
+            "reject" and "preferences" load basic Analytics only (no user tracking). */}
         <button
           type="button"
           className="ck-banner__btn ck-banner__btn--accept"

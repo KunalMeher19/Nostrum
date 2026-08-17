@@ -8,6 +8,7 @@
 }
 
 .jr {
+  position: relative; /* Positioning context for the branch */
 }
 
 /* Shared eyebrow */
@@ -29,7 +30,7 @@
   justify-content: center;
   padding: clamp(7rem, 16vh, 11rem) clamp(1.4rem, 6vw, 6rem) 2.4rem;
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden - allow branch to extend beyond */
 }
 
 /* Layered warmth: a golden bloom low-left, a whisper of deep olive
@@ -85,19 +86,27 @@
   }
 }
 
-/* Hand-drawn olive branch, right side, faint gold sketch. */
+/* Hand-drawn olive branch, right side, faint gold sketch.
+   position: fixed so it can NEVER be clipped by any ancestor's
+   overflow:hidden (the old bug: it lived inside .jr__hero and vanished
+   the moment it scrolled past that box). GSAP scrubs its `top` (a
+   viewport-relative value, 14vh -> 78vh) against scroll PROGRESS from
+   the hero start to the stories end, so its on-screen speed always
+   matches the reader's actual scroll — it can't outrun the content or
+   go missing behind it. Initial top here matches the animation's
+   starting value so there's no flash before GSAP attaches. */
 .jr__hero-branch {
-  position: absolute;
+  position: fixed;
   right: clamp(2rem, 8vw, 9rem);
-  top: 50%;
-  transform: translateY(-52%);
+  top: 14vh;
   width: clamp(170px, 22vw, 320px);
-  height: auto; 
+  height: auto;
   pointer-events: none;
   stroke: color-mix(in srgb, var(--nostrum-gold, #e6b422) 55%, transparent);
   stroke-width: 1.4;
   stroke-linecap: round;
   opacity: 0.9;
+  z-index: 10;
 }
 
 /* Eyebrow row: a short gold hairline leading into the label. */
@@ -405,9 +414,6 @@
    The leaves panel is position:sticky so it stays in view while the list scrolls.
    Posts never intrude into the right column — the grid keeps them separated. */
 .jr__stories {
-  display: grid;
-  grid-template-columns: 1fr clamp(180px, 22vw, 300px);
-  gap: 0 clamp(2rem, 4vw, 5rem);
   padding: clamp(5rem, 13vh, 10rem) clamp(1.4rem, 6vw, 6rem)
     clamp(6rem, 14vh, 11rem);
   max-width: 88rem;
@@ -531,54 +537,9 @@
 
 /* ── Sticky leaves panel (right column) ────────────────────────── */
 
-/* Sticks from the top of the viewport and stays in view while posts scroll.
-   The SVG is centered and fills the column width. */
-.jr__leaves {
-  position: sticky;
-  top: clamp(4rem, 12vh, 8rem);
-  align-self: start;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.jr__leaves-svg {
-  width: 100%;
-  max-width: 260px;
-  height: auto;
-  stroke: color-mix(in srgb, var(--nostrum-gold, #e6b422) 50%, transparent);
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-  /* Gentle breathing animation — same feel as the hero branch */
-  animation: jr-leaves-sway 18s ease-in-out infinite alternate;
-  transform-origin: 50% 95%;
-}
-
-@keyframes jr-leaves-sway {
-  from { transform: rotate(-1.2deg); }
-  to   { transform: rotate(1.2deg);  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .jr__leaves-svg {
-    animation: none;
-  }
-}
-
-/* Hide the sticky leaves panel on smaller viewports where there isn't
-   enough horizontal room for two columns. */
-@media (max-width: 900px) {
-  .jr__stories {
-    grid-template-columns: 1fr;
-  }
-
-  .jr__leaves {
-    display: none;
-  }
-}
+/* Removed: the hero branch now scrolls through the entire page instead.
+   The sticky leaves panel has been removed; the hero branch travels
+   alongside the content from top to bottom. */
 
 /* ── Single story page ──────────────────────────────────────────── */
 

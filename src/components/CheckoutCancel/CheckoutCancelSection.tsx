@@ -2,7 +2,7 @@
 
 import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
-import "./checkout-result.css";
+import "../CheckoutSuccess/checkout-result.css";
 
 /* ------------------------------------------------------------------ */
 /* Checkout Cancel — user clicked Back in the Stripe checkout UI.     */
