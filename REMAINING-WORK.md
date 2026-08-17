@@ -1,25 +1,19 @@
 # Nostrum · Remaining Work
 
-> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins "How it is made" images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below).
+> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins "How it is made" images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), and after implementing the full Stripe checkout integration (see 2.13 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
-> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11.**
+> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), **Stripe Checkout integration (session creation + webhook handler)**, rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11.**
 
 ---
 
 ## 1. Blocked on client decisions (cannot build yet)
 
-### 1.1 Commerce backend: checkout + payments (the big one)
-- Checkout does not exist. `src/components/pages/CartPage.tsx` has a disabled "Checkout · coming soon" button.
-- Brief requires: product list → product page → cart → checkout, **guest checkout**, Stripe (confirm Redsys / PayPal with client's bank), shipping rates, IVA/VAT.
-- **Open decision (§14):** Shopify headless vs. custom + Stripe. The entire order layer was built swappable behind `backend/src/services/orders.service.js`; when the client decides, reimplement only that module.
-- **Our recommendation to the client (2026-08-06): custom + Stripe Checkout.** Portals, invoices, admin, and the Mongo order layer are already built; Shopify would mean re-plumbing all of it and fighting theme restrictions. Stripe Checkout gives hosted card payments, guest checkout, Apple/Google Pay, and Stripe Tax for Spanish IVA. Redsys is unnecessary with Stripe; PayPal can be added later if the client insists. Ask once, then build.
-- **Build recipe when the client says yes (Stripe path):**
-  1. `npm install stripe` in `backend/`; env `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-  2. `POST /api/checkout` (public, rate-limited): validate cart lines against the `products` collection (server-side prices, never trust the browser), create a Stripe Checkout Session (`mode: payment`, `automatic_tax`, `shipping_address_collection`, locale from the request), return the redirect URL. Logged-in users get their email prefilled; guests type theirs.
-  3. `POST /api/stripe/webhook` (raw body, signature-verified, mounted BEFORE express.json): on `checkout.session.completed`, build the order payload (items, address, email, `userId` when the session carried one) and call `orders.service.createOrder()`. That single call already consumes stock and fires the confirmation mail. Map `OutOfStockError` → refund + apology mail (rare race; stock is also checked at session creation).
-  4. Orders must NEVER be created from the success redirect page; only from the webhook.
-  5. Frontend: enable the CartPage button → call `/api/checkout` → `window.location = url`; success/cancel pages under `/[locale]/shop/checkout/…` (5 locales).
-  6. Shipping rates + free-shipping threshold: client must supply the numbers (currently a per-order `shippingCost` field exists; expose config via env or an admin setting).
+### 1.1 Stripe keys + shipping rates — FINAL STEP BEFORE CHECKOUT GOES LIVE
+- **Stripe integration BUILT 2026-08-17** (see 2.13 below). Client confirmed Stripe as the payment gateway; courier services decision still pending.
+- **What remains:** client must provide `STRIPE_SECRET_KEY` (sk_live_... or sk_test_...) + `STRIPE_WEBHOOK_SECRET` (whsec_...) for Railway, and confirm the shipping cost in EUR cents (`SHIPPING_COST_EUR` env var, default 0 = free shipping placeholder).
+- **Once keys are set:** checkout button goes live immediately (already wired in CartPage); orders will be created via the webhook on successful payments. No code changes needed.
+- **Webhook endpoint for Stripe dashboard:** `https://nostrum-production.up.railway.app/api/stripe/webhook` (Railway backend URL). Add this in Stripe dashboard → Webhooks → Add endpoint → listen for `checkout.session.completed`.
+- Stripe Tax (Spanish IVA): currently disabled in the checkout session params (`automatic_tax` commented out). Enable once the client adds their Spanish tax registration to Stripe.
 
 ### 1.2 Real shop catalog — TOOLING DONE 2026-08-14, DATA STILL BLOCKED
 - **What changed 2026-08-14:** the admin can now enter the entire catalogue itself (create/delete products, sizes, prices, stock, categories, descriptions, multi-image galleries with ImageKit upload, featured-on-home flag). Public `GET /api/products` + `GET /api/products/featured` now exist, and the home page grid already reads the featured endpoint. Two placeholder products (Nostrum 5L + 2L) are seeded in Atlas.
@@ -162,6 +156,43 @@ Client request: swap the five step images of the /origins "How it is made" secti
 - **Deploy note:** the Railway backend must be redeployed before the Content tab works in production; until then /origins simply keeps its placeholders (graceful fallback by design).
 - **Local-dev env changes made this session (so localhost works end-to-end):** frontend `.env.local` → `NEXT_PUBLIC_API_URL=http://localhost:5000` (was the Railway URL; backup at `.env.local.bak`); backend `.env` → `NODE_ENV=development` (production mode refuses localhost CORS by design) and `CORS_ORIGIN` extended with `http://localhost:3000`; `npm run seed:admin` re-run so the local DB user carries the admin role.
 
+### 2.13 Stripe checkout integration — DONE 2026-08-17 (client confirmed Stripe)
+
+Client confirmed Stripe as the payment gateway (courier services decision still pending). Built the entire checkout flow end-to-end; only the Stripe keys themselves are blocked on the client — once set, checkout goes live with zero code changes.
+
+**Backend:**
+- **Dependencies:** `npm install stripe` in `backend/` (exact version pinned).
+- **Routes:** `backend/src/routes/checkout.routes.js` (`POST /api/checkout`) + `backend/src/routes/stripe.routes.js` (`POST /api/stripe/webhook`), both mounted in `app.js`.
+- **Checkout route:** `POST /api/checkout` (public, `publicWriteLimiter`) validates cart items against the live `products` collection (server-side prices + stock checks, never trust browser), creates a Stripe Checkout Session in hosted mode (`mode: payment`, `shipping_address_collection` for 33 countries, locale-aware success/cancel URLs, `customer_email` pre-filled for logged-in users), carries cart payload + userId in session metadata, returns the session URL for redirect. Flat shipping fee via `SHIPPING_COST_EUR` env var (cents, default 0 = free shipping placeholder). `automatic_tax` disabled until the client adds Spanish tax registration to Stripe (commented in code).
+- **Webhook route:** `POST /api/stripe/webhook` (raw body via `express.raw`, signature-verified with `STRIPE_WEBHOOK_SECRET`) handles `checkout.session.completed` → reconstructs order payload from session metadata (server-side price lookup again, not from Stripe) → calls `orders.service.createOrder()` (stock consumption + confirmation mail fire automatically). Out-of-stock race: logs it + returns 200 (so Stripe doesn't retry) — manual refund via Stripe dashboard (TODO: auto-refund + apology mail). Orders are ONLY created here, never from the success redirect (Stripe retries on non-2xx; the redirect can be refreshed).
+- **Body-parsing exclusion:** `app.js` now excludes both `/api/admin/upload` and `/api/stripe/webhook` from `express.json()` (Stripe signature verification requires the exact raw bytes).
+- **Order model:** added `stripeSessionId: String` field to `backend/src/models/order.model.js` (stored for reference / potential refund lookups).
+- **Env validation:** `backend/src/config/env.config.js` warns (not errors) when `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` are unset in production, so the API boots cleanly but checkout returns 503 until keys are added.
+- **DEPLOY.md:** added `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SHIPPING_COST_EUR` to the backend env table with usage notes.
+
+**Frontend:**
+- **API client:** `src/lib/api.ts` gains `startCheckout(items, locale)` → `POST /api/checkout` → returns `{ url }`.
+- **CartPage:** `src/components/pages/CartPage.tsx` button now wired — calls `startCheckout()` → `window.location.href = url` (redirect to Stripe hosted checkout). Button shows loading state during the API call; error state if the call fails. Removed the "coming soon" disabled state.
+- **Success page:** `src/app/[locale]/shop/checkout/success/page.tsx` + `src/components/CheckoutSuccess/CheckoutSuccessSection.tsx` — light Shop theme, checkmark icon, confirmation message, displays session_id from query param, clears the cart on mount (payment succeeded), links to /account (view orders) + /products (continue shopping).
+- **Cancel page:** `src/app/[locale]/shop/checkout/cancel/page.tsx` + `src/components/CheckoutCancel/CheckoutCancelSection.tsx` — light Shop theme, × icon, cart preserved (user can retry), links to /cart + /products.
+- **Shared CSS:** `src/components/CheckoutSuccess/checkout-result.css` (used by both success/cancel) — centered card layout, icon styles, button styles.
+- **i18n:** added `cart.checkout_loading`, `cart.checkout_error`, `checkout_success.*` (title, message, session, view_orders, continue_shopping), `checkout_cancel.*` (title, message, return_to_cart, continue_shopping), and `meta.checkout_success_*` + `meta.checkout_cancel_*` keys to all 5 locale files (en, es, ca, it, el).
+
+**Verified:**
+- `tsc --noEmit` clean (0 errors).
+- Backend test suite: 87/87 green (no regressions; Stripe routes themselves have no tests yet — webhook should be tested with Stripe CLI `stripe trigger checkout.session.completed`).
+- Frontend builds cleanly.
+
+**What remains (blocked on client):**
+1. Client provides `STRIPE_SECRET_KEY` (sk_live_... or sk_test_...) + `STRIPE_WEBHOOK_SECRET` (whsec_...).
+2. Set both in Railway backend env vars.
+3. Add webhook endpoint in Stripe dashboard: `https://nostrum-production.up.railway.app/api/stripe/webhook`, listen for `checkout.session.completed`.
+4. Confirm shipping cost in EUR cents (set `SHIPPING_COST_EUR` in Railway, or leave at 0 for free shipping).
+5. Redeploy Railway backend (env var changes require restart).
+6. Checkout goes live immediately — no code changes, no frontend redeploy needed.
+
+**Guest checkout works:** Stripe collects the email; logged-in users get theirs pre-filled via `customer_email`. Order webhook writes `userId: null` for guests; they retrieve orders via `/api/orders/lookup` (number + email pair, already built in 2.5).
+
 ---
 
 - **Redis for rate limiting — DONE (env-gated):** set `REDIS_URL` and all limiter tiers share buckets via rate-limit-redis (`backend/src/db/redis.js`); unset = in-memory as before.
@@ -254,6 +285,8 @@ The following are already using env vars or the real brand email — no code edi
 ---
 
 ## Decision log (client + project decisions, newest first)
+
+- **2026-08-17** · Stripe checkout integration built (2.13). **Client confirmed Stripe as the payment gateway** — courier services decision still pending, so shipping is a flat `SHIPPING_COST_EUR` env var (default 0 = free shipping placeholder). **Built end-to-end:** `npm install stripe` in backend; `POST /api/checkout` (public, rate-limited) validates cart server-side against live product prices/stock, creates a Stripe Checkout Session in hosted mode, returns the redirect URL; `POST /api/stripe/webhook` (raw-body, signature-verified, mounted BEFORE express.json) handles `checkout.session.completed` → builds order payload from session metadata → calls `orders.service.createOrder()` (stock consumption + confirmation mail fire automatically); CartPage button wired to call `/api/checkout` → `window.location = session.url`; `/[locale]/shop/checkout/success` + `/cancel` pages built (5 locales, light Shop theme, success clears the cart); `checkout_*` i18n keys added to all 5 locales; `stripeSessionId` field added to Order model; `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + `SHIPPING_COST_EUR` documented in `env.config.js` (warnings, not errors, so the API boots without keys) and `DEPLOY.md`. **Orders are ONLY created in the webhook, never from the success redirect** (Stripe retries the webhook on non-2xx; the redirect can be refreshed). **Guest checkout works** (Stripe collects the email; logged-in users get theirs pre-filled). **Out-of-stock race handled:** webhook logs it + returns 200 (so Stripe doesn't retry), manual refund via Stripe dashboard (TODO: auto-refund + apology mail). **Automatic tax disabled** until the client adds their Spanish tax registration to Stripe (`automatic_tax` commented out in session params). **Verified:** 87/87 backend tests green, `tsc --noEmit` clean, frontend builds. **What remains:** client must provide the Stripe keys + webhook secret, set them in Railway, add the webhook endpoint in Stripe dashboard (`https://nostrum-production.up.railway.app/api/stripe/webhook` listening for `checkout.session.completed`), and confirm shipping cost — then checkout goes live immediately with zero code changes.
 
 - **2026-08-17** · Product detail page image gaps fixed + Journal museum section relocated (2.12). **Product images now fill containers properly** via CSS changes to `src/components/pages/product.css`: added `object-fit: cover` and `transform: scale(1.15)` to `.pdp__media-photo img` to eliminate white gaps around bottle images. **"A house you can walk through" museum section removed from Journal page** per client request — the `/journal` page now shows only "Written along the way" (blog posts section). **OriginMuseum component created** at `src/components/OriginMuseum/` with adapted styling for potential use on `/origins` page, but **currently commented out** to avoid making the origins page too lengthy — can be uncommented later if needed. Museum section animations (GSAP scroll triggers for rooms and exhibits) preserved in the new component. **Decorative olive branch SVGs confirmed present** on both home and journal pages (already implemented, no changes needed).
 

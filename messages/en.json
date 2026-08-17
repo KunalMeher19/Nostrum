@@ -56,10 +56,25 @@
     "subtotal": "Subtotal",
     "shipping_note": "Shipping calculated at checkout.",
     "checkout": "Proceed to checkout",
+    "checkout_loading": "Loading...",
+    "checkout_error": "Could not start checkout. Please try again.",
     "checkout_soon": "Payments open soon",
     "view_cart": "View full cart",
     "continue": "Continue shopping",
     "add_more": "Add more from the Shop"
+  },
+  "checkout_success": {
+    "title": "Payment confirmed",
+    "message": "Your order has been received. You will receive a confirmation email shortly with your order number and tracking details.",
+    "session": "Reference",
+    "view_orders": "View your orders",
+    "continue_shopping": "Continue shopping"
+  },
+  "checkout_cancel": {
+    "title": "Checkout cancelled",
+    "message": "Your payment was not processed. Your cart has been saved and you can return to checkout whenever you are ready.",
+    "return_to_cart": "Return to cart",
+    "continue_shopping": "Continue shopping"
   },
   "footer": {
     "tagline": "From the land. For the table.",
@@ -241,7 +256,11 @@
     "unsubscribe_title": "Unsubscribe · Nostrum",
     "unsubscribe_description": "Leave the Nostrum Journal.",
     "track_title": "Track your order · Nostrum",
-    "track_description": "Follow your Nostrum order with your order number and email."
+    "track_description": "Follow your Nostrum order with your order number and email.",
+    "checkout_success_title": "Payment confirmed · Nostrum",
+    "checkout_success_description": "Your order has been confirmed.",
+    "checkout_cancel_title": "Checkout cancelled · Nostrum",
+    "checkout_cancel_description": "Return to your cart to complete checkout."
   },
   "account": {
     "eyebrow": "Account",

@@ -281,3 +281,20 @@ export function unsubscribeNewsletter(token: string) {
     body: JSON.stringify({ token }),
   });
 }
+
+/* ── Stripe checkout ──────────────────────────────────────────────── */
+
+export type CheckoutItem = {
+  slug: string;
+  sizeId: string;
+  qty: number;
+};
+
+/** POST /api/checkout — validate cart server-side, create a Stripe
+ *  Checkout Session, and return the hosted checkout URL. */
+export function startCheckout(items: CheckoutItem[], locale: string) {
+  return api<{ url: string }>("/api/checkout", {
+    method: "POST",
+    body: JSON.stringify({ items, locale }),
+  });
+}

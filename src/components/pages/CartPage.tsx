@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./cart.css";
 import { useCart } from "@/components/Cart/CartContext";
 import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
-import { CURTAIN_REVEAL_EVENT } from "@/components/RouteCurtain/curtainNav";
+import { startCheckout } from "@/lib/api";
+import {
+  CURTAIN_REVEAL_EVENT,
+} from "@/components/RouteCurtain/curtainNav";
 import {
   COLLECTION_TILES,
   formatEuro,
@@ -20,17 +23,35 @@ import {
 /* ------------------------------------------------------------------ */
 /* Cart — LIGHT/white (§7 flow: product → cart → checkout), LV-clean.   */
 /* Editorial head, ledger of line items LEFT, order summary panel       */
-/* RIGHT (sticky on desktop). Checkout stays quietly disabled until     */
-/* payments land (§1.1). The empty cart is an invitation, not a dead    */
-/* end: editorial line + Shop CTA + the collection trio as suggestion   */
-/* cards. Entrance follows the listing page's pattern — timed to the    */
-/* curtain reveal on client navs, immediate-ish on hard loads.          */
+/* RIGHT (sticky on desktop). Checkout calls /api/checkout → Stripe    */
+/* hosted UI. The empty cart is an invitation, not a dead end.          */
 /* ------------------------------------------------------------------ */
 
 export default function CartPage() {
   const { items, count, subtotal, setQty, removeItem } = useCart();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const rootRef = useRef<HTMLElement>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  async function handleCheckout() {
+    if (checkoutLoading || items.length === 0) return;
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      const payload = items.map((it) => ({
+        slug: it.slug,
+        sizeId: it.sizeId,
+        qty: it.qty,
+      }));
+      const { url } = await startCheckout(payload, locale);
+      // Redirect to Stripe's hosted checkout page.
+      window.location.href = url;
+    } catch {
+      setCheckoutError(t("cart.checkout_error"));
+      setCheckoutLoading(false);
+    }
+  }
 
   /* ---- Light theme: pin the shop inversion + ink nav on this route --- */
   useEffect(() => {
@@ -217,9 +238,16 @@ export default function CartPage() {
                 <p className="cart__summary-eyebrow">{t("cart.subtotal")}</p>
                 <p className="cart__summary-total">{formatEuro(subtotal)}</p>
                 <p className="cart__note">{t("cart.shipping_note")}</p>
-                <button type="button" className="cart__checkout" disabled>
-                  {t("cart.checkout")}
-                  <span>{t("cart.checkout_soon")}</span>
+                {checkoutError && (
+                  <p className="cart__error">{checkoutError}</p>
+                )}
+                <button
+                  type="button"
+                  className="cart__checkout"
+                  onClick={handleCheckout}
+                  disabled={checkoutLoading}
+                >
+                  {checkoutLoading ? t("cart.checkout_loading") : t("cart.checkout")}
                 </button>
                 <LocaleLink href="/products" className="cart__shop-more">
                   {t("cart.add_more")}

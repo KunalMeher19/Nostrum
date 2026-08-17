@@ -56,10 +56,25 @@
     "subtotal": "Subtotal",
     "shipping_note": "Enviament calculat en finalitzar la compra.",
     "checkout": "Tramitar la comanda",
+    "checkout_loading": "Carregant...",
+    "checkout_error": "No s'ha pogut iniciar el pagament. Si us plau, torna-ho a provar.",
     "checkout_soon": "Pagaments disponibles ben aviat",
     "view_cart": "Veure la cistella completa",
     "continue": "Continua comprant",
     "add_more": "Afegeix més de la botiga"
+  },
+  "checkout_success": {
+    "title": "Pagament confirmat",
+    "message": "La teva comanda ha estat rebuda. Rebràs un correu de confirmació amb el teu número de comanda i detalls de seguiment.",
+    "session": "Referència",
+    "view_orders": "Veure les teves comandes",
+    "continue_shopping": "Continua comprant"
+  },
+  "checkout_cancel": {
+    "title": "Pagament cancel·lat",
+    "message": "El teu pagament no s'ha processat. La teva cistella s'ha desat i pots tornar a tramitar-la quan estiguis preparat.",
+    "return_to_cart": "Tornar a la cistella",
+    "continue_shopping": "Continua comprant"
   },
   "footer": {
     "tagline": "De la terra. Per a la taula.",
@@ -241,7 +256,11 @@
     "unsubscribe_title": "Donar-se de baixa · Nostrum",
     "unsubscribe_description": "Deixa el Diari Nostrum.",
     "track_title": "Segueix la teva comanda · Nostrum",
-    "track_description": "Segueix la teva comanda Nostrum amb el número de comanda i el correu."
+    "track_description": "Segueix la teva comanda Nostrum amb el número de comanda i el correu.",
+    "checkout_success_title": "Pagament confirmat · Nostrum",
+    "checkout_success_description": "La teva comanda ha estat confirmada.",
+    "checkout_cancel_title": "Pagament cancel·lat · Nostrum",
+    "checkout_cancel_description": "Torna a la teva cistella per completar el pagament."
   },
   "account": {
     "eyebrow": "Compte",

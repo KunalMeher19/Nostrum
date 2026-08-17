@@ -18,6 +18,8 @@ const contentRoutes = require('./routes/content.routes');
 const contactRoutes = require('./routes/contact.routes');
 const newsletterRoutes = require('./routes/newsletter.routes');
 const productsRoutes = require('./routes/products.routes');
+const checkoutRoutes = require('./routes/checkout.routes');
+const stripeRoutes = require('./routes/stripe.routes');
 
 const app = express();
 
@@ -70,15 +72,20 @@ app.use((req, res, next) => {
   res.status(403).json({ error: 'origin_not_allowed' });
 });
 
-// Body parsing: JSON for all routes except /api/admin/upload which reads
-// the raw multipart stream itself. Applying express.json to that route
-// would consume the stream before the handler sees it.
+// Body parsing: JSON for all routes except:
+//   /api/admin/upload — reads the raw multipart stream itself
+//   /api/stripe/webhook — Stripe signature verification requires the exact
+//       raw bytes; express.raw() is applied inside stripe.routes.js instead.
+// Applying express.json to either would consume the stream before the
+// handler sees it.
 app.use((req, res, next) => {
   if (req.path === '/api/admin/upload') return next();
+  if (req.path === '/api/stripe/webhook') return next();
   express.json({ limit: '200kb' })(req, res, next);
 });
 app.use((req, res, next) => {
   if (req.path === '/api/admin/upload') return next();
+  if (req.path === '/api/stripe/webhook') return next();
   sanitizeBody(req, res, next);
 });
 
@@ -101,6 +108,10 @@ app.use('/api/content', contentRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/checkout', checkoutRoutes);
+// Stripe webhook — mounted at /api/stripe so the raw-body middleware
+// inside stripe.routes.js matches /api/stripe/webhook exactly.
+app.use('/api/stripe', stripeRoutes);
 
 // 404 handler
 app.use((req, res) => {

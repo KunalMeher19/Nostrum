@@ -33,6 +33,18 @@ function assertBootEnv({ env = process.env } = {}) {
         'TRUST_PROXY is not set; if the API sits behind a reverse proxy, rate limits will key on the proxy IP.'
       );
     }
+    // Stripe: warn (not fatal) so the API boots without payment keys but
+    // checkout calls will return 503 until the keys are set.
+    if (!env.STRIPE_SECRET_KEY) {
+      warnings.push(
+        'STRIPE_SECRET_KEY is not set; POST /api/checkout will return 503 until it is.'
+      );
+    }
+    if (!env.STRIPE_WEBHOOK_SECRET) {
+      warnings.push(
+        'STRIPE_WEBHOOK_SECRET is not set; POST /api/stripe/webhook will reject all events.'
+      );
+    }
   }
 
   for (const w of warnings) console.warn(`[env] WARNING: ${w}`);

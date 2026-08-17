@@ -56,10 +56,25 @@
     "subtotal": "Subtotal",
     "shipping_note": "Envío calculado al finalizar la compra.",
     "checkout": "Tramitar el pedido",
+    "checkout_loading": "Cargando...",
+    "checkout_error": "No se pudo iniciar el pago. Por favor, inténtalo de nuevo.",
     "checkout_soon": "Pagos disponibles muy pronto",
     "view_cart": "Ver la cesta completa",
     "continue": "Seguir comprando",
     "add_more": "Añadir más de la tienda"
+  },
+  "checkout_success": {
+    "title": "Pago confirmado",
+    "message": "Tu pedido ha sido recibido. Recibirás un email de confirmación con tu número de pedido y detalles de seguimiento.",
+    "session": "Referencia",
+    "view_orders": "Ver tus pedidos",
+    "continue_shopping": "Seguir comprando"
+  },
+  "checkout_cancel": {
+    "title": "Pago cancelado",
+    "message": "Tu pago no se ha procesado. Tu cesta se ha guardado y puedes volver a tramitarla cuando estés listo.",
+    "return_to_cart": "Volver a la cesta",
+    "continue_shopping": "Seguir comprando"
   },
   "footer": {
     "tagline": "De la tierra. Para la mesa.",
@@ -241,7 +256,11 @@
     "unsubscribe_title": "Darse de baja · Nostrum",
     "unsubscribe_description": "Deja el Diario Nostrum.",
     "track_title": "Sigue tu pedido · Nostrum",
-    "track_description": "Sigue tu pedido Nostrum con tu número de pedido y tu email."
+    "track_description": "Sigue tu pedido Nostrum con tu número de pedido y tu email.",
+    "checkout_success_title": "Pago confirmado · Nostrum",
+    "checkout_success_description": "Tu pedido ha sido confirmado.",
+    "checkout_cancel_title": "Pago cancelado · Nostrum",
+    "checkout_cancel_description": "Vuelve a tu cesta para completar el pago."
   },
   "account": {
     "eyebrow": "Cuenta",

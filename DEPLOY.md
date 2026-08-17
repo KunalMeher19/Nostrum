@@ -37,6 +37,9 @@ Two apps deploy together:
 | `SHUTDOWN_GRACE_MS` | optional | Drain window for graceful shutdown (default 10000). In-flight requests get this long on SIGTERM before a hard exit. |
 | `REDIS_URL` | when scaling | Optional. Set to move rate-limit buckets to Redis so multiple API instances share budgets. Unset = in-memory (fine for one instance). |
 | `RATE_*` | optional | Tune limiter tiers without a deploy; see `backend/src/config/rate-limit.config.js` (global/write/heavy/anon/publicWrite). |
+| `STRIPE_SECRET_KEY` | yes (checkout) | Stripe secret key (`sk_live_…` or `sk_test_…`). Without it, `POST /api/checkout` returns 503. |
+| `STRIPE_WEBHOOK_SECRET` | yes (checkout) | Signing secret from the Stripe webhook endpoint (`whsec_…`). Required to verify `checkout.session.completed` events. |
+| `SHIPPING_COST_EUR` | optional | Flat shipping fee in EUR cents added to every order. Defaults to 0 until the client confirms rates. E.g. `490` = €4.90. |
 
 ## Launch checklist
 

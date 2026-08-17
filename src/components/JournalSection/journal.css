@@ -92,7 +92,7 @@
   top: 50%;
   transform: translateY(-52%);
   width: clamp(170px, 22vw, 320px);
-  height: auto;
+  height: auto; 
   pointer-events: none;
   stroke: color-mix(in srgb, var(--nostrum-gold, #e6b422) 55%, transparent);
   stroke-width: 1.4;
