@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import JournalAdmin from "./JournalAdmin";
@@ -341,6 +341,7 @@ function CustomersView() {
   const { t, locale } = useLocale();
   const [customers, setCustomers] = useState<AdminCustomer[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
     api<{ customers: AdminCustomer[] }>("/api/admin/customers")
@@ -385,7 +386,7 @@ function CustomersView() {
 
       {customers && (
         <div className="ad__table-wrap">
-          <table className="ad__table">
+          <table className="ad__table ad__table--clickable">
             <thead>
               <tr>
                 <th>{t("account.field_name")}</th>
@@ -399,25 +400,123 @@ function CustomersView() {
             </thead>
             <tbody>
               {customers.map((c) => (
-                <tr key={c.id}>
-                  <td>
-                    {c.name || "·"}
-                    {c.role === "admin" ? (
-                      <span className="ad__role-tag">{t("account.role_admin")}</span>
-                    ) : null}
-                  </td>
-                  <td>{c.email}</td>
-                  <td>{dateFmt(c.gdprConsentAt)}</td>
-                  <td>{c.marketingConsentAt ? "✓" : "·"}</td>
-                  <td>{dateFmt(c.createdAt)}</td>
-                  <td className="is--num">{c.orderCount}</td>
-                  <td className="is--num">{euro(c.orderTotal)}</td>
-                </tr>
+                <React.Fragment key={c.id}>
+                  <tr
+                    className={`ad__cust-row${open === c.id ? " is--open" : ""}`}
+                    onClick={() => setOpen((cur) => (cur === c.id ? null : c.id))}
+                    aria-expanded={open === c.id}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setOpen((cur) => (cur === c.id ? null : c.id));
+                      }
+                    }}
+                  >
+                    <td>
+                      {c.name || "·"}
+                      {c.role === "admin" ? (
+                        <span className="ad__role-tag">{t("account.role_admin")}</span>
+                      ) : null}
+                    </td>
+                    <td>{c.email}</td>
+                    <td>{dateFmt(c.gdprConsentAt)}</td>
+                    <td>{c.marketingConsentAt ? "✓" : "·"}</td>
+                    <td>{dateFmt(c.createdAt)}</td>
+                    <td className="is--num">{c.orderCount}</td>
+                    <td className="is--num">{euro(c.orderTotal)}</td>
+                  </tr>
+                  {open === c.id && (
+                    <tr key={`${c.id}-detail`} className="ad__cust-detail-row">
+                      <td colSpan={7}>
+                        <CustomerDetailPanel customer={c} dateFmt={dateFmt} />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+function CustomerDetailPanel({
+  customer: c,
+  dateFmt,
+}: {
+  customer: AdminCustomer;
+  dateFmt: (iso: string | null) => string;
+}) {
+  const { t } = useLocale();
+  const s = c.shipping;
+  const hasAddress = s && (s.line1 || s.city || s.country);
+
+  const addrParts = hasAddress
+    ? [
+        s.fullName || c.name,
+        s.line1,
+        s.line2,
+        [s.postalCode, s.city].filter(Boolean).join(" "),
+        [s.region, s.country].filter(Boolean).join(", "),
+      ].filter(Boolean)
+    : [];
+
+  return (
+    <div className="ad__cust-detail">
+      <div className="ad__detail-cols">
+        {/* Account column */}
+        <div>
+          <h3 className="ad__mini-title">{t("admin.cust_account")}</h3>
+          <dl className="ad__cust-dl">
+            <dt>{t("account.field_name")}</dt>
+            <dd>{c.name || "·"}</dd>
+            <dt>{t("account.field_email")}</dt>
+            <dd>{c.email}</dd>
+            {s?.phone && (
+              <>
+                <dt>{t("admin.cust_phone")}</dt>
+                <dd>{s.phone}</dd>
+              </>
+            )}
+            <dt>{t("admin.cust_locale")}</dt>
+            <dd>{c.locale || "·"}</dd>
+            <dt>{t("admin.col_consent")}</dt>
+            <dd>{dateFmt(c.gdprConsentAt)}</dd>
+            <dt>{t("admin.col_marketing")}</dt>
+            <dd>{c.marketingConsentAt ? `✓ ${dateFmt(c.marketingConsentAt)}` : "·"}</dd>
+            <dt>{t("admin.col_joined")}</dt>
+            <dd>{dateFmt(c.createdAt)}</dd>
+          </dl>
+        </div>
+
+        {/* Address + orders column */}
+        <div>
+          <h3 className="ad__mini-title">{t("admin.cust_address")}</h3>
+          {hasAddress ? (
+            <address className="ad__addr">
+              {addrParts.map((line, i) => (
+                <span key={i}>{line}</span>
+              ))}
+            </address>
+          ) : (
+            <p className="ad__quiet">{t("admin.cust_no_address")}</p>
+          )}
+
+          <h3 className="ad__mini-title" style={{ marginTop: "1.5rem" }}>
+            {t("admin.col_orders")}
+          </h3>
+          <dl className="ad__cust-dl">
+            <dt>{t("admin.col_orders")}</dt>
+            <dd>{c.orderCount}</dd>
+            <dt>{t("admin.col_total")}</dt>
+            <dd>{euro(c.orderTotal)}</dd>
+          </dl>
+        </div>
+      </div>
     </div>
   );
 }

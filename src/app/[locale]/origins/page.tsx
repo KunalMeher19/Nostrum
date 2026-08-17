@@ -49,7 +49,7 @@ export default async function OriginsPage({ params }: Props) {
   >("/api/content/process-images", { key: "process-images", value: null });
 
   const { exhibits } = await fetchJson<{ exhibits: MuseumExhibit[] }>(
-    "/api/journal/museum",
+    "/api/proxy/journal/museum",
     { exhibits: [] }
   );
 

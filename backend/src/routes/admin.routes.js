@@ -102,6 +102,7 @@ async function customerRows() {
   const byUser = new Map(counts.map((c) => [String(c._id), c]));
   return users.map((u) => {
     const c = byUser.get(String(u._id));
+    const s = u.shipping || {};
     return {
       id: String(u._id),
       name: u.name ?? '',
@@ -113,6 +114,17 @@ async function customerRows() {
       createdAt: u.createdAt ?? null,
       orderCount: c ? c.count : 0,
       orderTotal: c ? Math.round(c.total * 100) / 100 : 0,
+      // Shipping / contact details registered by the customer
+      shipping: {
+        fullName: s.fullName ?? '',
+        line1: s.line1 ?? '',
+        line2: s.line2 ?? '',
+        city: s.city ?? '',
+        region: s.region ?? '',
+        postalCode: s.postalCode ?? '',
+        country: s.country ?? '',
+        phone: s.phone ?? '',
+      },
     };
   });
 }
@@ -133,18 +145,29 @@ router.get('/customers.csv', async (req, res, next) => {
       const s = v == null ? '' : String(v);
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
-    const header = 'name,email,consent_date,signup_date,locale,order_count,order_total_eur';
-    const lines = rows.map((r) =>
-      [
+    const header =
+      'name,email,phone,address_line1,address_line2,city,region,postal_code,country,' +
+      'consent_date,marketing_consent,signup_date,locale,order_count,order_total_eur';
+    const lines = rows.map((r) => {
+      const s = r.shipping || {};
+      return [
         esc(r.name),
         esc(r.email),
+        esc(s.phone),
+        esc(s.line1),
+        esc(s.line2),
+        esc(s.city),
+        esc(s.region),
+        esc(s.postalCode),
+        esc(s.country),
         esc(r.gdprConsentAt ? new Date(r.gdprConsentAt).toISOString().slice(0, 10) : ''),
+        r.marketingConsentAt ? 'yes' : '',
         esc(r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : ''),
         esc(r.locale),
         r.orderCount,
         r.orderTotal.toFixed(2),
-      ].join(',')
-    );
+      ].join(',');
+    });
     const csv = [header, ...lines].join('\r\n');
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader(

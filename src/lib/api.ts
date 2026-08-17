@@ -142,6 +142,16 @@ export type AdminCustomer = {
   createdAt: string | null;
   orderCount: number;
   orderTotal: number;
+  shipping: {
+    fullName: string;
+    line1: string;
+    line2: string;
+    city: string;
+    region: string;
+    postalCode: string;
+    country: string;
+    phone: string;
+  };
 };
 
 export type AdminProduct = {

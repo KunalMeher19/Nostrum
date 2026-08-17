@@ -221,23 +221,6 @@ export default function JournalSection({
             <span className="jr__hint-line" />
             {t("journal.scroll_hint")}
           </p>
-          {/* <p className="jr__hero-index">
-            {rooms.length > 0 && (
-              <span>
-                {["I", "II", "III", "IV"][rooms.length - 1]}{" "}
-                {t("journal.hero_rooms")}
-              </span>
-            )}
-            {rooms.length > 0 && posts.length > 0 && (
-              <span className="jr__hero-index-dot" aria-hidden="true" />
-            )}
-            {posts.length > 0 && (
-              <span>
-                {String(posts.length).padStart(2, "0")}{" "}
-                {t("journal.hero_notes")}
-              </span>
-            )}
-          </p> */}
         </div>
       </header>
 

@@ -1107,3 +1107,72 @@
   font-size: 1.1rem;
   background: var(--ad-panel-a);
 }
+
+/* ── Customer row expand / detail ─────────────────────────────────── */
+
+/* Clickable table row */
+.ad__table--clickable tbody tr.ad__cust-row {
+  cursor: pointer;
+  transition: background-color 0.35s ease;
+}
+
+.ad__table--clickable tbody tr.ad__cust-row:hover,
+.ad__table--clickable tbody tr.ad__cust-row:focus-visible {
+  background: color-mix(in srgb, var(--ad-fg) 3%, transparent);
+  outline: none;
+}
+
+.ad__table--clickable tbody tr.ad__cust-row.is--open td {
+  border-bottom: none;
+  color: #faf8f2;
+}
+
+/* Detail row — no hover, spans all columns */
+.ad__cust-detail-row td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--ad-hair) !important;
+}
+
+.ad__cust-detail {
+  padding: 1.4rem 0.2rem 1.8rem;
+  animation: ad-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Definition list used inside the detail panel */
+.ad__cust-dl {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0.45rem 1rem;
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.ad__cust-dl dt {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ad-muted);
+  padding-top: 0.1em;
+}
+
+.ad__cust-dl dd {
+  margin: 0;
+  color: var(--ad-fg);
+}
+
+/* Address block inside the detail */
+.ad__addr {
+  font-style: normal;
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: var(--ad-fg);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .ad__cust-dl {
+    grid-template-columns: 7rem 1fr;
+  }
+}
