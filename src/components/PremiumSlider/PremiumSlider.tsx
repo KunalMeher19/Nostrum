@@ -355,10 +355,57 @@ export default function PremiumSlider({ items }: PremiumSliderProps) {
         return useNextForActive ? (i - 1 + slides.length) % slides.length : i;
       }
 
+      // Prevent click during drag
+      let isDragging = false;
+      let dragStartX = 0;
+
       slides.forEach((slide, i) => {
-        slide.addEventListener("click", () => {
-          if (slide.classList.contains("active")) return;
-          loop.toIndex(mapClickIndex(i), { ease: "power3", duration: 0.725 });
+        const slideLink = slide.querySelector<HTMLAnchorElement>('.slide__link');
+
+        slide.addEventListener("mousedown", (e) => {
+          isDragging = false;
+          dragStartX = e.clientX;
+        });
+
+        slide.addEventListener("mousemove", (e) => {
+          if (Math.abs(e.clientX - dragStartX) > 5) {
+            isDragging = true;
+          }
+        });
+
+        slide.addEventListener("click", (e) => {
+          if (isDragging) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (slideLink) slideLink.style.pointerEvents = 'none';
+            return;
+          }
+
+          if (slide.classList.contains("active")) {
+            // Allow navigation on active slide
+            if (slideLink) slideLink.style.pointerEvents = 'auto';
+          } else {
+            // Navigate to this slide
+            e.preventDefault();
+            loop.toIndex(mapClickIndex(i), { ease: "power3", duration: 0.725 });
+          }
+        });
+
+        slide.addEventListener("touchstart", () => {
+          isDragging = false;
+        });
+
+        slide.addEventListener("touchmove", () => {
+          isDragging = true;
+        });
+
+        slide.addEventListener("touchend", () => {
+          if (isDragging && slideLink) {
+            slideLink.style.pointerEvents = 'none';
+            setTimeout(() => {
+              if (slideLink) slideLink.style.pointerEvents = 'auto';
+            }, 300);
+          }
         });
       });
 
@@ -383,6 +430,18 @@ export default function PremiumSlider({ items }: PremiumSliderProps) {
 
   return (
     <div ref={wrapperRef} className="slider__section">
+      <a href="/products" className="slider__view-all-top">
+        View All Products
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+          <path
+            d="M4 12h15M13 6l6 6-6 6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </a>
       <div className="slider__overlay">
         <div className="slider__overlay-inner">
           <div className="slider__overlay-count">

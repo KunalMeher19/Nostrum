@@ -97,6 +97,12 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  pointer-events: none; /* Disable link by default */
+}
+
+/* Enable link only on active slide */
+.slider__slide.active .slide__link {
+  pointer-events: auto;
 }
 
 .slide__caption {
@@ -291,6 +297,45 @@
   grid-column-gap: 2em;
   grid-row-gap: 2em;
   display: flex;
+}
+
+/* View All Products link - Top right position */
+.slider__view-all-top {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: color-mix(
+    in srgb,
+    var(--shop-dark-fg),
+    var(--shop-light-fg) calc(var(--page-t, 0) * 100%)
+  );
+  text-decoration: none;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 0.25rem;
+  transition: opacity 0.3s ease;
+}
+
+.slider__view-all-top:hover {
+  opacity: 0.7;
+}
+
+.slider__view-all-top svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 479px) {
+  .slider__view-all-top {
+    top: 1rem;
+    right: 1rem;
+    font-size: 0.7rem;
+  }
 }
 
 .slider__btn {

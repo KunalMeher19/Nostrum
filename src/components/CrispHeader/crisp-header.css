@@ -692,35 +692,25 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
     /* Lift the title above dead-centre so the lower-right cluster (rail +
        CTA) has uninterrupted room; keeps the composition breathing on
        short viewports. */
-    top: 30%;
+    top: 50%;
     transform: translateY(-50%);
     padding: 1.25em;
-  }
-
-  /* Scale down hero title for mobile readability */
-  .crisp-header__h1 {
-    font-size: calc((3vw + 3dvh) * var(--hero-scale, 1));
-    text-align: center;
-    line-height: 1.1;
-  }
-
-  /* Adjust eyebrow text */
-  .crisp-header__eyebrow {
-    font-size: 0.65rem;
-    letter-spacing: 0.28em;
   }
 
   .crisp-header__h1 {
     /* Cap the fluid size so the headline reads as a tidy two lines instead
        of a wrapping block that reaches the rail; --hero-scale keeps longer
        locales inside the frame here too. */
-    font-size: calc(clamp(2rem, 9.5vw, 2.6rem) * var(--hero-scale, 1));
+    font-size: calc(clamp(1.8rem, 8vw, 2.4rem) * var(--hero-scale, 1));
+    text-align: center;
+    line-height: 1.15;
   }
 
   .crisp-header__p {
     font-size: calc(0.7em * var(--hero-scale, 1));
     letter-spacing: 0.3em;
     margin-top: 0.9em;
+    text-align: center;
   }
 
   /* Rail → horizontal row, pinned to the bottom-right just over the CTA. */
