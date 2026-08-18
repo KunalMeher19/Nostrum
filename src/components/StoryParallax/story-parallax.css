@@ -144,6 +144,15 @@
   margin: 0;
 }
 
+/* Tablet breakpoint: adjust title size to prevent awkward wrapping */
+@media (min-width: 600px) and (max-width: 1024px) {
+  .story-parallax__title {
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+}
+
 /* Soft bottom fade so the base plane melts into the Story section seam
    rather than showing a hard edge on release. */
 .story-parallax__fade {

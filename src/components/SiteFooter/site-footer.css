@@ -287,3 +287,33 @@
 .nf__gdpr a:hover {
   color: var(--_fg);
 }
+
+/* ── Mobile touch targets ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Ensure all footer links meet 44x44px minimum touch target */
+  .nf__nav a,
+  .nf__social a,
+  .nf__gdpr a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .nf__nav li,
+  .nf__gdpr li {
+    margin-bottom: 0.25rem;
+  }
+
+  .nf__social a {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+
+  .nf__top-btn {
+    width: 3.5rem;
+    height: 3.5rem; /* Larger touch target */
+  }
+}

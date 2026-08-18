@@ -1,0 +1,52 @@
+
+Running 1 test using 1 worker
+
+
+🌐 Opening home page in mobile view (iPhone 13)...
+
+✅ Page loaded - waiting 3s for animations...
+
+📱 Scrolling to collection section...
+
+Layout Check:
+  Mobile Slider: ✅ Visible
+  Desktop Grid: ✅ Hidden
+
+🎯 Testing slider controls...
+  ✅ Next button clicked
+  ✅ Prev button clicked
+
+🔗 Testing /en/products...
+  ✅ No overflow
+
+🔗 Testing /en/origins...
+  ✅ No overflow
+
+🔗 Testing /en/journal...
+  ✅ No overflow
+
+🔗 Testing /en/contact...
+  ✅ No overflow
+
+✅ All pages tested successfully!
+
+Browser will stay open for manual inspection...
+Close the browser window when done.
+
+  ✘  1 [chromium] › tests\visual-inspection.spec.ts:5:5 › Visual mobile inspection with headed browser (5.0m)
+
+
+  1) [chromium] › tests\visual-inspection.spec.ts:5:5 › Visual mobile inspection with headed browser 
+
+    Test timeout of 300000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\visual-inspection-Visual-m-694c6-pection-with-headed-browser-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\visual-inspection-Visual-m-694c6-pection-with-headed-browser-chromium\error-context.md
+
+  Slow test file: [chromium] › tests\visual-inspection.spec.ts (5.0m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    [chromium] › tests\visual-inspection.spec.ts:5:5 › Visual mobile inspection with headed browser 

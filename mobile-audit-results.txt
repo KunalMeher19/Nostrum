@@ -1,0 +1,90 @@
+
+Running 9 tests using 1 worker
+
+[1/9] [chromium] › tests\mobile-browser-audit.spec.ts:10:7 › Mobile Browser Testing - Full Site Audit › Mobile - Home page slider functionality
+[chromium] › tests\mobile-browser-audit.spec.ts:10:7 › Mobile Browser Testing - Full Site Audit › Mobile - Home page slider functionality
+✅ Mobile slider working correctly
+
+[2/9] [chromium] › tests\mobile-browser-audit.spec.ts:51:7 › Mobile Browser Testing - Full Site Audit › Mobile - Test all major pages
+[chromium] › tests\mobile-browser-audit.spec.ts:51:7 › Mobile Browser Testing - Full Site Audit › Mobile - Test all major pages
+Testing Home...
+
+✅ Home: No horizontal overflow
+
+Testing Products...
+
+  1) [chromium] › tests\mobile-browser-audit.spec.ts:51:7 › Mobile Browser Testing - Full Site Audit › Mobile - Test all major pages 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.shop')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.shop')
+
+
+      70 |       // Check if main element exists
+      71 |       const mainElement = page.locator(pageInfo.checkFor);
+    > 72 |       await expect(mainElement).toBeVisible();
+         |                                 ^
+      73 |
+      74 |       // Check for layout issues
+      75 |       const bodyOverflow = await page.evaluate(() => {
+        at D:\UpWork\Nostrum\tests\mobile-browser-audit.spec.ts:72:33
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\mobile-browser-audit-Mobil-2eb0b-bile---Test-all-major-pages-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\mobile-browser-audit-Mobil-2eb0b-bile---Test-all-major-pages-chromium\error-context.md
+
+
+[3/9] [chromium] › tests\mobile-browser-audit.spec.ts:95:7 › Mobile Browser Testing - Full Site Audit › Mobile - Viewport height handling (address bar)
+[chromium] › tests\mobile-browser-audit.spec.ts:95:7 › Mobile Browser Testing - Full Site Audit › Mobile - Viewport height handling (address bar)
+✅ Slider height: 664px (viewport: 664px)
+
+[4/9] [chromium] › tests\mobile-browser-audit.spec.ts:129:7 › Mobile Browser Testing - Full Site Audit › Mobile - Touch interactions on slider
+[chromium] › tests\mobile-browser-audit.spec.ts:129:7 › Mobile Browser Testing - Full Site Audit › Mobile - Touch interactions on slider
+✅ Touch gesture completed
+
+[5/9] [chromium] › tests\mobile-browser-audit.spec.ts:175:7 › Mobile Browser Testing - Full Site Audit › Mobile - Navigation and footer
+[chromium] › tests\mobile-browser-audit.spec.ts:175:7 › Mobile Browser Testing - Full Site Audit › Mobile - Navigation and footer
+Navigation visible: false
+
+⚠️ Footer link too small: 153.578125x16px (min 44x44 recommended)
+
+[6/9] [chromium] › tests\mobile-browser-audit.spec.ts:212:7 › Mobile Browser Testing - Full Site Audit › Mobile - Performance metrics
+[chromium] › tests\mobile-browser-audit.spec.ts:212:7 › Mobile Browser Testing - Full Site Audit › Mobile - Performance metrics
+📊 Mobile page load time: 1387ms
+
+✅ No JavaScript errors
+
+📊 JS Heap Size: 14.50 MB
+
+[7/9] [chromium] › tests\mobile-browser-audit.spec.ts:250:7 › Mobile Browser Testing - Full Site Audit › Tablet - iPad layout check
+[chromium] › tests\mobile-browser-audit.spec.ts:250:7 › Mobile Browser Testing - Full Site Audit › Tablet - iPad layout check
+iPad - Grid visible: true, Slider visible: false
+
+✅ iPad shows grid layout correctly
+
+[8/9] [chromium] › tests\mobile-browser-audit.spec.ts:289:7 › Mobile Browser Testing - Full Site Audit › Mobile - Forms and inputs
+[chromium] › tests\mobile-browser-audit.spec.ts:289:7 › Mobile Browser Testing - Full Site Audit › Mobile - Forms and inputs
+Found 6 input fields
+
+⚠️ Input too small: 35.4375px height (min 44px recommended)
+
+✅ Keyboard input working
+
+[9/9] [chromium] › tests\mobile-browser-audit.spec.ts:328:7 › Mobile Browser Testing - Full Site Audit › Mobile - CSS animations and transitions
+[chromium] › tests\mobile-browser-audit.spec.ts:328:7 › Mobile Browser Testing - Full Site Audit › Mobile - CSS animations and transitions
+📊 Average FPS: 60.5
+
+✅ Smooth animations (≥55 FPS)
+
+  1 failed
+    [chromium] › tests\mobile-browser-audit.spec.ts:51:7 › Mobile Browser Testing - Full Site Audit › Mobile - Test all major pages 
+  8 passed (1.1m)

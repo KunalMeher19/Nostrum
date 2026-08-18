@@ -7,6 +7,7 @@ import { useCart } from "../Cart/CartContext";
 import { getCatalogEntry } from "@/lib/products";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import { LocaleLink } from "../LocaleContext/LocaleLink";
+import PremiumSlider from "../PremiumSlider/PremiumSlider";
 
 /* ------------------------------------------------------------------ */
 /* ProductsSection — the Shop, with a basicagency-style scroll invert.  */
@@ -58,7 +59,8 @@ export default function ProductsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const grainRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const [isMobile, setIsMobile] = useState(false);
 
   // Quick add-to-cart (§7) — each tile drops its pack (×1/×2/×3 of the 5L)
   // straight into the working cart; the button flashes "Added ✓".
@@ -152,6 +154,16 @@ export default function ProductsSection() {
     },
     []
   );
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -354,6 +366,21 @@ export default function ProductsSection() {
     };
   }, []);
 
+  // Prepare slider items for mobile
+  const sliderItems = tiles.map((product) => {
+    const name = product.live ? product.nameKey : t(product.nameKey);
+    const detail = product.live ? product.detailKey : t(product.detailKey);
+    return {
+      id: product.id,
+      image: product.image || "",
+      name,
+      detail,
+      price: product.price,
+      onAdd: () => quickAdd(product.id),
+      href: `/${locale}/product/${product.id}`,
+    };
+  });
+
   return (
     <section
       id="products"
@@ -364,77 +391,83 @@ export default function ProductsSection() {
       {/* Fixed grain veil — full-viewport, inert; always-on subtle noise that
           pulses at the dark→light crossover (opacity scrubbed above). */}
       <div ref={grainRef} className="shop__grain" aria-hidden="true" />
-      
+
       {/* Golden top divider */}
       <div className="shop__divider" aria-hidden="true" />
 
-      <div className="shop__inner">
-        <div className="shop__head-row">
-          <header className="shop__head">
-            <h2 className="shop__title">{t("shop.title")}</h2>
-            <p className="shop__eyebrow">{t("shop.eyebrow")}</p>
-          </header>
+      {isMobile ? (
+        // Mobile: Premium horizontal slider
+        <PremiumSlider items={sliderItems} />
+      ) : (
+        // Desktop: Grid layout
+        <div className="shop__inner">
+          <div className="shop__head-row">
+            <header className="shop__head">
+              <h2 className="shop__title">{t("shop.title")}</h2>
+              <p className="shop__eyebrow">{t("shop.eyebrow")}</p>
+            </header>
 
-          <LocaleLink ref={ctaRef} href="/products" className="shop__cta">
-            <span className="shop__cta-fill" aria-hidden="true" />
-            <span className="shop__cta-label">{t("shop.cta")}</span>
-            <span className="shop__cta-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                <path
-                  d="M4 12h15M13 6l6 6-6 6"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-          </LocaleLink>
-        </div>
-
-        <ul className="shop__grid">
-          {tiles.map((product) => {
-            // Live tiles carry literal copy; static tiles carry i18n keys.
-            const name = product.live ? product.nameKey : t(product.nameKey);
-            const detail = product.live ? product.detailKey : t(product.detailKey);
-            return (
-            <li key={product.id} className="shop-card">
-              <div className="shop-card__media">
-                {product.image && (
-                  <img
-                    src={product.image}
-                    alt=""
-                    className="shop-card__img"
-                    aria-hidden="true"
+            <LocaleLink ref={ctaRef} href="/products" className="shop__cta">
+              <span className="shop__cta-fill" aria-hidden="true" />
+              <span className="shop__cta-label">{t("shop.cta")}</span>
+              <span className="shop__cta-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                  <path
+                    d="M4 12h15M13 6l6 6-6 6"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
-                )}
-                <LocaleLink
-                  href={`/product/${product.id}`}
-                  className="shop-card__link"
-                  aria-label={`${name}, ${detail}`}
-                />
-                <button
-                  type="button"
-                  className="shop-card__add"
-                  onClick={() => quickAdd(product.id)}
-                >
-                  {addedId === product.id ? t("shop.added") : t("shop.add")}
-                </button>
-              </div>
-              <div className="shop-card__meta">
-                <h3 className="shop-card__name">{name}</h3>
-                <div className="shop-card__line">
-                  <p className="shop-card__detail">{detail}</p>
-                  <p className="shop-card__price">{product.price}</p>
-                </div>
-              </div>
-            </li>
-            );
-          })}
-        </ul>
+                </svg>
+              </span>
+            </LocaleLink>
+          </div>
 
-        <p className="shop__note">{t("shop.note")}</p>
-      </div>
+          <ul className="shop__grid">
+            {tiles.map((product) => {
+              // Live tiles carry literal copy; static tiles carry i18n keys.
+              const name = product.live ? product.nameKey : t(product.nameKey);
+              const detail = product.live ? product.detailKey : t(product.detailKey);
+              return (
+              <li key={product.id} className="shop-card">
+                <div className="shop-card__media">
+                  {product.image && (
+                    <img
+                      src={product.image}
+                      alt=""
+                      className="shop-card__img"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <LocaleLink
+                    href={`/product/${product.id}`}
+                    className="shop-card__link"
+                    aria-label={`${name}, ${detail}`}
+                  />
+                  <button
+                    type="button"
+                    className="shop-card__add"
+                    onClick={() => quickAdd(product.id)}
+                  >
+                    {addedId === product.id ? t("shop.added") : t("shop.add")}
+                  </button>
+                </div>
+                <div className="shop-card__meta">
+                  <h3 className="shop-card__name">{name}</h3>
+                  <div className="shop-card__line">
+                    <p className="shop-card__detail">{detail}</p>
+                    <p className="shop-card__price">{product.price}</p>
+                  </div>
+                </div>
+              </li>
+              );
+            })}
+          </ul>
+
+          <p className="shop__note">{t("shop.note")}</p>
+        </div>
+      )}
     </section>
   );
 }

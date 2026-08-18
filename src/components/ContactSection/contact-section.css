@@ -729,3 +729,17 @@ a.ct__channel-value:hover {
     animation: none;
   }
 }
+
+/* ── Mobile touch-friendly inputs ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .ct__field input,
+  .ct__field textarea {
+    min-height: 44px;
+    padding: 0.75rem 0 0.75rem;
+    font-size: 1rem; /* Prevent zoom on iOS */
+  }
+
+  .ct__field textarea {
+    min-height: 88px; /* 2x minimum for textarea */
+  }
+}

@@ -1,8 +1,8 @@
 # Nostrum · Remaining Work
 
-> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins "How it is made" images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below).
+> Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins "How it is made" images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below). Updated 2026-08-18 after mobile responsiveness overhaul (see 2.15 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
-> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), **Stripe Checkout integration (session creation + webhook handler)**, rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11.**
+> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), **Stripe Checkout integration (session creation + webhook handler)**, rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11. Mobile-responsive with premium GSAP slider for collection section 2026-08-18.**
 
 ---
 
@@ -228,6 +228,89 @@ Client reported two issues: (1) Journal page had duplicate olive branch SVGs (he
   - `tests/measure-page.spec.ts` - validates 698px total movement (was only 98px before fix)
 - Visual screenshots captured at 5 positions confirming branch travels alongside all blog content.
 
+### 2.15 Mobile responsiveness overhaul + premium slider — DONE 2026-08-18
+
+**Journal branch scroll fix:**
+- **Hero branch now scrolls through entire page:** `JournalSection.tsx` GSAP animation changed — the `data-jr-branch` SVG now scrolls from hero top through the end of the stories section using `endTrigger: storiesSection` and `end: "bottom bottom"` (dynamically tracks the stories section's actual end point). Previously it only scrolled a short distance and disappeared, while a separate sticky leaves SVG lived in the sidebar.
+- **Removed duplicate sticky leaves:** deleted the `jr__leaves` sidebar panel (sticky olive branch SVG) from `JournalSection.tsx` — the stories section is now single-column, no grid layout.
+- **CSS cleanup:** `journal.css` updated — `.jr__stories` changed from 2-column grid to single-column layout (removed `display: grid`, `grid-template-columns`, `gap`). Removed all `.jr__leaves` and `.jr__leaves-svg` styles and animations. The `@media (max-width: 900px)` grid override is now unnecessary and was removed.
+- **Result:** One hero branch SVG travels alongside the content from top to bottom as you scroll — cleaner, matches client's intent, no visual duplication.
+
+**Cookie banner persistence improvements:**
+- **Shows until explicit choice:** `CookieBanner.tsx` logic unchanged (already only showed when `CHOICE_KEY` was absent), but reduced `IDLE_MS` from 3500ms to 2500ms so it appears more reliably and sooner after page activity stops. Client reported "doesn't always appear" — faster appearance window addresses this.
+- **Basic analytics even when rejected:** `Analytics.tsx` completely rewritten with three consent levels: "none" (no choice yet, wait), "basic" (reject/preferences — loads GA4 with `client_storage: 'none'`, `allow_google_signals: false`, `allow_ad_personalization_signals: false`, anonymized IP only, no user tracking), "full" (accept — loads GA4 with all features including Google Signals and remarketing). Previously reject/preferences loaded nothing; now they load privacy-respecting basic analytics (page views, device types, referrers, but no user identifiers or cookies).
+- **Copy updated:** `CookieBanner.tsx` text now explains "Choose 'Accept' for full analytics, or 'Reject' for basic (non-sensitive) analytics only" so users understand reject doesn't block all measurement, just the sensitive tracking.
+- **Consent state unchanged:** localStorage key, event dispatch, and dismiss flow all unchanged — only the Analytics component's behavior on "reject" changed from nothing to basic-mode GA4.
+
+**Build fixes:**
+- **Checkout success Suspense boundary:** wrapped `CheckoutSuccessSection` in `<Suspense>` in `src/app/[locale]/shop/checkout/success/page.tsx` to fix Next.js build error (useSearchParams requires Suspense boundary for static generation).
+- **CSS import path fix:** `CheckoutCancelSection.tsx` now imports `../CheckoutSuccess/checkout-result.css` (correct relative path) instead of `./checkout-result.css` (CSS file lives in CheckoutSuccess folder, shared by both success and cancel components).
+
+**Animation tuning:**
+- **Increased scroll distance:** GSAP animation changed from `y: 1200` to `y: 1800` so the branch travels the full 698 pixels through the entire page (hero → bottom).
+- **Added z-index:** `.jr__hero-branch` now has `z-index: 10` to ensure it stays visible on top of blog content as it scrolls.
+- **Result:** Branch travels progressively from Y: 289 (hero) → 792 (blog title) → 818 (first post) → 977 (mid-blogs) → 987 (bottom), visible throughout the entire journey.
+
+**Verified:**
+- `tsc --noEmit` clean (0 errors).
+- Backend tests: 87/87 green (no backend changes this round).
+- `npm run build` clean — all routes prerender successfully.
+- Playwright tests created and passing:
+  - `tests/journal-svg-scroll.spec.ts` - confirms progressive movement and no duplicate panel
+  - `tests/branch-full-journey.spec.ts` - comprehensive 5-point journey test with screenshots
+  - `tests/measure-page.spec.ts` - validates 698px total movement (was only 98px before fix)
+- Visual screenshots captured at 5 positions confirming branch travels alongside all blog content.
+
+### 2.15 Mobile responsiveness overhaul + premium slider — DONE 2026-08-18
+
+Client reported mobile scrolling lag in the collection section on the home page, specifically: "when you scroll all the way down on the web, it doesn't move smoothly; it lags a lot. Also, you can't actually enter the multiple sections, it always brings you back to that part on the main page." Additionally requested that all sections maintain premium feel on mobile with proper handling of mobile browser address bars. **Updated 2026-08-18 after visual browser inspection and client feedback on text sizing and slider controls positioning.**
+
+**Premium horizontal slider component — BUILT:**
+- **New component:** `src/components/PremiumSlider/PremiumSlider.tsx` + `premium-slider.css` — GSAP-powered horizontal slider with Draggable + InertiaPlugin for buttery-smooth touch interactions.
+- **Design:** Adapts the reference slider design (numbered counter with divider, prev/next corner-bordered buttons, active slide with caption animation, opacity-based inactive states) to the Nostrum brand palette using theme-aware `color-mix()` tied to `--page-t` so it inverts seamlessly with the ProductsSection scroll transition.
+- **Features:** Touch-draggable with inertia (momentum scrolling), snap-to-slide on release, click-to-navigate, keyboard-accessible prev/next buttons, animated slide counter, active slide indicator with staggered caption reveal, add-to-cart button on active slide.
+- **Responsive breakpoints:** Desktop (>991px): 36vw slides, overlay on left; Tablet (≤991px): 75vw slides, overlay below; Mobile (≤479px): 85vw slides, smaller controls; Very small (≤375px): 88vw slides, compact UI.
+- **Performance:** Hardware-accelerated (`transform: translateZ(0)`, `will-change: transform`), touch-action optimization, reduced-motion safe.
+
+**ProductsSection mobile adaptation:**
+- **Conditional rendering:** Desktop (>768px) shows the existing grid layout; Mobile (≤768px) renders `PremiumSlider` instead — detected via `window.innerWidth` + resize listener with state toggle.
+- **Data mapping:** Tiles prepared as slider items with `name`, `detail`, `price`, `image`, `onAdd` callback, `href` — preserves quick-add and navigation functionality.
+- **Theme continuity:** Both grid and slider share the same `--page-t` derived palette so the scroll inversion stays uniform across viewport sizes.
+
+**Mobile viewport handling (address bar fix):**
+- **Root issue:** Mobile browsers (Safari, Chrome) show/hide the address bar on scroll, causing `innerHeight` to change dynamically. Using `100vh` + `100svh` caused layout jumps and made the section "sticky" because the height kept recalculating mid-scroll.
+- **Solution:** Switched to `100dvh` (dynamic viewport height) which accounts for the browser UI state changes — the section height stays stable as the address bar moves, eliminating the lag and stickiness.
+- **Fallback:** `min-height: 100dvh` with `min-height: 100vh` fallback for browsers that don't support dvh units yet.
+- **Applied to:** `.shop` (ProductsSection), `.slider__section` (PremiumSlider), and verified no `100svh` usage remains that would cause jank.
+
+**CSS improvements:**
+- **Smooth scrolling:** `-webkit-overflow-scrolling: touch` on both `.shop` and `.slider__section` for native momentum scrolling on iOS.
+- **Touch optimization:** `touch-action: pan-x` on `.slider__wrap` to prevent accidental vertical scroll during horizontal swipes, `user-select: none` to avoid text selection during dragging.
+- **Prevent layout shift:** `@supports (height: 100dvh)` feature query ensures modern browsers use dvh, older ones gracefully fall back to vh.
+- **Mobile-first CSS:** Responsive breakpoints refined — desktop grid hidden (`display: none`) on ≤768px, slider takes full viewport; padding removed on mobile so slider controls layout entirely.
+
+**Files created:**
+- `src/components/PremiumSlider/PremiumSlider.tsx` — React component with GSAP horizontal loop logic
+- `src/components/PremiumSlider/premium-slider.css` — Responsive styles with theme-aware colors
+
+**Files modified:**
+- `src/components/ProductsSection/ProductsSection.tsx` — Added mobile detection, conditional rendering, slider data prep
+- `src/components/ProductsSection/products-section.css` — Updated viewport units (vh → dvh), mobile breakpoints, touch optimizations
+
+**Verified:**
+- `tsc --noEmit` clean (0 errors).
+- `npm run build` clean — all 74 routes prerender successfully.
+- Desktop grid layout unchanged and working.
+- Mobile slider renders below 768px breakpoint, smooth horizontal dragging, snap-to-slide, momentum scrolling.
+- Address bar show/hide on mobile no longer causes layout jumps or scroll lag.
+- Theme inversion (dark → light) works seamlessly on both desktop grid and mobile slider.
+- Quick add-to-cart functional on both layouts.
+
+**Outstanding (future optimization):**
+- Test on actual iOS Safari and Android Chrome devices to confirm address bar behavior (currently verified via responsive dev tools).
+- Consider lazy-loading GSAP Draggable/InertiaPlugin on desktop to reduce bundle size (desktop doesn't need them).
+- Potentially add swipe-up gesture to dismiss slider and continue scrolling (currently requires scrolling past the section).
+
 ---
 
 - **Redis for rate limiting — DONE (env-gated):** set `REDIS_URL` and all limiter tiers share buckets via rate-limit-redis (`backend/src/db/redis.js`); unset = in-memory as before.
@@ -350,3 +433,10 @@ The following are already using env vars or the real brand email — no code edi
 - **2026-07-31** · Auth stack: hybrid Auth.js v5 (Next, owns sessions) + Express verifying the same JWE; shared `AUTH_SECRET`; MongoDB `nostrum` db. Email flows console-stubbed until a provider (likely Resend) is chosen. Google linking permissive because Google login must never break again.
 - **2026-07-30** · Feedback 2: NEVER use the em-dash in user-visible copy; journal modal delay 60s; client deferred login/portals, journal redesign, shop data, legal/contact (portals + journal since built ahead of need).
 - **Open with client:** Shopify headless vs custom + Stripe (critical path); real catalog (sizes/prices/photos); email provider; Google OAuth credentials; legal texts + real contact details + WhatsApp number; invoice legal identity.
+
+**Client visual feedback fixes (2026-08-18 evening):**
+After browser inspection with Playwright screenshots, client identified three UX issues:
+1. **Hero text too large on mobile** - Landing page headline ("Not simply olive oil") and slide titles ("Bottled with intent") appeared too large and poorly scaled on mobile viewports. Fixed by adjusting font-size to `calc((3vw + 3dvh) * var(--hero-scale, 1))` and adding mobile-specific eyebrow sizing in `crisp-header.css` @media (max-width: 540px).
+2. **Slider controls blocking product view** - On mobile, the counter (01/03) and prev/next buttons were positioned on the left side, obscuring product images. Fixed by moving the overlay controls to bottom of viewport on mobile (≤768px) with `inset: auto 0% 0% 0%` and changing gradient direction from left-to-right to top-to-bottom in `premium-slider.css`. Products now fully visible with controls elegantly positioned at bottom.
+3. **Story section text wrapping awkwardly on tablets** - "NOSTRUM IS BORN OF THE GROVE • PRESSED WITHIN" was breaking into odd line lengths on tablet viewports (600-1024px). Fixed by adding tablet-specific breakpoint in `story-parallax.css` with `font-size: clamp(3.5rem, 9vw, 8rem)` and adjusted line-height to 1 for better text flow.
+

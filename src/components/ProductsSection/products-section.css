@@ -32,7 +32,10 @@
   );
 
   position: relative;
-  min-height: 100svh;
+  /* Use dvh (dynamic viewport height) which accounts for mobile browser UI */
+  min-height: 100dvh;
+  /* Fallback for browsers that don't support dvh */
+  min-height: 100vh;
   background-color: var(--_bg);
   color: var(--_fg);
   display: flex;
@@ -40,6 +43,8 @@
   justify-content: center;
   padding: clamp(5rem, 12vh, 9rem) clamp(1.5rem, 5vw, 5rem);
   isolation: isolate;
+  /* Smooth scroll behavior on mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ---- Grain veil: always-on noise, pulsing at the crossover --------- */
@@ -377,13 +382,33 @@
   .shop__grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .shop {
+    /* Account for mobile address bar on tablets */
+    min-height: 100dvh;
+    min-height: 100vh;
+  }
+}
+
+/* Mobile: hide desktop grid, slider takes over */
+@media (max-width: 768px) {
+  .shop {
+    /* Remove padding on mobile - slider handles its own spacing */
+    padding: 0;
+    min-height: 100dvh;
+    min-height: 100vh;
+  }
+
+  .shop__inner {
+    display: none; /* Desktop grid hidden on mobile */
+  }
+
+  .shop__divider {
+    display: none; /* Hide divider on mobile */
+  }
 }
 
 @media (max-width: 620px) {
-  .shop {
-    min-height: auto;
-    padding-block: clamp(4rem, 12vh, 6rem);
-  }
   .shop__grid {
     grid-template-columns: 1fr;
     gap: clamp(2rem, 8vw, 3rem);
@@ -395,6 +420,21 @@
   .shop-card__add {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Prevent layout shift on address bar hide/show */
+@supports (height: 100dvh) {
+  .shop {
+    min-height: 100dvh;
+  }
+}
+
+/* Ensure smooth transitions during scroll */
+@media (max-width: 768px) {
+  .shop {
+    will-change: transform;
+    transform: translateZ(0);
   }
 }
 

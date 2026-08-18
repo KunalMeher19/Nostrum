@@ -697,6 +697,19 @@ html:has(.crisp-header.is--loading) [data-main] > *:not(.crisp-header) {
     padding: 1.25em;
   }
 
+  /* Scale down hero title for mobile readability */
+  .crisp-header__h1 {
+    font-size: calc((3vw + 3dvh) * var(--hero-scale, 1));
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  /* Adjust eyebrow text */
+  .crisp-header__eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.28em;
+  }
+
   .crisp-header__h1 {
     /* Cap the fluid size so the headline reads as a tidy two lines instead
        of a wrapping block that reaches the rail; --hero-scale keeps longer
