@@ -86,27 +86,32 @@
   }
 }
 
-/* Hand-drawn olive branch, right side, faint gold sketch.
-   position: fixed so it can NEVER be clipped by any ancestor's
-   overflow:hidden (the old bug: it lived inside .jr__hero and vanished
-   the moment it scrolled past that box). GSAP scrubs its `top` (a
-   viewport-relative value, 14vh -> 78vh) against scroll PROGRESS from
-   the hero start to the stories end, so its on-screen speed always
-   matches the reader's actual scroll — it can't outrun the content or
-   go missing behind it. Initial top here matches the animation's
-   starting value so there's no flash before GSAP attaches. */
-.jr__hero-branch {
+/* Wrapper for the olive branch: fixed positioning container that
+   travels smoothly down the screen as you scroll (via GSAP animation).
+   Uses GPU acceleration for buttery smooth movement. */
+.jr__branch-wrapper {
   position: fixed;
   right: clamp(2rem, 8vw, 9rem);
   top: 14vh;
-  width: clamp(170px, 22vw, 320px);
+  width: clamp(200px, 24vw, 340px);
   height: auto;
   pointer-events: none;
-  stroke: color-mix(in srgb, var(--nostrum-gold, #e6b422) 55%, transparent);
-  stroke-width: 1.4;
+  z-index: 50;
+  will-change: top, opacity;
+  transform: translateZ(0); /* Force GPU layer */
+}
+
+/* The actual SVG branch inside the wrapper - premium styling */
+.jr__hero-branch {
+  display: block;
+  width: 100%;
+  height: auto;
+  stroke: color-mix(in srgb, var(--nostrum-gold, #e6b422) 68%, transparent);
+  stroke-width: 1.3;
   stroke-linecap: round;
-  opacity: 0.9;
-  z-index: 10;
+  stroke-linejoin: round;
+  fill: none;
+  filter: drop-shadow(0 2px 12px rgba(230, 180, 34, 0.12));
 }
 
 /* Eyebrow row: a short gold hairline leading into the label. */

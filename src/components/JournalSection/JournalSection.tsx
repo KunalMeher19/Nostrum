@@ -105,28 +105,24 @@ export default function JournalSection({
           },
         });
 
-        // Branch travels through the entire page: from the hero down to
-        // the end of the stories section. It is position:fixed (see CSS)
-        // so it can never be clipped by any ancestor's overflow, and its
-        // `top` (a viewport-relative value, not a large translateY) is
-        // scrubbed 1:1 against scroll PROGRESS across that whole range —
-        // so its on-screen speed always matches how far the reader has
-        // actually gotten, never racing ahead of the content. It also
-        // fades down while it drifts past the post cards, so it never
-        // fights for attention with the copy.
+        // Branch wrapper travels visually from top (14vh) to bottom (78vh)
+        // as the user scrolls through the entire journal page. The wrapper
+        // stays fixed but moves down smoothly, creating an elegant parallax
+        // effect where the branch "flows" alongside the blog posts.
         gsap.fromTo(
           "[data-jr-branch]",
-          { top: "14vh", autoAlpha: 0.9 },
+          { top: "14vh", opacity: 0.95 },
           {
-            top: "78vh",
-            autoAlpha: 0.4,
+            top: "calc(100vh - 500px)", // Moves to near bottom but stays visible
+            opacity: 0.4,
             ease: "none",
             scrollTrigger: {
               trigger: "[data-jr-hero]",
               start: "top top",
               endTrigger: "[data-jr-stories]",
               end: "bottom bottom",
-              scrub: 1,
+              scrub: 0.8,
+              // markers: true, // Uncomment to debug scroll positions
             },
           }
         );
@@ -167,15 +163,12 @@ export default function JournalSection({
 
   return (
     <div ref={root} className="jr">
-      {/* ── Hero ─────────────────────────────────────────────────── */}
-      <header className="jr__hero" data-jr-hero>
-        {/* Golden horizon streak, drifting slowly behind the headline. */}
-        {/* <span className="jr__hero-streak" data-jr-streak aria-hidden="true" />
- */}
-        {/* Hand-drawn olive branch that travels alongside the entire page */}
+      {/* Branch wrapper: fixed positioning container that travels smoothly
+          from top to bottom as you scroll, keeping the branch visible and
+          elegant throughout the entire page */}
+      <div className="jr__branch-wrapper" data-jr-branch>
         <svg
           className="jr__hero-branch"
-          data-jr-branch
           viewBox="0 0 320 420"
           fill="none"
           aria-hidden="true"
@@ -208,6 +201,13 @@ export default function JournalSection({
           <path d="M114 354 a 12 15 -10 1 1 0.1 0" strokeWidth="1.5" />
           <path d="M142 344 a 11 14 -24 1 1 0.1 0" strokeWidth="1.5" />
         </svg>
+      </div>
+
+      {/* ── Hero ─────────────────────────────────────────────────── */}
+      <header className="jr__hero" data-jr-hero>
+        {/* Golden horizon streak, drifting slowly behind the headline. */}
+        {/* <span className="jr__hero-streak" data-jr-streak aria-hidden="true" />
+ */}
 
         <div className="jr__hero-top" data-jr-item>
           <span className="jr__hero-rule" aria-hidden="true" />
