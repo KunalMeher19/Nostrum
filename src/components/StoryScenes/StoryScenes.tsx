@@ -247,6 +247,15 @@ export default function StoryScenes() {
             return null;
           };
 
+          // CRITICAL: Detect touch device (same as CrispHeader line 142-143)
+          const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+          // CRITICAL: Disable normalizeScroll for slideshow mode (same as CrispHeader line 236-239)
+          // This allows raw touch events to reach our handlers instead of being intercepted by GSAP
+          if (isTouchDevice) {
+            ScrollTrigger.normalizeScroll(false);
+          }
+
           // Lock Lenis immediately - start life in slideshow mode with page locked
           // (same as CrispHeader line 316: lenis.stop())
           const lenis = getLenisInstance();
@@ -343,6 +352,10 @@ export default function StoryScenes() {
             if (current === previous) {
               animating = false;
               scrollLocked = false;
+              // Re-enable normalizeScroll when exiting slideshow mode
+              if (isTouchDevice) {
+                ScrollTrigger.normalizeScroll(true);
+              }
               const lenis = getLenisInstance();
               if (lenis && typeof lenis.start === 'function') {
                 lenis.start();
@@ -375,6 +388,10 @@ export default function StoryScenes() {
                   // AND user has pending scroll intent
                   if (current === length - 1 && direction === 1 && pendingScroll) {
                     scrollLocked = false;
+                    // Re-enable normalizeScroll when exiting slideshow mode
+                    if (isTouchDevice) {
+                      ScrollTrigger.normalizeScroll(true);
+                    }
                     const lenis = getLenisInstance();
                     if (lenis && typeof lenis.start === 'function') {
                       lenis.start();
@@ -417,6 +434,10 @@ export default function StoryScenes() {
               // Unlock scroll if locked
               if (scrollLocked) {
                 scrollLocked = false;
+                // Re-enable normalizeScroll when exiting slideshow mode
+                if (isTouchDevice) {
+                  ScrollTrigger.normalizeScroll(true);
+                }
                 const lenis = getLenisInstance();
                 if (lenis && typeof lenis.start === 'function') {
                   lenis.start();
@@ -437,6 +458,10 @@ export default function StoryScenes() {
               // On last scene, animation done, and not animating - unlock and allow scroll
               if (scrollLocked) {
                 scrollLocked = false;
+                // Re-enable normalizeScroll when exiting slideshow mode (same as CrispHeader line 190)
+                if (isTouchDevice) {
+                  ScrollTrigger.normalizeScroll(true);
+                }
                 const lenis = getLenisInstance();
                 if (lenis && typeof lenis.start === 'function') {
                   lenis.start();
@@ -488,6 +513,10 @@ export default function StoryScenes() {
             if (current === 0 && direction === -1) {
               if (scrollLocked) {
                 scrollLocked = false;
+                // Re-enable normalizeScroll when exiting slideshow mode
+                if (isTouchDevice) {
+                  ScrollTrigger.normalizeScroll(true);
+                }
                 const lenis = getLenisInstance();
                 if (lenis && typeof lenis.start === 'function') {
                   lenis.start();
@@ -506,6 +535,10 @@ export default function StoryScenes() {
               // On last scene and not animating - unlock and allow scroll
               if (scrollLocked) {
                 scrollLocked = false;
+                // Re-enable normalizeScroll when exiting slideshow mode
+                if (isTouchDevice) {
+                  ScrollTrigger.normalizeScroll(true);
+                }
                 const lenis = getLenisInstance();
                 if (lenis && typeof lenis.start === 'function') {
                   lenis.start();
@@ -571,6 +604,11 @@ export default function StoryScenes() {
             splits.forEach(({ split }) => {
               if (split && split.revert) split.revert();
             });
+
+            // Re-enable normalizeScroll (same as CrispHeader line 190)
+            if (isTouchDevice) {
+              ScrollTrigger.normalizeScroll(true);
+            }
 
             // Unlock scroll
             const lenis = getLenisInstance();
