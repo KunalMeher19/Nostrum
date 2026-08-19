@@ -319,3 +319,56 @@
 .story-scenes.is--static .story-scenes__callout-label {
   opacity: 1;
 }
+
+/* ---- Mobile slideshow mode (horizontal wipe, like CrispHeader) -------- */
+/* On mobile (≤1024px), use slideshow-style navigation with scroll locking */
+.story-scenes.is--mobile-slideshow {
+  height: 100svh;
+  overflow: hidden;
+  position: relative;
+}
+
+.story-scenes.is--mobile-slideshow .story-scenes__stage {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.story-scenes.is--mobile-slideshow .story-scenes__scene {
+  /* Positioned for horizontal wipe animation */
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  /* Non-current scenes are off-screen */
+  visibility: hidden;
+  z-index: 1;
+  /* CRITICAL: overflow hidden clips the parallax image during wipe */
+  overflow: hidden;
+  will-change: transform;
+}
+
+.story-scenes.is--mobile-slideshow .story-scenes__scene.is--current {
+  visibility: visible;
+  z-index: 2;
+}
+
+.story-scenes.is--mobile-slideshow .story-scenes__media {
+  /* Oversized for parallax effect - counter-animates against scene movement */
+  transform: scale(1.08);
+  will-change: transform;
+}
+
+.story-scenes.is--mobile-slideshow .story-scenes__caption {
+  /* Caption stays in place - text animates via SplitText */
+  transform: none;
+}
+
+/* Mobile slideshow: dots at bottom center */
+.story-scenes.is--mobile-slideshow .story-scenes__dots {
+  bottom: clamp(3.5rem, 8vh, 5rem);
+  top: auto;
+  flex-direction: row;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}

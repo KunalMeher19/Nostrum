@@ -192,140 +192,372 @@ export default function StoryScenes() {
       return;
     }
 
-    /* ---- Entry choreography (the welcome) --------------------------- */
-    // First scene opens with a slow settle: image eases down from a deeper
-    // zoom, caption lines rise through a mask, arrows sketch themselves in
-    // last. When we arrive from Home via the RouteCurtain, the whole thing
-    // is held (is--pre) until the drape starts lifting, so the settle plays
-    // AS the page is revealed — one continuous premium beat, not two.
-    let entryTimer = 0;
-    let entryDoneTimer = 0;
-    const beginEntry = () => {
-      window.removeEventListener(CURTAIN_REVEAL_EVENT, beginEntry);
-      window.clearTimeout(entryTimer);
+    // Mobile/tablet: use slideshow-style navigation (same as CrispHeader)
+    // Desktop: use scroll-based GSAP animation (original behavior)
+    const isMobile = window.innerWidth <= 1024;
+
+    if (isMobile) {
+      // Mobile slideshow implementation
       root.classList.remove("is--pre");
-      // Reflow so the pre→enter transition actually animates.
-      void root.offsetWidth;
-      root.classList.add("is--enter");
-      // Once the choreography has fully played, shed the entry class so its
-      // extra transition-delays don't slow later scroll-back arrow redraws.
-      entryDoneTimer = window.setTimeout(
-        () => root.classList.remove("is--enter"),
-        4500
-      );
-    };
+      root.classList.add("is--mobile-slideshow");
 
-    root.classList.add("is--pre");
-    if (hasClientNavigated()) {
-      // Arriving from Home under the RouteCurtain: hold until the drape
-      // starts lifting so the settle plays through the reveal.
-      window.addEventListener(CURTAIN_REVEAL_EVENT, beginEntry);
-      // Safety: if the reveal event never lands (curtain interrupted), enter anyway.
-      entryTimer = window.setTimeout(beginEntry, 3500);
-    } else {
-      // Hard load: play the same settle right away (next frame, so the
-      // staged pre-state has painted and the transition can run).
-      entryTimer = window.setTimeout(beginEntry, 60);
-    }
+      let cancelled = false;
 
-    /* ---- Golden dust atmosphere ------------------------------------ */
-    // ~30 soft gold motes drifting slowly upward over the pinned stage —
-    // the Home light-streak signature carried here as atmosphere. 2D canvas,
-    // DPR-capped, and only running while the stage is actually on screen
-    // (IntersectionObserver gates the rAF loop). Skipped under reduced
-    // motion (we returned above).
-    const dustCanvas = root.querySelector<HTMLCanvasElement>(
-      ".story-scenes__dust"
-    );
-    let dustRaf = 0;
-    let dustOn = false;
-    let dustObserver: IntersectionObserver | null = null;
+      (async () => {
+        try {
+          const gsapMod = await import("gsap");
+          const { CustomEase } = await import("gsap/CustomEase");
+          const { SplitText } = await import("gsap/SplitText");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const gsap: any = (gsapMod as any).gsap ?? (gsapMod as any).default;
+          gsap.registerPlugin(CustomEase, SplitText);
+          if (cancelled) return;
 
-    if (dustCanvas) {
-      const dctx = dustCanvas.getContext("2d");
-      type Mote = {
-        x: number; // 0..1 of width
-        y: number; // 0..1 of height
-        r: number; // radius px
-        a: number; // base alpha
-        vy: number; // upward drift, fraction of height / s
-        vx: number; // sideways sway amplitude
-        ph: number; // sway phase
-        tw: number; // twinkle speed
-      };
-      // Deterministic-ish spread via golden-ratio scatter — no layout thrash,
-      // stable across re-mounts.
-      const MOTES: Mote[] = Array.from({ length: 30 }, (_, i) => {
-        const g = (i * 0.618034) % 1;
-        const h = (i * 0.754878) % 1;
-        return {
-          x: g,
-          y: h,
-          r: 0.8 + ((i * 7) % 10) * 0.22,
-          a: 0.12 + ((i * 13) % 10) * 0.02,
-          vy: 0.006 + ((i * 11) % 10) * 0.0012,
-          vx: 0.004 + ((i * 5) % 10) * 0.0009,
-          ph: g * Math.PI * 2,
-          tw: 0.3 + ((i * 3) % 10) * 0.08,
-        };
-      });
+          // Same custom easing as CrispHeader slideshow
+          CustomEase.create("slideshow-wipe", "0.625, 0.05, 0, 1");
 
-      const sizeDust = () => {
-        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-        dustCanvas.width = Math.round(dustCanvas.offsetWidth * dpr);
-        dustCanvas.height = Math.round(dustCanvas.offsetHeight * dpr);
-      };
-      sizeDust();
+          const scenes = Array.from(
+            root.querySelectorAll<HTMLElement>(".story-scenes__scene")
+          );
+          const scenesInner = Array.from(
+            root.querySelectorAll<HTMLElement>(".story-scenes__media")
+          );
+          const captions = Array.from(
+            root.querySelectorAll<HTMLElement>(".story-scenes__caption")
+          );
+          const dots = Array.from(
+            root.querySelectorAll<HTMLElement>(".story-scenes__dot")
+          );
 
-      let last = performance.now();
-      const tick = (now: number) => {
-        if (!dustOn || !dctx) return;
-        const dt = Math.min((now - last) / 1000, 0.05);
-        last = now;
-        const W = dustCanvas.width;
-        const H = dustCanvas.height;
-        dctx.clearRect(0, 0, W, H);
-        const t = now / 1000;
-        for (const m of MOTES) {
-          m.y -= m.vy * dt;
-          if (m.y < -0.02) {
-            m.y = 1.02;
-            m.x = Math.random();
+          let current = 0;
+          const length = scenes.length;
+          let animating = false;
+          const animationDuration = 1.2; // Same as CrispHeader
+          let scrollLocked = false;
+
+          // Mark first scene as current
+          scenes[0]?.classList.add("is--current", "is--live");
+          dots[0]?.classList.add("is--active");
+
+          // Get Lenis for scroll locking (same as CrispHeader)
+          const getLenisInstance = () => {
+            if (typeof window !== "undefined") {
+              return (window as any).lenis || null;
+            }
+            return null;
+          };
+
+          // Text transition with SplitText (same as CrispHeader transitionText)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const splits: any[] = [];
+          captions.forEach((caption) => {
+            const h3 = caption.querySelector("h3");
+            const p = caption.querySelector("p");
+            if (h3) {
+              const split = new SplitText(h3, { type: "words", linesClass: "split-line" });
+              splits.push({ element: h3, split, p });
+            }
+          });
+
+          function transitionText(index: number, direction: number) {
+            const prevSplit = splits[current === 0 ? length - 1 : current - 1];
+            const nextSplit = splits[index];
+            if (!prevSplit || !nextSplit) return;
+
+            const tl = gsap.timeline();
+
+            // Exit: current text slides out
+            if (prevSplit.split && prevSplit.split.words) {
+              tl.to(
+                prevSplit.split.words,
+                {
+                  yPercent: -direction * 110,
+                  stagger: 0.03,
+                  ease: "power2.in",
+                  duration: 0.5,
+                },
+                0
+              );
+            }
+            if (prevSplit.p) {
+              tl.to(
+                prevSplit.p,
+                { opacity: 0, y: -direction * 10, ease: "power2.in", duration: 0.4 },
+                0
+              );
+            }
+
+            // Prime next text below/above
+            tl.add(() => {
+              if (nextSplit.split && nextSplit.split.words) {
+                gsap.set(nextSplit.split.words, { yPercent: direction * 110 });
+              }
+              if (nextSplit.p) {
+                gsap.set(nextSplit.p, { opacity: 0, y: direction * 10 });
+              }
+            });
+
+            // Enter: incoming text rises into place
+            tl.add(() => {
+              if (nextSplit.split && nextSplit.split.words) {
+                gsap.to(nextSplit.split.words, {
+                  yPercent: 0,
+                  stagger: 0.05,
+                  ease: "expo.out",
+                  duration: 0.8,
+                });
+              }
+              if (nextSplit.p) {
+                gsap.to(nextSplit.p, {
+                  opacity: 1,
+                  y: 0,
+                  ease: "power2.out",
+                  duration: 0.6,
+                });
+              }
+            });
           }
-          const sway = Math.sin(t * 0.6 + m.ph) * m.vx;
-          // Slow twinkle so motes breathe instead of blinking.
-          const glow = m.a * (0.65 + 0.35 * Math.sin(t * m.tw + m.ph));
-          const px = (m.x + sway) * W;
-          const py = m.y * H;
-          const pr = m.r * (W / 1600 + 0.6);
-          const grad = dctx.createRadialGradient(px, py, 0, px, py, pr * 3);
-          grad.addColorStop(0, `rgba(230, 180, 34, ${glow})`);
-          grad.addColorStop(1, "rgba(230, 180, 34, 0)");
-          dctx.fillStyle = grad;
-          dctx.beginPath();
-          dctx.arc(px, py, pr * 3, 0, Math.PI * 2);
-          dctx.fill();
+
+          function navigate(direction: number) {
+            if (animating) return;
+            animating = true;
+
+            const previous = current;
+            current =
+              direction === 1
+                ? current < length - 1
+                  ? current + 1
+                  : current // Don't wrap at end
+                : current > 0
+                  ? current - 1
+                  : current; // Don't wrap at start
+
+            // If no change (at boundary), unlock and allow scroll
+            if (current === previous) {
+              animating = false;
+              scrollLocked = false;
+              const lenis = getLenisInstance();
+              if (lenis && typeof lenis.start === 'function') {
+                lenis.start();
+              }
+              return;
+            }
+
+            const currentScene = scenes[previous];
+            const currentInner = scenesInner[previous];
+            const upcomingScene = scenes[current];
+            const upcomingInner = scenesInner[current];
+
+            gsap
+              .timeline({
+                defaults: { duration: animationDuration, ease: "slideshow-wipe" },
+                onStart() {
+                  upcomingScene.classList.add("is--current", "is--live");
+                  dots[previous]?.classList.remove("is--active");
+                  dots[current]?.classList.add("is--active");
+                  transitionText(current, direction);
+                },
+                onComplete() {
+                  currentScene.classList.remove("is--current", "is--live");
+                  animating = false;
+
+                  // At boundaries, unlock scroll
+                  if ((current === 0 && direction === -1) ||
+                      (current === length - 1 && direction === 1)) {
+                    scrollLocked = false;
+                    const lenis = getLenisInstance();
+                    if (lenis && typeof lenis.start === 'function') {
+                      lenis.start();
+                    }
+                  }
+                },
+              })
+              // Horizontal wipe with parallax (exact same as CrispHeader)
+              .to(currentScene, { xPercent: -direction * 100 }, 0)
+              .to(currentInner, { xPercent: direction * 75 }, 0)
+              .fromTo(
+                upcomingScene,
+                { xPercent: direction * 100 },
+                { xPercent: 0 },
+                0
+              )
+              .fromTo(
+                upcomingInner,
+                { xPercent: -direction * 75 },
+                { xPercent: 0 },
+                0
+              );
+          }
+
+          // Wheel handling (same debounce as CrispHeader: 1200ms)
+          let lastWheelTime = 0;
+
+          const handleWheel = (e: WheelEvent) => {
+            // Ignore horizontal scrolls
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+            const direction = e.deltaY > 0 ? 1 : -1;
+
+            // At first scene scrolling up: allow natural scroll out
+            if (current === 0 && direction === -1) {
+              // Unlock scroll if locked
+              if (scrollLocked) {
+                scrollLocked = false;
+                const lenis = getLenisInstance();
+                if (lenis && typeof lenis.start === 'function') {
+                  lenis.start();
+                }
+              }
+              return; // Allow scroll to pass through
+            }
+
+            // At last scene scrolling down: allow natural scroll (SAME AS CRISPHEADER)
+            if (current === length - 1 && direction === 1) {
+              if (animating) {
+                // Still animating TO the last scene - swallow the event
+                e.preventDefault();
+                return;
+              }
+              // On last scene and not animating - unlock and allow scroll through
+              if (scrollLocked) {
+                scrollLocked = false;
+                const lenis = getLenisInstance();
+                if (lenis && typeof lenis.start === 'function') {
+                  lenis.start();
+                }
+              }
+              // DO NOT preventDefault - let scroll pass through (key difference!)
+              return;
+            }
+
+            // Inside slider bounds: trap scroll and navigate
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Lock Lenis
+            if (!scrollLocked) {
+              scrollLocked = true;
+              const lenis = getLenisInstance();
+              if (lenis && typeof lenis.stop === 'function') {
+                lenis.stop();
+              }
+            }
+
+            const now = Date.now();
+            if (animating || now - lastWheelTime < 1200) return;
+
+            navigate(direction);
+            lastWheelTime = now;
+          };
+
+          // Touch handling (same as CrispHeader)
+          let touchStartY = 0;
+
+          const handleTouchStart = (e: TouchEvent) => {
+            touchStartY = e.touches[0].clientY;
+          };
+
+          const handleTouchMove = (e: TouchEvent) => {
+            if (animating) {
+              e.preventDefault();
+              return;
+            }
+
+            const touchEndY = e.touches[0].clientY;
+            const deltaY = touchStartY - touchEndY;
+            const direction = deltaY > 0 ? 1 : -1;
+
+            // At first scene swiping up: allow natural scroll
+            if (current === 0 && direction === -1) {
+              if (scrollLocked) {
+                scrollLocked = false;
+                const lenis = getLenisInstance();
+                if (lenis && typeof lenis.start === 'function') {
+                  lenis.start();
+                }
+              }
+              return; // Allow scroll to pass through
+            }
+
+            // At last scene swiping down: allow natural scroll (same as CrispHeader)
+            if (current === length - 1 && direction === 1) {
+              if (animating) {
+                e.preventDefault();
+                return;
+              }
+              // On last scene and not animating - unlock and allow scroll
+              if (scrollLocked) {
+                scrollLocked = false;
+                const lenis = getLenisInstance();
+                if (lenis && typeof lenis.start === 'function') {
+                  lenis.start();
+                }
+              }
+              // DO NOT preventDefault - let scroll pass through
+              return;
+            }
+
+            const now = Date.now();
+            if (animating || now - lastWheelTime < 1200) return;
+
+            if (Math.abs(deltaY) > 30) {
+              e.preventDefault();
+
+              // Lock scroll
+              if (!scrollLocked) {
+                scrollLocked = true;
+                const lenis = getLenisInstance();
+                if (lenis && typeof lenis.stop === 'function') {
+                  lenis.stop();
+                }
+              }
+
+              navigate(direction);
+              lastWheelTime = now;
+              touchStartY = touchEndY;
+            }
+          };
+
+          root.addEventListener("wheel", handleWheel, { passive: false });
+          root.addEventListener("touchstart", handleTouchStart, { passive: false });
+          root.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+          (root as any).__storySnapCleanup = () => {
+            root.removeEventListener("wheel", handleWheel);
+            root.removeEventListener("touchstart", handleTouchStart);
+            root.removeEventListener("touchmove", handleTouchMove);
+
+            // Cleanup splits
+            splits.forEach(({ split }) => {
+              if (split && split.revert) split.revert();
+            });
+
+            // Unlock scroll
+            const lenis = getLenisInstance();
+            if (lenis && typeof lenis.start === 'function') {
+              lenis.start();
+            }
+          };
+        } catch (error) {
+          console.error("StoryScenes: GSAP initialization failed", error);
+          root.classList.remove("is--pre");
+          root.classList.add("is--static");
         }
-        dustRaf = requestAnimationFrame(tick);
-      };
+      })();
 
-      dustObserver = new IntersectionObserver(
-        ([entry]) => {
-          const want = entry.isIntersecting;
-          if (want && !dustOn) {
-            dustOn = true;
-            sizeDust();
-            last = performance.now();
-            dustRaf = requestAnimationFrame(tick);
-          } else if (!want && dustOn) {
-            dustOn = false;
-            cancelAnimationFrame(dustRaf);
-          }
-        },
-        { threshold: 0 }
-      );
-      dustObserver.observe(root);
+      return () => {
+        cancelled = true;
+        const cleanup = (root as any).__storySnapCleanup;
+        if (cleanup) cleanup();
+      };
     }
+
+    // Desktop: original scroll-based GSAP animation
+    root.classList.remove("is--pre");
+
+    let cancelled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let ctx: any = null;
 
     const scenes = Array.from(
       root.querySelectorAll<HTMLElement>(".story-scenes__scene")
@@ -337,13 +569,7 @@ export default function StoryScenes() {
     const n = scenes.length;
     if (!n) return;
 
-    let cancelled = false;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let ctx: any = null;
-
-    // Each scene owns a slice of the 0→1 progress. Within its slice it fades
-    // up, holds, then fades out (except the last, which holds to the end).
-    // clamp + smoothstep give soft, filmic crossfades rather than linear wipes.
+    // Each scene owns a slice of the 0→1 progress
     const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
     const smooth = (v: number) => v * v * (3 - 2 * v);
 
@@ -352,11 +578,7 @@ export default function StoryScenes() {
       let active = 0;
       for (let i = 0; i < n; i++) {
         const start = i * span;
-        const local = (p - start) / span; // 0→1 across this scene's slice
-        // Fade in over the first 35%, fade out over the last 35% (last scene
-        // never fades out). A held middle keeps the caption readable.
-        // First scene opens fully visible (no fade-in from black at p=0);
-        // last scene never fades out (holds until the pin releases).
+        const local = (p - start) / span;
         const fadeIn = i === 0 ? 1 : smooth(clamp01(local / 0.35));
         const fadeOut =
           i === n - 1 ? 1 : 1 - smooth(clamp01((local - 0.65) / 0.35));
@@ -364,7 +586,6 @@ export default function StoryScenes() {
 
         const scene = scenes[i];
         scene.style.opacity = `${vis}`;
-        // Ken Burns: image scales 1.08→1.16 across its own life; caption rises.
         const img = scene.querySelector<HTMLElement>(".story-scenes__media");
         const cap = scene.querySelector<HTMLElement>(".story-scenes__caption");
         const lp = clamp01(local);
@@ -372,17 +593,12 @@ export default function StoryScenes() {
         if (cap)
           cap.style.transform = `translateY(${(1 - fadeIn) * 40 + lp * -14}px)`;
         scene.style.zIndex = `${vis > 0.02 ? 2 : 1}`;
-        // Parallax depth: annotations drift on a slightly different rate
-        // than the photo (which scales up) — a few px of counter-travel
-        // reads as the arrows floating just above the print.
         const callouts = scene.querySelectorAll<HTMLElement>(
           ".story-scenes__callout"
         );
         callouts.forEach((c) => {
           c.style.transform = `translateY(${lp * -22}px)`;
         });
-        // Arrows/callouts sketch themselves in while their scene is on
-        // screen, and reset when it leaves so they redraw on return.
         scene.classList.toggle("is--live", vis >= 0.45);
         if (vis >= 0.5) active = i;
       }
@@ -392,119 +608,99 @@ export default function StoryScenes() {
     };
 
     (async () => {
-      const gsapMod = await import("gsap");
-      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const gsap: any = (gsapMod as any).gsap ?? (gsapMod as any).default;
-      gsap.registerPlugin(ScrollTrigger);
-      if (cancelled) return;
-
-      applyProgress(0);
-
-      ctx = gsap.context(() => {
-        // The stage is pinned by NATIVE position:sticky (see CSS) — far more
-        // robust with Lenis + transformed ancestors ([data-main]/RouteCurtain
-        // carry transforms, which break ScrollTrigger's position:fixed pin).
-        // ScrollTrigger here does nothing but report scroll progress across the
-        // tall section; sticky handles the "stay in place" for free.
-
-        // Snap points: center of each scene's slice + boundaries.
-        const snapPoints: number[] = [];
-        for (let i = 0; i < n; i++) {
-          snapPoints.push((i + 0.5) / n);
-        }
-        snapPoints.push(1);
-
-        // Custom Lenis-based snapping. GSAP's built-in `snap` fights with
-        // Lenis because Lenis owns the scroll position via its own
-        // interpolation. Instead we watch for scroll-stop (via Lenis'
-        // own event) and programmatically scrollTo the nearest snap point.
-        let snapTimer = 0;
-        let isSnapping = false;
+      try {
+        const gsapMod = await import("gsap");
+        const { ScrollTrigger } = await import("gsap/ScrollTrigger");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let stInstance: any = null;
+        const gsap: any = (gsapMod as any).gsap ?? (gsapMod as any).default;
+        gsap.registerPlugin(ScrollTrigger);
+        if (cancelled) return;
 
-        const doSnap = () => {
-          if (!stInstance) return;
-          const lenis = getLenis();
-          if (!lenis) return;
+        applyProgress(0);
 
-          const progress = stInstance.progress as number;
-          // Don't snap at the very start or very end (allow natural
-          // scroll out of the section).
-          if (progress <= 0.01 || progress >= 0.99) return;
+        ctx = gsap.context(() => {
+          const snapPoints: number[] = [];
+          for (let i = 0; i < n; i++) {
+            snapPoints.push((i + 0.5) / n);
+          }
+          snapPoints.push(1);
 
-          // Find the nearest snap point.
-          let best = snapPoints[0];
-          let bestDist = Math.abs(progress - best);
-          for (let i = 1; i < snapPoints.length; i++) {
-            const d = Math.abs(progress - snapPoints[i]);
-            if (d < bestDist) {
-              bestDist = d;
-              best = snapPoints[i];
+          let snapTimer = 0;
+          let isSnapping = false;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let stInstance: any = null;
+
+          const doSnap = () => {
+            if (!stInstance) return;
+            const lenis = getLenis();
+            if (!lenis) return;
+
+            const progress = stInstance.progress as number;
+            if (progress <= 0.01 || progress >= 0.99) return;
+
+            let best = snapPoints[0];
+            let bestDist = Math.abs(progress - best);
+            for (let i = 1; i < snapPoints.length; i++) {
+              const d = Math.abs(progress - snapPoints[i]);
+              if (d < bestDist) {
+                bestDist = d;
+                best = snapPoints[i];
+              }
             }
+
+            if (bestDist < 0.005) return;
+
+            const triggerStart = stInstance.start as number;
+            const triggerEnd = stInstance.end as number;
+            const targetScroll = triggerStart + best * (triggerEnd - triggerStart);
+
+            isSnapping = true;
+            lenis.scrollTo(targetScroll, {
+              duration: 0.8,
+              easing: (t: number) => 1 - Math.pow(1 - t, 3),
+              onComplete: () => {
+                isSnapping = false;
+              },
+            });
+          };
+
+          const lenis = getLenis();
+          const onLenisScroll = () => {
+            if (isSnapping) return;
+            window.clearTimeout(snapTimer);
+            snapTimer = window.setTimeout(doSnap, 120);
+          };
+          if (lenis) {
+            lenis.on("scroll", onLenisScroll);
           }
 
-          // Only snap if we're not already close enough.
-          if (bestDist < 0.005) return;
-
-          // Convert progress to an absolute scroll position.
-          const triggerStart = stInstance.start as number;
-          const triggerEnd = stInstance.end as number;
-          const targetScroll = triggerStart + best * (triggerEnd - triggerStart);
-
-          isSnapping = true;
-          lenis.scrollTo(targetScroll, {
-            duration: 0.8,
-            easing: (t: number) => 1 - Math.pow(1 - t, 3), // easeOutCubic
-            onComplete: () => {
-              isSnapping = false;
-            },
+          stInstance = ScrollTrigger.create({
+            trigger: root,
+            start: "top top",
+            end: "bottom bottom",
+            invalidateOnRefresh: true,
+            refreshPriority: -1,
+            onUpdate: (self: { progress: number }) => applyProgress(self.progress),
+            onRefresh: (self: { progress: number }) => applyProgress(self.progress),
           });
-        };
 
-        // Listen for Lenis scroll-stop to trigger snapping.
-        const lenis = getLenis();
-        const onLenisScroll = () => {
-          if (isSnapping) return;
-          window.clearTimeout(snapTimer);
-          snapTimer = window.setTimeout(doSnap, 120);
-        };
-        if (lenis) {
-          lenis.on("scroll", onLenisScroll);
-        }
+          (root as any).__storySnapCleanup = () => {
+            window.clearTimeout(snapTimer);
+            const l = getLenis();
+            if (l) l.off("scroll", onLenisScroll);
+          };
+        }, root);
 
-        stInstance = ScrollTrigger.create({
-          trigger: root,
-          start: "top top",
-          end: "bottom bottom",
-          invalidateOnRefresh: true,
-          // Measured after any upstream pin — matches StoryProcess.
-          refreshPriority: -1,
-          onUpdate: (self: { progress: number }) => applyProgress(self.progress),
-          onRefresh: (self: { progress: number }) => applyProgress(self.progress),
-        });
-
-        // Store cleanup for the Lenis listener.
-        (root as any).__storySnapCleanup = () => {
-          window.clearTimeout(snapTimer);
-          const l = getLenis();
-          if (l) l.off("scroll", onLenisScroll);
-        };
-      }, root);
-
-      ScrollTrigger.refresh();
+        ScrollTrigger.refresh();
+      } catch (error) {
+        console.error("StoryScenes: GSAP initialization failed", error);
+        root.classList.remove("is--pre");
+        root.classList.add("is--static");
+      }
     })();
 
     return () => {
       cancelled = true;
-      window.removeEventListener(CURTAIN_REVEAL_EVENT, beginEntry);
-      window.clearTimeout(entryTimer);
-      window.clearTimeout(entryDoneTimer);
-      dustOn = false;
-      cancelAnimationFrame(dustRaf);
-      dustObserver?.disconnect();
-      // Clean up Lenis snap listener.
       if (root && (root as any).__storySnapCleanup) {
         (root as any).__storySnapCleanup();
         delete (root as any).__storySnapCleanup;
