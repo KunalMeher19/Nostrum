@@ -480,11 +480,6 @@ export default function StoryScenes() {
           };
 
           const handleTouchMove = (e: TouchEvent) => {
-            if (animating) {
-              e.preventDefault();
-              return;
-            }
-
             const touchEndY = e.touches[0].clientY;
             const deltaY = touchStartY - touchEndY;
             const direction = deltaY > 0 ? 1 : -1;
@@ -501,10 +496,11 @@ export default function StoryScenes() {
               return; // Allow scroll to pass through
             }
 
-            // At last scene swiping down: allow natural scroll (same as CrispHeader)
+            // At last scene swiping down: handle carefully (same as CrispHeader)
             if (current === length - 1 && direction === 1) {
+              e.preventDefault(); // Always prevent default at last scene
               if (animating) {
-                e.preventDefault();
+                pendingScroll = true;
                 return;
               }
               // On last scene and not animating - unlock and allow scroll
@@ -515,16 +511,24 @@ export default function StoryScenes() {
                   lenis.start();
                 }
               }
-              // DO NOT preventDefault - let scroll pass through
               return;
+            }
+
+            // Reset pending scroll on upward swipe
+            if (direction === -1) pendingScroll = false;
+
+            // CRITICAL: Trap scroll for ANY movement > 10px (same as CrispHeader line 870-872)
+            if (Math.abs(deltaY) > 10) {
+              e.preventDefault(); // Block native scroll
+            } else {
+              return; // Too small, ignore
             }
 
             const now = Date.now();
             if (animating || now - lastWheelTime < 1200) return;
 
+            // Navigate only if movement > 30px
             if (Math.abs(deltaY) > 30) {
-              e.preventDefault();
-
               // Lock scroll
               if (!scrollLocked) {
                 scrollLocked = true;
@@ -544,10 +548,24 @@ export default function StoryScenes() {
           root.addEventListener("touchstart", handleTouchStart, { passive: false });
           root.addEventListener("touchmove", handleTouchMove, { passive: false });
 
+          // CRITICAL: Add document-level scroll prevention (like CrispHeader)
+          // This prevents ANY scroll while we're locked, not just events on the section
+          const preventDocumentScroll = (e: Event) => {
+            if (scrollLocked) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          };
+
+          document.addEventListener("wheel", preventDocumentScroll, { passive: false });
+          document.addEventListener("touchmove", preventDocumentScroll, { passive: false });
+
           (root as any).__storySnapCleanup = () => {
             root.removeEventListener("wheel", handleWheel);
             root.removeEventListener("touchstart", handleTouchStart);
             root.removeEventListener("touchmove", handleTouchMove);
+            document.removeEventListener("wheel", preventDocumentScroll);
+            document.removeEventListener("touchmove", preventDocumentScroll);
 
             // Cleanup splits
             splits.forEach(({ split }) => {
