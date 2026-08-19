@@ -361,9 +361,9 @@ export default function StoryScenes() {
                   currentScene.classList.remove("is--current", "is--live");
                   animating = false;
 
-                  // At boundaries, unlock scroll
-                  if ((current === 0 && direction === -1) ||
-                      (current === length - 1 && direction === 1)) {
+                  // ONLY unlock scroll if we reached the last scene going down
+                  // This allows immediate scroll-through after animation completes
+                  if (current === length - 1 && direction === 1) {
                     scrollLocked = false;
                     const lenis = getLenisInstance();
                     if (lenis && typeof lenis.start === 'function') {
