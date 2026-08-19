@@ -7,6 +7,7 @@ import {
   CURTAIN_REVEAL_EVENT,
 } from "../RouteCurtain/curtainNav";
 import { getLenis } from "../SmoothScroll/lenisStore";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./story-scenes.css";
 import { useLocale } from "../LocaleContext/LocaleContext";
 
