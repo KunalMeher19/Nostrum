@@ -233,7 +233,7 @@ export default function StoryScenes() {
           const length = scenes.length;
           let animating = false;
           const animationDuration = 1.2; // Same as CrispHeader
-          let scrollLocked = false;
+          let scrollLocked = true; // Start locked (same as CrispHeader line 316)
 
           // Mark first scene as current
           scenes[0]?.classList.add("is--current", "is--live");
@@ -246,6 +246,13 @@ export default function StoryScenes() {
             }
             return null;
           };
+
+          // Lock Lenis immediately - start life in slideshow mode with page locked
+          // (same as CrispHeader line 316: lenis.stop())
+          const lenis = getLenisInstance();
+          if (lenis && typeof lenis.stop === 'function') {
+            lenis.stop();
+          }
 
           // Text transition with SplitText (same as CrispHeader transitionText)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -348,6 +355,9 @@ export default function StoryScenes() {
             const upcomingScene = scenes[current];
             const upcomingInner = scenesInner[current];
 
+            // Track if we're navigating TO the last slide
+            const navigatingToLast = previous !== length - 1 && current === length - 1;
+
             gsap
               .timeline({
                 defaults: { duration: animationDuration, ease: "slideshow-wipe" },
@@ -361,15 +371,18 @@ export default function StoryScenes() {
                   currentScene.classList.remove("is--current", "is--live");
                   animating = false;
 
-                  // ONLY unlock scroll if we reached the last scene going down
-                  // This allows immediate scroll-through after animation completes
-                  if (current === length - 1 && direction === 1) {
+                  // ONLY unlock if we reached the last scene going down
+                  // AND user has pending scroll intent
+                  if (current === length - 1 && direction === 1 && pendingScroll) {
                     scrollLocked = false;
                     const lenis = getLenisInstance();
                     if (lenis && typeof lenis.start === 'function') {
                       lenis.start();
                     }
+                    pendingScroll = false;
                   }
+                  // If just arrived at last scene but no pending scroll, stay locked
+                  // User must swipe again to unlock
                 },
               })
               // Horizontal wipe with parallax (exact same as CrispHeader)
@@ -391,6 +404,7 @@ export default function StoryScenes() {
 
           // Wheel handling (same debounce as CrispHeader: 1200ms)
           let lastWheelTime = 0;
+          let pendingScroll = false; // Track if user wants to scroll past last scene
 
           const handleWheel = (e: WheelEvent) => {
             // Ignore horizontal scrolls
@@ -411,14 +425,16 @@ export default function StoryScenes() {
               return; // Allow scroll to pass through
             }
 
-            // At last scene scrolling down: allow natural scroll (SAME AS CRISPHEADER)
+            // At last scene scrolling down: handle carefully (SAME AS CRISPHEADER)
             if (current === length - 1 && direction === 1) {
               if (animating) {
-                // Still animating TO the last scene - swallow the event
+                // Still animating TO the last scene - block ALL scroll
                 e.preventDefault();
+                e.stopPropagation();
+                pendingScroll = true;
                 return;
               }
-              // On last scene and not animating - unlock and allow scroll through
+              // On last scene, animation done, and not animating - unlock and allow scroll
               if (scrollLocked) {
                 scrollLocked = false;
                 const lenis = getLenisInstance();
@@ -426,13 +442,19 @@ export default function StoryScenes() {
                   lenis.start();
                 }
               }
-              // DO NOT preventDefault - let scroll pass through (key difference!)
+              // DO NOT preventDefault - let scroll pass through
               return;
             }
 
-            // Inside slider bounds: trap scroll and navigate
+            // Inside slider bounds or animating: trap ALL scroll
             e.preventDefault();
             e.stopPropagation();
+
+            // If still animating, block everything
+            if (animating) return;
+
+            // Reset pending scroll if user scrolls up
+            if (direction === -1) pendingScroll = false;
 
             // Lock Lenis
             if (!scrollLocked) {
@@ -444,7 +466,7 @@ export default function StoryScenes() {
             }
 
             const now = Date.now();
-            if (animating || now - lastWheelTime < 1200) return;
+            if (now - lastWheelTime < 1200) return;
 
             navigate(direction);
             lastWheelTime = now;
