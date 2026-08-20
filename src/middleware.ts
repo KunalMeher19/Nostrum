@@ -19,9 +19,11 @@ export function middleware(req: NextRequest) {
     return res;
   }
 
-  // Determine best locale: cookie → Accept-Language → default
+  // Determine best locale: cookie → default
+  // (We default to 'en' so new users see English by default,
+  // but keep the browser language detection code below as requested)
   const cookie = req.cookies.get(COOKIE)?.value;
-  let locale = isValidLocale(cookie ?? '') ? (cookie as string) : null;
+  let locale = isValidLocale(cookie ?? '') ? (cookie as string) : 'en';
 
   if (!locale) {
     const accept = req.headers.get('accept-language') ?? '';
