@@ -4,6 +4,10 @@
 // museum (four rooms you walk through, scroll-driven), then the
 // stories (the blog). Dark brand page; imagery carries the weight,
 // captions whisper.
+//
+// Multi-language support (2026-08-20): posts can have translations.
+// When displaying, we check if the current locale has a translation;
+// if yes, show it; otherwise fall back to the English (base) content.
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,6 +17,35 @@ import {
   type MuseumExhibit,
 } from "@/lib/api";
 import "./journal.css";
+
+// Helper to get localized post content
+function getLocalizedPost(post: JournalPost, locale: string) {
+  // If locale is 'en' or no translations exist, return base content
+  if (locale === 'en' || !post.translations) {
+    return {
+      title: post.title,
+      excerpt: post.excerpt,
+      body: post.body,
+    };
+  }
+
+  // Check if translation exists for this locale
+  const translation = post.translations[locale as 'es' | 'ca' | 'it' | 'el'];
+  if (translation) {
+    return {
+      title: translation.title,
+      excerpt: translation.excerpt,
+      body: translation.body,
+    };
+  }
+
+  // Fallback to English
+  return {
+    title: post.title,
+    excerpt: post.excerpt,
+    body: post.body,
+  };
+}
 
 export default function JournalSection({
   posts,
@@ -169,11 +202,12 @@ export default function JournalSection({
       <div className="jr__branch-wrapper" data-jr-branch>
         <svg
           className="jr__hero-branch"
-          viewBox="0 0 320 420"
+          viewBox="0 0 320 800"
           fill="none"
           aria-hidden="true"
+          preserveAspectRatio="xMidYMin meet"
         >
-          {/* Stem: a gentle, living curve. */}
+          {/* Stem: a gentle, living curve extended all the way down. */}
           <path
             d="M66 404 C 78 380 86 364 96 344 C 106 324 113 308 124 290 C 135 272 141 256 152 238 C 163 220 171 204 182 186 C 193 168 202 152 214 134 C 226 116 236 100 248 84 C 258 71 268 56 278 42"
             strokeWidth="1.6"
@@ -253,38 +287,41 @@ export default function JournalSection({
           )}
 
           <ol className="jr__list">
-            {posts.map((p) => (
-              <li key={p.id} data-jr-story>
-                <Link href={`/${locale}/journal/${p.slug}`} className="jr__story">
-                  {p.coverImage && (
-                    <span className="jr__story-media">
-                      <Image
-                        src={p.coverImage}
-                        alt=""
-                        fill
-                        sizes="(max-width: 760px) 92vw, 28vw"
-                      />
-                    </span>
-                  )}
-                  <span className="jr__story-body">
-                    <span className="jr__story-date">{dateFmt(p.publishedAt)}</span>
-                    <span className="jr__story-title">{p.title}</span>
-                    <span className="jr__story-excerpt">{p.excerpt}</span>
-                    <span className="jr__story-more">
-                      {t("journal.read_story")}
-                      <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
-                        <path
-                          d="M1 13 13 1M4 1h9v9"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.4"
+            {posts.map((p) => {
+              const localized = getLocalizedPost(p, locale);
+              return (
+                <li key={p.id} data-jr-story>
+                  <Link href={`/${locale}/journal/${p.slug}`} className="jr__story">
+                    {p.coverImage && (
+                      <span className="jr__story-media">
+                        <Image
+                          src={p.coverImage}
+                          alt=""
+                          fill
+                          sizes="(max-width: 760px) 92vw, 28vw"
                         />
-                      </svg>
+                      </span>
+                    )}
+                    <span className="jr__story-body">
+                      <span className="jr__story-date">{dateFmt(p.publishedAt)}</span>
+                      <span className="jr__story-title">{localized.title}</span>
+                      <span className="jr__story-excerpt">{localized.excerpt}</span>
+                      <span className="jr__story-more">
+                        {t("journal.read_story")}
+                        <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
+                          <path
+                            d="M1 13 13 1M4 1h9v9"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.4"
+                          />
+                        </svg>
+                      </span>
                     </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              );
+            })}
           </ol>
         </div>
       </section>

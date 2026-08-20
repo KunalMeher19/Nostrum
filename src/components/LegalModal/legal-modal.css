@@ -1,0 +1,505 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Legal Modal — Premium legal document viewer
+   ═══════════════════════════════════════════════════════════════════════════
+
+   A luxury full-screen modal for displaying legal documents with a premium
+   reading experience. Dark brand design (#14160F ink-black) with deep olive
+   panel (#2A2D1F), gold accents (#E6B422), and generous whitespace.
+
+   Design principles:
+   - Readability first: generous line-height, optimal line length, clear hierarchy
+   - Premium feel: soft shadows, gold keylines, smooth animations
+   - Accessible: high contrast, keyboard navigation, reduced-motion safe
+   - Brand-aligned: matches Nostrum's dark luxury aesthetic
+
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.legal-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(20, 22, 15, 0.95); /* ink-black with transparency */
+  backdrop-filter: blur(8px);
+  animation: lm-fade-in 0.3s ease-out;
+}
+
+.legal-modal.is--closing {
+  animation: lm-fade-out 0.3s ease-out;
+}
+
+@keyframes lm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lm-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Panel
+   ───────────────────────────────────────────────────────────────────────── */
+
+.legal-modal__panel {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  max-height: 85vh;
+  background: #2A2D1F; /* deep olive panel */
+  border-radius: 8px;
+  box-shadow:
+    0 1px 0 0 rgba(230, 180, 34, 0.15), /* gold top keyline */
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 24px 64px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: lm-panel-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.legal-modal.is--closing .legal-modal__panel {
+  animation: lm-panel-out 0.3s cubic-bezier(0.4, 0, 1, 1);
+}
+
+@keyframes lm-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes lm-panel-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Header
+   ───────────────────────────────────────────────────────────────────────── */
+
+.legal-modal__header {
+  position: relative;
+  padding: 2rem 2.5rem 1.5rem;
+  border-bottom: 1px solid rgba(230, 180, 34, 0.15); /* gold hairline */
+  background: linear-gradient(180deg, rgba(230, 180, 34, 0.03) 0%, transparent 100%);
+}
+
+.legal-modal__title {
+  margin: 0;
+  font-family: var(--font-display, serif);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: #E6B422; /* gold */
+  line-height: 1.2;
+}
+
+.legal-modal__close {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid rgba(230, 180, 34, 0.2);
+  border-radius: 50%;
+  color: rgba(241, 237, 225, 0.6); /* off-white muted */
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.legal-modal__close:hover {
+  border-color: rgba(230, 180, 34, 0.5);
+  color: #E6B422;
+  background: rgba(230, 180, 34, 0.05);
+  transform: rotate(90deg);
+}
+
+.legal-modal__close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Navigation (Table of Contents)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.legal-modal__nav {
+  padding: 1.5rem 2.5rem;
+  border-bottom: 1px solid rgba(230, 180, 34, 0.1);
+  background: rgba(20, 22, 15, 0.3);
+}
+
+.legal-modal__nav-label {
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(230, 180, 34, 0.7);
+}
+
+.legal-modal__nav-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.legal-modal__nav-item {
+  padding: 0.5rem 1rem;
+  background: rgba(241, 237, 225, 0.05);
+  border: 1px solid rgba(230, 180, 34, 0.15);
+  border-radius: 24px;
+  font-size: 0.875rem;
+  color: rgba(241, 237, 225, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.legal-modal__nav-item:hover {
+  background: rgba(230, 180, 34, 0.1);
+  border-color: rgba(230, 180, 34, 0.4);
+  color: #E6B422;
+  transform: translateY(-1px);
+}
+
+.legal-modal__nav-item:active {
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Content
+   ───────────────────────────────────────────────────────────────────────── */
+
+.legal-modal__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar */
+.legal-modal__content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.legal-modal__content::-webkit-scrollbar-track {
+  background: rgba(20, 22, 15, 0.3);
+}
+
+.legal-modal__content::-webkit-scrollbar-thumb {
+  background: rgba(230, 180, 34, 0.3);
+  border-radius: 4px;
+}
+
+.legal-modal__content::-webkit-scrollbar-thumb:hover {
+  background: rgba(230, 180, 34, 0.5);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Sections
+   ───────────────────────────────────────────────────────────────────────── */
+
+.legal-modal__section {
+  margin-bottom: 3rem;
+  scroll-margin-top: 2rem;
+}
+
+.legal-modal__section:last-child {
+  margin-bottom: 0;
+}
+
+.legal-modal__section-title {
+  margin: 0 0 1.5rem;
+  font-family: var(--font-display, serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #E6B422; /* gold */
+  line-height: 1.3;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(230, 180, 34, 0.15);
+}
+
+.legal-modal__paragraph {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-body, sans-serif);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: rgba(241, 237, 225, 0.9); /* off-white */
+  white-space: pre-wrap; /* Preserve line breaks */
+}
+
+.legal-modal__paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Email links */
+.legal-modal__paragraph a,
+.legal-modal__content a {
+  color: #E6B422;
+  text-decoration: underline;
+  text-decoration-color: rgba(230, 180, 34, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.2s ease;
+}
+
+.legal-modal__paragraph a:hover,
+.legal-modal__content a:hover {
+  text-decoration-color: #E6B422;
+  color: #F4D06F; /* lighter gold on hover */
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Table
+   ───────────────────────────────────────────────────────────────────────── */
+
+.legal-modal__table-wrapper {
+  margin: 2rem 0;
+  overflow-x: auto;
+  border-radius: 4px;
+  border: 1px solid rgba(230, 180, 34, 0.15);
+  background: rgba(20, 22, 15, 0.4);
+}
+
+.legal-modal__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.legal-modal__table thead {
+  background: rgba(230, 180, 34, 0.08);
+  border-bottom: 1px solid rgba(230, 180, 34, 0.25);
+}
+
+.legal-modal__table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #E6B422;
+  white-space: nowrap;
+}
+
+.legal-modal__table td {
+  padding: 1rem;
+  border-top: 1px solid rgba(230, 180, 34, 0.1);
+  color: rgba(241, 237, 225, 0.85);
+  line-height: 1.6;
+}
+
+.legal-modal__table tbody tr:hover {
+  background: rgba(230, 180, 34, 0.04);
+}
+
+/* First column (cookie name) - slightly bolder */
+.legal-modal__table td:first-child {
+  font-weight: 500;
+  color: rgba(241, 237, 225, 0.95);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Responsive
+   ───────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .legal-modal {
+    padding: 1rem;
+  }
+
+  .legal-modal__panel {
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+
+  .legal-modal__header {
+    padding: 1.5rem 1.5rem 1.25rem;
+  }
+
+  .legal-modal__title {
+    font-size: 1.5rem;
+    padding-right: 2.5rem;
+  }
+
+  .legal-modal__close {
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 36px;
+    height: 36px;
+  }
+
+  .legal-modal__nav {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .legal-modal__nav-items {
+    gap: 0.5rem;
+  }
+
+  .legal-modal__nav-item {
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.875rem;
+  }
+
+  .legal-modal__content {
+    padding: 1.5rem;
+  }
+
+  .legal-modal__section {
+    margin-bottom: 2.5rem;
+  }
+
+  .legal-modal__section-title {
+    font-size: 1.25rem;
+  }
+
+  .legal-modal__paragraph {
+    font-size: 0.9375rem;
+  }
+
+  /* Make table scrollable on mobile */
+  .legal-modal__table-wrapper {
+    margin: 1.5rem -1.5rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .legal-modal__table {
+    font-size: 0.8125rem;
+  }
+
+  .legal-modal__table th,
+  .legal-modal__table td {
+    padding: 0.75rem;
+    min-width: 100px;
+  }
+
+  .legal-modal__table th {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .legal-modal {
+    padding: 0;
+  }
+
+  .legal-modal__panel {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .legal-modal__header {
+    padding: 1.25rem 1.25rem 1rem;
+  }
+
+  .legal-modal__title {
+    font-size: 1.375rem;
+  }
+
+  .legal-modal__close {
+    top: 1.25rem;
+    right: 1.25rem;
+  }
+
+  .legal-modal__nav {
+    padding: 1rem 1.25rem;
+  }
+
+  .legal-modal__content {
+    padding: 1.25rem;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Reduced Motion
+   ───────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-modal,
+  .legal-modal__panel,
+  .legal-modal__close,
+  .legal-modal__nav-item {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .legal-modal__close:hover {
+    transform: none;
+  }
+
+  .legal-modal__nav-item:hover {
+    transform: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Print Styles
+   ───────────────────────────────────────────────────────────────────────── */
+
+@media print {
+  .legal-modal {
+    position: static;
+    background: white;
+    padding: 0;
+  }
+
+  .legal-modal__panel {
+    max-height: none;
+    box-shadow: none;
+    background: white;
+  }
+
+  .legal-modal__header {
+    border-bottom-color: #000;
+  }
+
+  .legal-modal__close,
+  .legal-modal__nav {
+    display: none;
+  }
+
+  .legal-modal__title,
+  .legal-modal__section-title {
+    color: #000;
+  }
+
+  .legal-modal__paragraph,
+  .legal-modal__table td {
+    color: #000;
+  }
+
+  .legal-modal__content {
+    overflow: visible;
+  }
+}

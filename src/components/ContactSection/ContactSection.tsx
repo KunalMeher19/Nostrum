@@ -26,7 +26,7 @@ import { submitContact, type ContactTopic } from "@/lib/api";
 /* ------------------------------------------------------------------ */
 
 const CONTACT = {
-  email: "sales@nostrumoils.com",
+  email: "office@nostrumoils.com",
   salesEmail: "sales@nostrumoils.com",
   phone: "+34 680 889 399",
   address: ["El Perelló, Catalonia", "Spain, EU"],
@@ -135,6 +135,9 @@ export default function ContactSection() {
             <span className="ct__channel-label">{t("contact.email_label")}</span>
             <a className="ct__channel-value" href={`mailto:${CONTACT.email}`}>
               {CONTACT.email}
+            </a>
+            <a className="ct__channel-value" href={`mailto:${CONTACT.salesEmail}`}>
+              {CONTACT.salesEmail}
             </a>
           </div>
           <div className="ct__channel">

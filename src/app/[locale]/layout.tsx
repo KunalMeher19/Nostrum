@@ -6,6 +6,7 @@ import UnderlayNav from "@/components/UnderlayNav/UnderlayNav";
 import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
 import NewsletterModal from "@/components/NewsletterModal/NewsletterModal";
 import CartDrawer from "@/components/Cart/CartDrawer";
+import LegalModal from "@/components/LegalModal/LegalModal";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -35,6 +36,10 @@ export default async function LocaleLayout({
           per session. Renders nothing until it opens. Lives here (not the
           root layout) so it can read the locale context. */}
       <NewsletterModal />
+      {/* Legal document modal — premium viewer for Privacy Policy, Cookie
+          Policy, Terms of Sale, Legal Notice. Opens via showLegalModal()
+          exported from LegalModal component. */}
+      <LegalModal />
     </LocaleProvider>
   );
 }

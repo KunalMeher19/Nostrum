@@ -6,6 +6,8 @@ import { getLenis, onLenis } from "../SmoothScroll/lenisStore";
 import PressureWordmark from "./PressureWordmark";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import { LocaleLink } from "../LocaleContext/LocaleLink";
+import { showLegalModal } from "../LegalModal/LegalModal";
+import type { LegalLocale } from "@/lib/legal-content";
 
 /* ------------------------------------------------------------------ */
 /* SiteFooter — sits below the light Shop and drives --page-t back to  */
@@ -29,7 +31,7 @@ const NAV_LINKS = [
 export default function SiteFooter() {
   const sectionRef = useRef<HTMLElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   // Mirror of ProductsSection's theme flip — but reversed: drives --page-t
   // back to 0 (dark) as you scroll into the footer, so the whole viewport
@@ -230,13 +232,40 @@ export default function SiteFooter() {
         </span>
         <ul className="nf__gdpr">
           <li>
-            <LocaleLink href="/privacy">{t("footer.privacy")}</LocaleLink>
+            <button
+              onClick={() => showLegalModal("privacy", locale as LegalLocale)}
+              className="nf__legal-link"
+              type="button"
+            >
+              {t("footer.privacy")}
+            </button>
           </li>
           <li>
-            <LocaleLink href="/cookies">{t("footer.cookies")}</LocaleLink>
+            <button
+              onClick={() => showLegalModal("cookies", locale as LegalLocale)}
+              className="nf__legal-link"
+              type="button"
+            >
+              {t("footer.cookies")}
+            </button>
           </li>
           <li>
-            <LocaleLink href="/legal">{t("footer.legal")}</LocaleLink>
+            <button
+              onClick={() => showLegalModal("legal", locale as LegalLocale)}
+              className="nf__legal-link"
+              type="button"
+            >
+              {t("footer.legal")}
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => showLegalModal("terms", locale as LegalLocale)}
+              className="nf__legal-link"
+              type="button"
+            >
+              {t("footer.terms")}
+            </button>
           </li>
         </ul>
       </div>

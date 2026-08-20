@@ -10,25 +10,28 @@ import { subscribeNewsletter } from "@/lib/api";
  * NewsletterModal — "The Nostrum Journal" subscription invitation.
  *
  * A split-screen editorial modal (copy left, product photography right) that
- * fades in ~1min AFTER the loading screen has finished — never over the loader
- * intro. It reads as joining a private olive-oil journal, not a marketing
- * popup: warm paper panel, hairline borders, gold accents, generous space.
+ * fades in after the cookie consent banner has been dismissed AND a further
+ * delay — never while the cookie banner is still on screen.
  *
  * Behaviour:
- *  - Waits for `.crisp-header.is--loading` to clear (home loader), then 1min.
- *    On pages without the loader the countdown starts immediately.
- *  - Shows once per browser session (sessionStorage), and never again once
- *    subscribed (localStorage).
+ *  - Waits for `.crisp-header.is--loading` to clear (home loader).
+ *  - Waits for the cookie consent banner to be dismissed (the user must
+ *    accept/reject cookies first). If cookies were already chosen in a
+ *    previous visit, this step is instant.
+ *  - Then waits DELAY_AFTER_CONSENT_MS before opening.
+ *  - Keeps showing on every visit until the user actually subscribes
+ *    (localStorage). Dismissing without subscribing just closes for now —
+ *    it will return on the next page load / session.
  *  - ESC, backdrop click, and the ✕ all close. Scroll is paused while open
  *    (Lenis stop/start — restored only if it was running before).
  *  - Entrance: overlay fades, panel scales 0.98 → 1; content cascades in.
  *    Reduced-motion gets an instant, animation-free show/hide.
  */
 
-const SESSION_KEY = "nostrum-journal-shown";
 const SUBSCRIBED_KEY = "nostrum-journal-subscribed";
-// Feedback 2.0: "I know I said 5 seconds but it might be better in a minute."
-const DELAY_AFTER_LOAD_MS = 60_000;
+const COOKIE_CHOICE_KEY = "nostrum-cookie-choice";
+// Delay after cookie consent is dismissed before showing the modal
+const DELAY_AFTER_CONSENT_MS = 22_000;
 const LOADER_POLL_MS = 250;
 
 export default function NewsletterModal() {
@@ -45,14 +48,11 @@ export default function NewsletterModal() {
   // stopped on purpose) — only restart on close if WE stopped it.
   const lenisWasRunning = useRef(false);
 
-  /* ---- Arm the timer: loader gone → 5s → open --------------------------- */
+  /* ---- Arm: loader gone → cookie consent settled → delay → open --------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (
-        sessionStorage.getItem(SESSION_KEY) ||
-        localStorage.getItem(SUBSCRIBED_KEY)
-      ) {
+      if (localStorage.getItem(SUBSCRIBED_KEY)) {
         return;
       }
     } catch {
@@ -61,34 +61,59 @@ export default function NewsletterModal() {
 
     let timer: ReturnType<typeof setTimeout> | null = null;
     let poll: ReturnType<typeof setInterval> | null = null;
+    let consentListener: (() => void) | null = null;
     let cancelled = false;
 
-    const arm = () => {
+    const showModal = () => {
       if (cancelled) return;
       timer = setTimeout(() => {
         if (cancelled) return;
-        try {
-          sessionStorage.setItem(SESSION_KEY, "1");
-        } catch {
-          /* ignore */
-        }
         setOpen(true);
-      }, DELAY_AFTER_LOAD_MS);
+      }, DELAY_AFTER_CONSENT_MS);
+    };
+
+    const waitForConsent = () => {
+      if (cancelled) return;
+
+      // If the user already made a cookie choice (returning visitor), skip waiting
+      let hasChoice = false;
+      try {
+        hasChoice = !!localStorage.getItem(COOKIE_CHOICE_KEY);
+      } catch {
+        // Storage unavailable — assume consent is handled
+        hasChoice = true;
+      }
+
+      if (hasChoice) {
+        showModal();
+        return;
+      }
+
+      // Listen for the cookie consent event (fired when user clicks accept/reject/preferences)
+      const handler = () => {
+        if (consentListener) {
+          window.removeEventListener("nostrum-consent", handler);
+          consentListener = null;
+        }
+        showModal();
+      };
+      consentListener = handler;
+      window.addEventListener("nostrum-consent", handler);
     };
 
     // The home hero keeps `.crisp-header.is--loading` on for the whole intro;
-    // poll until it clears. Pages without the hero arm immediately.
+    // poll until it clears. Pages without the hero proceed immediately.
     const loaderActive = () =>
       !!document.querySelector(".crisp-header.is--loading");
 
     if (!loaderActive()) {
-      arm();
+      waitForConsent();
     } else {
       poll = setInterval(() => {
         if (!loaderActive()) {
           if (poll) clearInterval(poll);
           poll = null;
-          arm();
+          waitForConsent();
         }
       }, LOADER_POLL_MS);
     }
@@ -97,6 +122,9 @@ export default function NewsletterModal() {
       cancelled = true;
       if (timer) clearTimeout(timer);
       if (poll) clearInterval(poll);
+      if (consentListener) {
+        window.removeEventListener("nostrum-consent", consentListener);
+      }
     };
   }, []);
 
@@ -156,6 +184,7 @@ export default function NewsletterModal() {
       setStatus("done");
       try {
         localStorage.setItem(SUBSCRIBED_KEY, "1");
+        sessionStorage.setItem(SUBSCRIBED_KEY, "1");
       } catch {
         /* ignore */
       }

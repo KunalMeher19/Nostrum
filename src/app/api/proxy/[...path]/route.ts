@@ -44,11 +44,24 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
       ? await req.arrayBuffer()
       : undefined;
 
-  const upstream = await fetch(target, {
-    method: req.method,
-    headers,
-    body,
-  });
+  let upstream;
+  try {
+    upstream = await fetch(target, {
+      method: req.method,
+      headers,
+      body,
+    });
+  } catch (err: any) {
+    // Backend not running or network error (ECONNREFUSED)
+    console.error(`[proxy] Failed to reach backend at ${target}:`, err.message);
+    return NextResponse.json(
+      {
+        error: "Backend unavailable",
+        message: "The backend service is not reachable. Ensure it's running on " + BACKEND,
+      },
+      { status: 503 }
+    );
+  }
 
   const data = await upstream.arrayBuffer();
 

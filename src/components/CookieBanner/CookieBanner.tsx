@@ -10,15 +10,15 @@ import "./cookie-banner.css";
  * hairline olive keyline, small gold eyebrow, editorial type. "Almost
  * invisible until noticed."
  *
- * Choreography (never fights the Journal modal / loader):
+ * Choreography (shows first, before the Journal modal):
  *  - Waits for `.crisp-header.is--loading` to clear (home loader).
- *  - Waits until the NewsletterModal (`.nl-modal`) is NOT in the DOM —
- *    the Journal invitation always gets the stage first.
  *  - Then waits for a quiet moment: no pointer / scroll / key activity
  *    for IDLE_MS before sliding up. Any interaction resets the clock, so
  *    it only ever appears while the visitor is at rest.
  *  - PERSISTS until user explicitly accepts/rejects — will reappear on
  *    every page load until a choice is made.
+ *  - The Journal (newsletter) modal waits for the cookie banner to be
+ *    dismissed before showing, so the two never stack.
  *
  * The legal pages aren't ready yet, so Preferences currently behaves as
  * a dismissal. The choice IS real consent state now: it is stored in
@@ -30,8 +30,8 @@ const CHOICE_KEY = "nostrum-cookie-choice";
 /** Fired on window whenever a consent choice is made (detail: the choice).
  *  Analytics listens so GA can load the moment "accept" is clicked. */
 export const CONSENT_EVENT = "nostrum-consent";
-const IDLE_MS = 2500; // quiet time required before entering (reduced for better visibility)
-const POLL_MS = 400; // loader / modal / idle check cadence
+const IDLE_MS = 2500; // quiet time required before entering
+const POLL_MS = 400; // loader / idle check cadence
 const EXIT_MS = 500; // keep in sync with --ck-out in the CSS
 
 export default function CookieBanner() {
@@ -39,7 +39,7 @@ export default function CookieBanner() {
   const [closing, setClosing] = useState(false);
   const lastActivity = useRef(0);
 
-  /* ---- Arm: loader gone → Journal modal gone → idle → show -------------- */
+  /* ---- Arm: loader gone → idle → show ----------------------------------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -72,28 +72,12 @@ export default function CookieBanner() {
 
     const loaderActive = () =>
       !!document.querySelector(".crisp-header.is--loading");
-    // The Journal invitation goes first: it is "settled" only once it has
-    // taken its turn this session (its session/subscribed key exists) AND
-    // it is no longer on screen. Before it opens (the 5s countdown) we keep
-    // waiting, so the two never enter together.
-    const journalSettled = () => {
-      if (document.querySelector(".nl-modal")) return false;
-      try {
-        return !!(
-          sessionStorage.getItem("nostrum-journal-shown") ||
-          localStorage.getItem("nostrum-journal-subscribed")
-        );
-      } catch {
-        // Storage unavailable — can't know; don't hold the banner hostage.
-        return true;
-      }
-    };
     const isIdle = () => performance.now() - lastActivity.current >= IDLE_MS;
 
     const poll = setInterval(() => {
-      if (loaderActive() || !journalSettled()) {
-        // While the loader or Journal has the stage, keep resetting the
-        // idle clock so we enter a beat AFTER they leave, not the instant.
+      if (loaderActive()) {
+        // While the loader has the stage, keep resetting the idle clock
+        // so we enter a beat AFTER it leaves, not the instant.
         lastActivity.current = performance.now();
         return;
       }

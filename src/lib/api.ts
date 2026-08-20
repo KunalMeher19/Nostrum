@@ -179,6 +179,13 @@ export type JournalPost = {
   coverImage: string | null;
   publishedAt: string | null;
   body?: string;
+  // Translations for other locales (2026-08-20)
+  translations?: {
+    es?: { title: string; excerpt: string; body: string } | null;
+    ca?: { title: string; excerpt: string; body: string } | null;
+    it?: { title: string; excerpt: string; body: string } | null;
+    el?: { title: string; excerpt: string; body: string } | null;
+  };
 };
 
 export type MuseumExhibit = {

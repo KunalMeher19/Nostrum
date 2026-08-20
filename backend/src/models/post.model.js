@@ -2,10 +2,25 @@
 // Authored in the admin portal; the public journal only ever sees
 // status: "published". Body is plain text; blank lines separate
 // paragraphs (rendered as <p> blocks by the frontend).
+//
+// Multi-language support (2026-08-20): each post can have translations
+// for different locales. The base content is in English, with optional
+// translations in es, ca, it, el. When displaying, show the translation
+// if available, otherwise fall back to English.
 const { mongoose } = require('../db/db');
+
+const translationSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, maxlength: 160 },
+    excerpt: { type: String, default: '', maxlength: 300 },
+    body: { type: String, default: '', maxlength: 20000 },
+  },
+  { _id: false }
+);
 
 const postSchema = new mongoose.Schema(
   {
+    // Base content (English)
     title: { type: String, required: true, maxlength: 160 },
     slug: { type: String, required: true, unique: true },
     excerpt: { type: String, default: '', maxlength: 300 },
@@ -17,6 +32,13 @@ const postSchema = new mongoose.Schema(
     publishedAt: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    // Translations for other locales (optional)
+    translations: {
+      es: { type: translationSchema, default: null },
+      ca: { type: translationSchema, default: null },
+      it: { type: translationSchema, default: null },
+      el: { type: translationSchema, default: null },
+    },
   },
   { collection: 'journal_posts', versionKey: false }
 );

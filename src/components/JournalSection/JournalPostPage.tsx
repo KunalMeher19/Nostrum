@@ -2,6 +2,9 @@
 
 // JournalPostPage · one story, read quietly. Large cover, measured
 // text column, a way back to the journal and onward to the shop.
+//
+// Multi-language support (2026-08-20): displays translated content
+// if available for the current locale, otherwise falls back to English.
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,9 +12,38 @@ import { useLocale } from "../LocaleContext/LocaleContext";
 import type { JournalPost } from "@/lib/api";
 import "./journal.css";
 
+// Helper to get localized post content
+function getLocalizedPost(post: JournalPost, locale: string) {
+  if (locale === 'en' || !post.translations) {
+    return {
+      title: post.title,
+      excerpt: post.excerpt,
+      body: post.body || '',
+    };
+  }
+
+  const translation = post.translations[locale as 'es' | 'ca' | 'it' | 'el'];
+  if (translation) {
+    return {
+      title: translation.title,
+      excerpt: translation.excerpt,
+      body: translation.body,
+    };
+  }
+
+  return {
+    title: post.title,
+    excerpt: post.excerpt,
+    body: post.body || '',
+  };
+}
+
 export default function JournalPostPage({ post }: { post: JournalPost }) {
   const { t, locale } = useLocale();
   const root = useRef<HTMLDivElement>(null);
+
+  // Get localized content
+  const localized = getLocalizedPost(post, locale);
 
   useEffect(() => {
     const el = root.current;
