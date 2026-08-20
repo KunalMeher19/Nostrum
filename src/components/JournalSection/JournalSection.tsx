@@ -138,27 +138,7 @@ export default function JournalSection({
           },
         });
 
-        // Branch wrapper travels visually from top (14vh) to bottom (78vh)
-        // as the user scrolls through the entire journal page. The wrapper
-        // stays fixed but moves down smoothly, creating an elegant parallax
-        // effect where the branch "flows" alongside the blog posts.
-        gsap.fromTo(
-          "[data-jr-branch]",
-          { top: "14vh", opacity: 0.95 },
-          {
-            top: "calc(100vh - 500px)", // Moves to near bottom but stays visible
-            opacity: 0.4,
-            ease: "none",
-            scrollTrigger: {
-              trigger: "[data-jr-hero]",
-              start: "top top",
-              endTrigger: "[data-jr-stories]",
-              end: "bottom bottom",
-              scrub: 0.8,
-              // markers: true, // Uncomment to debug scroll positions
-            },
-          }
-        );
+        // No branch animation - it stays fixed in viewport via CSS
 
         // Stories: rows rise as they enter.
         gsap.utils.toArray<HTMLElement>("[data-jr-story]").forEach((row) => {
@@ -282,47 +262,70 @@ export default function JournalSection({
             <h2 className="jr__stories-title">{t("journal.stories_title")}</h2>
           </header>
 
-          {posts.length === 0 && (
-            <p className="jr__empty">{t("journal.stories_empty")}</p>
-          )}
-
-          <ol className="jr__list">
-            {posts.map((p) => {
-              const localized = getLocalizedPost(p, locale);
-              return (
-                <li key={p.id} data-jr-story>
-                  <Link href={`/${locale}/journal/${p.slug}`} className="jr__story">
-                    {p.coverImage && (
-                      <span className="jr__story-media">
-                        <Image
-                          src={p.coverImage}
-                          alt=""
-                          fill
-                          sizes="(max-width: 760px) 92vw, 28vw"
-                        />
-                      </span>
-                    )}
+          {posts.length === 0 ? (
+            // Loading skeleton placeholders when backend is not available
+            <ol className="jr__list">
+              {[1, 2, 3].map((n) => (
+                <li key={n} data-jr-story>
+                  <div className="jr__story jr__story--skeleton">
+                    <span className="jr__story-media jr__skeleton-shimmer">
+                      <span className="jr__skeleton-placeholder" />
+                    </span>
                     <span className="jr__story-body">
-                      <span className="jr__story-date">{dateFmt(p.publishedAt)}</span>
-                      <span className="jr__story-title">{localized.title}</span>
-                      <span className="jr__story-excerpt">{localized.excerpt}</span>
-                      <span className="jr__story-more">
-                        {t("journal.read_story")}
-                        <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
-                          <path
-                            d="M1 13 13 1M4 1h9v9"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.4"
-                          />
-                        </svg>
+                      <span className="jr__story-date jr__skeleton-text">
+                        <span className="jr__skeleton-bar" style={{ width: "30%" }} />
+                      </span>
+                      <span className="jr__story-title jr__skeleton-text">
+                        <span className="jr__skeleton-bar" style={{ width: "85%" }} />
+                      </span>
+                      <span className="jr__story-excerpt jr__skeleton-text">
+                        <span className="jr__skeleton-bar" style={{ width: "100%", marginBottom: "0.5em" }} />
+                        <span className="jr__skeleton-bar" style={{ width: "70%" }} />
                       </span>
                     </span>
-                  </Link>
+                  </div>
                 </li>
-              );
-            })}
-          </ol>
+              ))}
+            </ol>
+          ) : (
+            <ol className="jr__list">
+              {posts.map((p) => {
+                const localized = getLocalizedPost(p, locale);
+                return (
+                  <li key={p.id} data-jr-story>
+                    <Link href={`/${locale}/journal/${p.slug}`} className="jr__story">
+                      {p.coverImage && (
+                        <span className="jr__story-media">
+                          <Image
+                            src={p.coverImage}
+                            alt=""
+                            fill
+                            sizes="(max-width: 760px) 92vw, 28vw"
+                          />
+                        </span>
+                      )}
+                      <span className="jr__story-body">
+                        <span className="jr__story-date">{dateFmt(p.publishedAt)}</span>
+                        <span className="jr__story-title">{localized.title}</span>
+                        <span className="jr__story-excerpt">{localized.excerpt}</span>
+                        <span className="jr__story-more">
+                          {t("journal.read_story")}
+                          <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
+                            <path
+                              d="M1 13 13 1M4 1h9v9"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.4"
+                            />
+                          </svg>
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
         </div>
       </section>
     </div>
