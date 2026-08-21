@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-08-21 after fixing footer legal modal cursor visibility and nested Lenis scrolling.
+> Updated 2026-08-21 after updating the contact success response-time copy to “usually reply in less than 48h.”
 
 > Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins "How it is made" images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below). Updated 2026-08-18 after mobile responsiveness overhaul (see 2.15 below). Updated 2026-08-21 after adding admin skeleton loading states across all data tabs and the customer portal order list, then restoring and tuning the Journal branch portal for desktop/tablet and applying the final desktop position/inertia pass. Updated 2026-08-21 after wiring empty-cart drawer suggestions to the live catalog and correcting cart thumbnail alignment, then removing the remaining horizontal letterboxing and fixing /cart reload image overflow. Updated 2026-08-21 after making the cart page hydration-aware.
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
@@ -47,6 +47,7 @@
 
 ### 2.1 Contact form backend — DONE
 - `POST /api/contact` (publicWrite limiter, validated) stores to `contact_messages` and relays via the backend mailer stub (`backend/src/services/mailer.service.js`, console until Resend). `ContactSection.tsx` wired with a retryable error state. Admin read-only inbox: `GET /api/admin/contact-messages`.
+- Contact success copy updated 2026-08-21 in all five locales: the previous “reply within a day or two” wording now says the team usually replies in less than 48 hours, matching client feedback.
 
 ### 2.2 Newsletter backend — DONE
 - `Subscriber` model (email, locale, consentAt, unsubscribedAt, hashed unsubscribe token). `POST /api/newsletter/subscribe` (consent required, enumeration-safe upsert). `NewsletterModal.tsx` wired + fully localized (`newsletter.*` in 5 locales). Admin export: `GET /api/admin/newsletter/subscribers(.csv)` (BOM-prefixed).

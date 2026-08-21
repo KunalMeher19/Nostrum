@@ -114,7 +114,7 @@
     "send": "Send message",
     "sending": "Sending…",
     "sent_title": "Received.",
-    "sent_line": "Thank you for writing. We read everything ourselves, expect a reply within a day or two.",
+    "sent_line": "Thank you for writing. We read everything ourselves, and usually reply in less than 48h.",
     "gdpr": "By sending you agree to our privacy policy.",
     "whatsapp_label": "Chat with Nostrum on WhatsApp",
     "send_error": "Something slipped. Please try sending again."
