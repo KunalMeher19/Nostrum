@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import "./cart-drawer.css";
 import { useCart } from "./CartContext";
@@ -8,15 +8,21 @@ import { useLocale } from "../LocaleContext/LocaleContext";
 import { LocaleLink } from "../LocaleContext/LocaleLink";
 import { getLenis } from "../SmoothScroll/lenisStore";
 import {
-  COLLECTION_TILES,
   formatEuro,
   getProduct,
   lineTotal,
   sizeImage,
   tierFor,
-  tileImage,
-  tilePrice,
 } from "@/lib/products";
+
+type SuggestedProduct = {
+  slug: string;
+  name: string;
+  subtitle: string;
+  images: string[];
+  sizes: { id: string; label: string; price: number }[];
+  defaultSizeId: string | null;
+};
 
 /* ------------------------------------------------------------------ */
 /* CartDrawer — slide-in cart, same chrome language as the menu          */
@@ -45,6 +51,29 @@ export default function CartDrawer() {
   const pathname = usePathname();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const [suggestedProducts, setSuggestedProducts] = useState<SuggestedProduct[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/proxy/products")
+      .then((response) => {
+        if (!response.ok) throw new Error("Product API unavailable");
+        return response.json() as Promise<{ products?: SuggestedProduct[] }>;
+      })
+      .then((data) => {
+        if (!alive) return;
+        setSuggestedProducts(data.products ?? []);
+        setSuggestionsLoading(false);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setSuggestionsLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   /* Close on any route change — "View full cart" / suggestion links
      navigate under the drawer; the new page must start unobstructed. */
@@ -148,19 +177,37 @@ export default function CartDrawer() {
               </LocaleLink>
             </div>
 
-            {/* The collection trio, small — something to reach for */}
+            {/* Live catalog suggestions, small — something to reach for */}
             <div className="cart-drawer__suggest">
               <p className="cart-drawer__suggest-eyebrow">
                 {t("cart.suggest_eyebrow")}
               </p>
-              <ul className="cart-drawer__suggest-list">
-                {COLLECTION_TILES.map((tile) => {
-                  const price = tilePrice(tile.id);
-                  const image = tileImage(tile.id);
+              {suggestionsLoading || suggestedProducts.length === 0 ? (
+                <ul className="cart-drawer__suggest-list cart-drawer__suggest-list--skeleton" aria-hidden="true">
+                  {[1, 2, 3].map((n) => (
+                    <li key={n}>
+                      <div className="cart-drawer__suggest-skeleton">
+                        <span className="cart-drawer__suggest-skeleton-media" />
+                        <span className="cart-drawer__suggest-skeleton-copy">
+                          <span className="cart-drawer__suggest-skeleton-line cart-drawer__suggest-skeleton-line--name" />
+                          <span className="cart-drawer__suggest-skeleton-line cart-drawer__suggest-skeleton-line--detail" />
+                        </span>
+                        <span className="cart-drawer__suggest-skeleton-price" />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <ul className="cart-drawer__suggest-list">
+                  {suggestedProducts.map((product) => {
+                    const size =
+                      product.sizes.find((s) => s.id === product.defaultSizeId) ??
+                      product.sizes[0];
+                    const image = product.images[0];
                   return (
-                    <li key={tile.id}>
+                    <li key={product.slug}>
                       <LocaleLink
-                        href={`/product/${tile.id}`}
+                        href={`/product/${product.slug}`}
                         className="cart-drawer__suggest-card"
                       >
                         <span
@@ -171,22 +218,23 @@ export default function CartDrawer() {
                         </span>
                         <span className="cart-drawer__suggest-meta">
                           <span className="cart-drawer__suggest-name">
-                            {t(tile.nameKey)}
+                            {product.name}
                           </span>
                           <span className="cart-drawer__suggest-detail">
-                            {t(tile.detailKey)}
+                            {size?.label ?? product.subtitle}
                           </span>
                         </span>
-                        {price !== null && (
+                        {size && (
                           <span className="cart-drawer__suggest-price">
-                            {formatEuro(price)}
+                            {formatEuro(size.price)}
                           </span>
                         )}
                       </LocaleLink>
                     </li>
                   );
                 })}
-              </ul>
+                </ul>
+              )}
             </div>
           </div>
         ) : (

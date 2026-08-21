@@ -547,6 +547,81 @@
   color: var(--nostrum-gold-metal);
 }
 
+/* ---- Live suggestion loading state -------------------------------------- */
+.cart-drawer__suggest-skeleton {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4.65rem;
+  padding: 0.85rem 0.6rem;
+  margin: 0 -0.6rem;
+  border-top: 1px solid
+    color-mix(in srgb, var(--nostrum-warm-white) 8%, transparent);
+}
+
+.cart-drawer__suggest-list--skeleton li:last-child .cart-drawer__suggest-skeleton {
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--nostrum-warm-white) 8%, transparent);
+}
+
+.cart-drawer__suggest-skeleton-media,
+.cart-drawer__suggest-skeleton-line,
+.cart-drawer__suggest-skeleton-price {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--nostrum-warm-white) 8%, transparent);
+}
+
+.cart-drawer__suggest-skeleton-media {
+  width: 3.1rem;
+  aspect-ratio: 4 / 4.6;
+  border: 1px solid
+    color-mix(in srgb, var(--nostrum-gold-metal) 20%, transparent);
+}
+
+.cart-drawer__suggest-skeleton-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.cart-drawer__suggest-skeleton-line--name {
+  width: 7rem;
+  height: 0.8rem;
+}
+
+.cart-drawer__suggest-skeleton-line--detail {
+  width: 5rem;
+  height: 0.55rem;
+}
+
+.cart-drawer__suggest-skeleton-price {
+  width: 3.8rem;
+  height: 0.8rem;
+}
+
+.cart-drawer__suggest-skeleton-media::after,
+.cart-drawer__suggest-skeleton-line::after,
+.cart-drawer__suggest-skeleton-price::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--nostrum-warm-white) 13%, transparent),
+    transparent
+  );
+  animation: cart-suggestion-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes cart-suggestion-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
 /* ---- Reduced motion --------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   .cart-drawer,
@@ -559,5 +634,10 @@
   .cart-drawer__row {
     opacity: 1;
     transform: none;
+  }
+  .cart-drawer__suggest-skeleton-media::after,
+  .cart-drawer__suggest-skeleton-line::after,
+  .cart-drawer__suggest-skeleton-price::after {
+    animation: none;
   }
 }
