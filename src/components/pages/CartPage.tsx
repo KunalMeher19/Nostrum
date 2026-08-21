@@ -28,7 +28,7 @@ import {
 /* ------------------------------------------------------------------ */
 
 export default function CartPage() {
-  const { items, count, subtotal, setQty, removeItem } = useCart();
+  const { items, count, subtotal, isHydrated, setQty, removeItem } = useCart();
   const { t, locale } = useLocale();
   const rootRef = useRef<HTMLElement>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -112,7 +112,7 @@ export default function CartPage() {
     // Re-run when the cart flips between empty and filled — the two states
     // render different [data-rise] trees.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length === 0]);
+  }, [isHydrated, items.length === 0]);
 
   return (
     <main data-main className="cart" ref={rootRef}>
@@ -127,7 +127,9 @@ export default function CartPage() {
           )}
         </header>
 
-        {items.length === 0 ? (
+        {!isHydrated ? (
+          <CartLoadingSkeleton />
+        ) : items.length === 0 ? (
           /* ---- Empty: an invitation into the Shop -------------------- */
           <div className="cart__empty">
             <div className="cart__empty-lede" data-rise>
@@ -258,5 +260,32 @@ export default function CartPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function CartLoadingSkeleton() {
+  return (
+    <div className="cart__loading" aria-hidden="true">
+      <div className="cart__loading-list">
+        {[1, 2, 3].map((row) => (
+          <div className="cart__loading-row" key={row}>
+            <span className="cart__loading-media" />
+            <span className="cart__loading-copy">
+              <span className="cart__loading-line cart__loading-line--name" />
+              <span className="cart__loading-line cart__loading-line--detail" />
+              <span className="cart__loading-line cart__loading-line--action" />
+            </span>
+            <span className="cart__loading-stepper" />
+            <span className="cart__loading-price" />
+          </div>
+        ))}
+      </div>
+      <aside className="cart__loading-summary">
+        <span className="cart__loading-line cart__loading-line--summary-label" />
+        <span className="cart__loading-line cart__loading-line--summary-total" />
+        <span className="cart__loading-line cart__loading-line--summary-note" />
+        <span className="cart__loading-button" />
+      </aside>
+    </div>
   );
 }

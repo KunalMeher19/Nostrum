@@ -34,6 +34,7 @@ export type CartItem = {
 
 type CartContextValue = {
   items: CartItem[];
+  isHydrated: boolean;
   /* Total units in the cart — the nav badge number. */
   count: number;
   subtotal: number;
@@ -81,6 +82,7 @@ function loadStored(): CartItem[] {
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const hydrated = useRef(false);
 
@@ -89,6 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setItems(loadStored());
     hydrated.current = true;
+    setIsHydrated(true);
   }, []);
 
   // Persist on every change (skip the pre-hydration empty state so a fast
@@ -151,6 +154,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, 0);
     return {
       items,
+      isHydrated,
       count,
       subtotal,
       addItem,
@@ -161,7 +165,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       openDrawer,
       closeDrawer,
     };
-  }, [items, addItem, setQty, removeItem, clear, drawerOpen, openDrawer, closeDrawer]);
+  }, [items, isHydrated, addItem, setQty, removeItem, clear, drawerOpen, openDrawer, closeDrawer]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
