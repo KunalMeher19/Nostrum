@@ -86,21 +86,18 @@
   }
 }
 
-/* Wrapper for the olive branch: fixed position that stays visible
-   throughout scrolling. Extended height to cover the entire page.
-   Client requirement (2026-08-20): branch visible throughout journal. */
+/* Portaled to document.body so the transformed [data-main] ancestor cannot
+   trap fixed positioning. The branch stays visible beside the journal while
+   its section is in view, then fades as the section ends. */
 .jr__branch-wrapper {
   position: fixed;
   right: clamp(2rem, 8vw, 9rem);
   top: 10vh;
-  bottom: 10vh;
   width: clamp(200px, 24vw, 340px);
-  height: auto;
-  min-height: 80vh;
+  height: 80vh;
   pointer-events: none;
-  z-index: 50;
-  display: flex;
-  align-items: stretch;
+  z-index: 110;
+  will-change: transform, opacity;
 }
 
 /* The actual SVG branch inside the wrapper - fills the viewport height */

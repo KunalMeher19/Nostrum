@@ -42,11 +42,13 @@ test.describe('Journal Branch Full Journey', () => {
     await page.screenshot({ path: 'test-results/branch-journey-5-bottom.png' });
     console.log('5. Bottom - Branch Y:', pos5?.y);
 
-    // Verify branch moved progressively down
-    expect(pos2!.y).toBeGreaterThan(pos1!.y);
-    expect(pos3!.y).toBeGreaterThan(pos2!.y);
-    expect(pos4!.y).toBeGreaterThan(pos3!.y);
-    expect(pos5!.y).toBeGreaterThan(pos4!.y);
+    // The branch is portaled outside [data-main] and stays fixed in the
+    // viewport while the journal content travels underneath it.
+    expect(await branch.evaluate((element) => element.parentElement?.tagName)).toBe("BODY");
+    expect(pos2!.y).toBeCloseTo(pos1!.y, 0);
+    expect(pos3!.y).toBeCloseTo(pos1!.y, 0);
+    expect(pos4!.y).toBeCloseTo(pos1!.y, 0);
+    expect(pos5!.y).toBeCloseTo(pos1!.y, 0);
 
     // Verify branch is always visible
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -61,7 +63,7 @@ test.describe('Journal Branch Full Journey', () => {
     await page.waitForTimeout(300);
     await expect(branch).toBeVisible();
 
-    console.log('✅ Branch travels through entire page');
-    console.log('✅ Total movement:', (pos5!.y - pos1!.y).toFixed(1), 'pixels');
+    console.log('✅ Branch stays sticky through the entire page');
+    console.log('✅ Viewport movement:', (pos5!.y - pos1!.y).toFixed(1), 'pixels');
   });
 });

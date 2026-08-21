@@ -198,10 +198,11 @@ Client confirmed Stripe as the payment gateway (courier services decision still 
 Client reported two issues: (1) Journal page had duplicate olive branch SVGs (hero + sticky sidebar), wanted the single hero branch to scroll through the entire page; (2) cookie banner sometimes didn't appear, needed to persist until user explicitly accepts/rejects.
 
 **Journal branch scroll fix:**
-- **Hero branch now scrolls through entire page:** `JournalSection.tsx` GSAP animation changed — the `data-jr-branch` SVG now scrolls from hero top through the end of the stories section using `endTrigger: storiesSection` and `end: "bottom bottom"` (dynamically tracks the stories section's actual end point). Previously it only scrolled a short distance and disappeared, while a separate sticky leaves SVG lived in the sidebar.
+- **Sticky branch portal restored 2026-08-21:** the extended `0 0 320 800` SVG is rendered through `createPortal(..., document.body)`, outside `[data-main]` and its `will-change: transform` stacking context. It remains `position: fixed` at the right side through the hero, skeleton/content-backed stories, and the end of the Journal page, then unmounts with the page. GSAP draws the portaled paths on load and fades the wrapper only as the Journal section exits.
 - **Removed duplicate sticky leaves:** deleted the `jr__leaves` sidebar panel (sticky olive branch SVG) from `JournalSection.tsx` — the stories section is now single-column, no grid layout.
 - **CSS cleanup:** `journal.css` updated — `.jr__stories` changed from 2-column grid to single-column layout (removed `display: grid`, `grid-template-columns`, `gap`). Removed all `.jr__leaves` and `.jr__leaves-svg` styles and animations. The `@media (max-width: 900px)` grid override is now unnecessary and was removed.
-- **Result:** One hero branch SVG travels alongside the content from top to bottom as you scroll — cleaner, matches client's intent, no visual duplication.
+- **Stacking and performance:** branch wrapper uses `will-change: transform, opacity` and `z-index: 110`, above page content but below the cart drawer, cookie banner, newsletter popup, and cursor.
+- **Verified:** focused Playwright journey test passes at all five scroll positions; parent is `BODY`, computed position is `fixed`, and viewport movement is `0.0px`. The journey test now checks the sticky contract rather than the obsolete progressive-y contract.
 
 **Cookie banner persistence improvements:**
 - **Shows until explicit choice:** `CookieBanner.tsx` logic unchanged (already only showed when `CHOICE_KEY` was absent), but reduced `IDLE_MS` from 3500ms to 2500ms so it appears more reliably and sooner after page activity stops. Client reported "doesn't always appear" — faster appearance window addresses this.

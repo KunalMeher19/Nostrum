@@ -8,7 +8,8 @@
 // Multi-language support (2026-08-20): posts can have translations.
 // When displaying, we check if the current locale has a translation;
 // if yes, show it; otherwise fall back to the English (base) content.
-import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "../LocaleContext/LocaleContext";
@@ -56,13 +57,18 @@ export default function JournalSection({
 }) {
   const { t, locale } = useLocale();
   const root = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Scroll choreography: room walls reveal, exhibits rise into place,
   // captions fade in late (a beat after their image). Reduced motion:
   // everything is simply visible.
   useEffect(() => {
     const el = root.current;
-    if (!el) return;
+    if (!el || !mounted) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       el.classList.add("is--static");
       return;
@@ -76,6 +82,11 @@ export default function JournalSection({
       const gsap = gsapMod.gsap ?? gsapMod.default;
       gsap.registerPlugin(ScrollTrigger);
       if (!alive) return;
+
+      const branchWrapper = document.querySelector<HTMLElement>(".jr__branch-wrapper");
+      const branchPaths = Array.from(
+        document.querySelectorAll<SVGGeometryElement>("[data-jr-branch] path")
+      );
 
       ctx = gsap.context(() => {
         // Hero: headline lines rise out of their masks, the furniture
@@ -109,21 +120,19 @@ export default function JournalSection({
           { autoAlpha: 0, scaleX: 0.4 },
           { autoAlpha: 1, scaleX: 1, duration: 2.4, ease: "expo.out", delay: 0.7 }
         );
-        gsap.utils
-          .toArray<SVGGeometryElement>("[data-jr-branch] path")
-          .forEach((p, i) => {
-            const len = p.getTotalLength();
-            gsap.fromTo(
-              p,
-              { strokeDasharray: len, strokeDashoffset: len, autoAlpha: 1 },
-              {
-                strokeDashoffset: 0,
-                duration: 1.2,
-                ease: "power2.inOut",
-                delay: 0.9 + i * 0.07,
-              }
-            );
-          });
+        branchPaths.forEach((p, i) => {
+          const len = p.getTotalLength();
+          gsap.fromTo(
+            p,
+            { strokeDasharray: len, strokeDashoffset: len, autoAlpha: 1 },
+            {
+              strokeDashoffset: 0,
+              duration: 1.2,
+              ease: "power2.inOut",
+              delay: 0.9 + i * 0.07,
+            }
+          );
+        });
 
         // Gentle depth as the hero scrolls away: headline drifts.
         gsap.to("[data-jr-title]", {
@@ -138,7 +147,18 @@ export default function JournalSection({
           },
         });
 
-        // No branch animation - it stays fixed in viewport via CSS
+        if (branchWrapper) {
+          gsap.to(branchWrapper, {
+            autoAlpha: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              start: "bottom 85%",
+              end: "bottom top",
+              scrub: true,
+            },
+          });
+        }
 
         // Stories: rows rise as they enter.
         gsap.utils.toArray<HTMLElement>("[data-jr-story]").forEach((row) => {
@@ -163,7 +183,7 @@ export default function JournalSection({
       alive = false;
       ctx?.revert();
     };
-  }, [posts.length, exhibits.length]);
+  }, [posts.length, exhibits.length, mounted]);
 
   const dateFmt = (iso: string | null) =>
     iso
@@ -174,12 +194,8 @@ export default function JournalSection({
         })
       : "";
 
-  return (
-    <div ref={root} className="jr">
-      {/* Branch wrapper: fixed positioning container that travels smoothly
-          from top to bottom as you scroll, keeping the branch visible and
-          elegant throughout the entire page */}
-      <div className="jr__branch-wrapper" data-jr-branch>
+  const branchPortal = mounted && createPortal(
+    <div className="jr__branch-wrapper" data-jr-branch>
         <svg
           className="jr__hero-branch"
           viewBox="0 0 320 800"
@@ -215,7 +231,14 @@ export default function JournalSection({
           <path d="M114 354 a 12 15 -10 1 1 0.1 0" strokeWidth="1.5" />
           <path d="M142 344 a 11 14 -24 1 1 0.1 0" strokeWidth="1.5" />
         </svg>
-      </div>
+    </div>,
+    document.body
+  );
+
+  return (
+    <>
+      {branchPortal}
+      <div ref={root} className="jr">
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <header className="jr__hero" data-jr-hero>
@@ -328,6 +351,7 @@ export default function JournalSection({
           )}
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
