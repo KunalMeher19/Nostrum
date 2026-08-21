@@ -99,7 +99,7 @@ export default function JournalSection({
         if (!branchWrapper || !settleBranch) return;
         const delta = window.scrollY - previousScrollY;
         previousScrollY = window.scrollY;
-        settleBranch(gsap.utils.clamp(-30, 30, -delta * 0.35));
+        settleBranch(gsap.utils.clamp(-30, 30, delta * 0.35));
         if (inertiaReset) window.clearTimeout(inertiaReset);
         inertiaReset = window.setTimeout(() => settleBranch(0), 90);
       };

@@ -92,9 +92,9 @@
 .jr__branch-wrapper {
   position: fixed;
   right: clamp(2rem, 8vw, 9rem);
-  top: 50%;
-  width: clamp(240px, 30vw, 440px);
-  height: min(88vh, 900px);
+  top: 54%;
+  width: clamp(260px, 34vw, 500px);
+  height: min(92vh, 980px);
   pointer-events: none;
   z-index: 110;
   will-change: transform, opacity;
@@ -790,6 +790,7 @@
 
 @media (min-width: 761px) and (max-width: 900px) {
   .jr__branch-wrapper {
+    top: 53%;
     right: 1.25rem;
     width: clamp(190px, 27vw, 250px);
     height: 84vh;
