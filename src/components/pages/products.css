@@ -63,17 +63,19 @@
   letter-spacing: -0.03em;
 }
 
-/* ---- B2B pill — hairline gold border, gold fill on hover ------------ */
+/* ---- B2B enquiry rail ----------------------------------------------- */
 .products__b2b {
   position: relative;
   isolation: isolate;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.85em;
-  padding: 0.95em 1.6em;
-  border: 1px solid var(--p-gold);
-  border-radius: 999px;
   overflow: hidden;
+  display: flex;
+  min-width: 13rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0.9rem;
+  border-top: 2px dashed var(--nostrum-lime, #a6ce3a);
+  border-bottom: 2px dashed var(--nostrum-lime, #a6ce3a);
+  background: color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 9%, transparent);
   text-decoration: none;
   white-space: nowrap;
   font-family: var(--font-sans), system-ui, sans-serif;
@@ -82,40 +84,69 @@
   text-indent: 0.22em;
   text-transform: uppercase;
   color: var(--p-fg);
-  transition: color 0.35s var(--ease-lux), box-shadow 0.4s var(--ease-lux);
+  transition: color 0.35s var(--ease-lux), padding 0.45s var(--ease-lux), box-shadow 0.4s var(--ease-lux);
 }
 
 .products__b2b::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -70% -18%;
   z-index: -1;
-  background: linear-gradient(100deg, var(--p-gold), #f2c94c 55%, var(--p-gold));
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.5s var(--ease-lux);
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 18% 50%, color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 34%, transparent) 0, transparent 42%),
+    radial-gradient(ellipse at 82% 48%, color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 22%, transparent) 0, transparent 38%);
+  filter: blur(12px);
+  opacity: 0.42;
+  transform: translate3d(-10%, 0, 0) scaleX(0.9);
+  animation: products-b2b-aurora 9s ease-in-out infinite alternate;
 }
 
 .products__b2b:hover,
 .products__b2b:focus-visible {
-  color: #16180f;
+  padding-left: 1.15rem;
+  color: color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 72%, var(--p-fg));
   box-shadow: 0 10px 30px -14px
-    color-mix(in srgb, var(--p-gold) 75%, transparent);
+    color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 55%, transparent);
 }
 
-.products__b2b:hover::before,
-.products__b2b:focus-visible::before {
-  transform: scaleX(1);
+.products__b2b:focus-visible {
+  outline: 2px solid var(--nostrum-lime, #a6ce3a);
+  outline-offset: 5px;
+}
+
+.products__b2b-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .products__b2b-arrow {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
+  margin-left: auto;
   transition: transform 0.45s var(--ease-lux);
 }
 
 .products__b2b:hover .products__b2b-arrow {
   transform: translateX(4px);
+}
+
+@keyframes products-b2b-aurora {
+  from {
+    transform: translate3d(-10%, 2%, 0) scaleX(0.9);
+  }
+  to {
+    transform: translate3d(10%, -2%, 0) scaleX(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .products__b2b::before {
+    animation: none;
+  }
 }
 
 /* ---- Grid ----------------------------------------------------------- */

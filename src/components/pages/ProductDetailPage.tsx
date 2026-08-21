@@ -594,7 +594,7 @@ export default function ProductPage() {
             {/* ---- B2B enquiry link ----------------------------------- */}
             <div className="pdp__b2b-row" data-fade>
               <LocaleLink href="/contact" className="pdp__b2b-link">
-                {t("product.b2b_enquiry")}
+                <span className="pdp__b2b-label">{t("product.b2b_enquiry")}</span>
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" aria-hidden="true">
                   <path d="M4 12h15M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
