@@ -29,6 +29,7 @@ export type CartItem = {
   sizeId: string;
   sizeLabel: string;
   qty: number;
+  image?: string;
 };
 
 type CartContextValue = {

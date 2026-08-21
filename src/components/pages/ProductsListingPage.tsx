@@ -103,6 +103,7 @@ export default function ProductsPage() {
         subtitle: product.subtitle,
         sizeId: size.id,
         sizeLabel: size.label,
+        image: size.image,
       },
       qty
     );

@@ -122,6 +122,7 @@ export default function ProductsSection() {
           subtitle: live.subtitle,
           sizeId: size.id,
           sizeLabel: size.label,
+          image: live.images[0],
         },
         1
       );
@@ -139,6 +140,7 @@ export default function ProductsSection() {
           subtitle: product.subtitle,
           sizeId: size.id,
           sizeLabel: size.label,
+          image: size.image,
         },
         qty
       );

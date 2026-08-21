@@ -184,7 +184,7 @@ export default function CartPage() {
                 if (!product) return null;
                 const total = lineTotal(product, it.sizeId, it.qty);
                 const tier = tierFor(product, it.qty);
-                const image = sizeImage(product, it.sizeId);
+                const image = it.image || sizeImage(product, it.sizeId);
                 return (
                   <li key={it.key} className="cart__row">
                     <div className="cart__row-media" aria-hidden="true">

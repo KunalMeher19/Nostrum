@@ -278,6 +278,7 @@ export default function ProductPage() {
         subtitle: t("product.subtitle"),
         sizeId: size.id,
         sizeLabel: size.label,
+        image: size.image,
       },
       qty,
       opts

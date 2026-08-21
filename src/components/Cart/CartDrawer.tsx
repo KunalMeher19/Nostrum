@@ -198,7 +198,7 @@ export default function CartDrawer() {
                 if (!product) return null;
                 const total = lineTotal(product, it.sizeId, it.qty);
                 const tier = tierFor(product, it.qty);
-                const image = sizeImage(product, it.sizeId);
+                const image = it.image || sizeImage(product, it.sizeId);
                 return (
                   <li key={it.key} className="cart-drawer__row">
                     <div className="cart-drawer__row-media" aria-hidden="true">
