@@ -92,12 +92,13 @@
 .jr__branch-wrapper {
   position: fixed;
   right: clamp(2rem, 8vw, 9rem);
-  top: 10vh;
-  width: clamp(200px, 24vw, 340px);
-  height: 80vh;
+  top: 50%;
+  width: clamp(240px, 30vw, 440px);
+  height: min(88vh, 900px);
   pointer-events: none;
   z-index: 110;
   will-change: transform, opacity;
+  transform: translate3d(0, -50%, 0);
 }
 
 /* The actual SVG branch inside the wrapper - fills the viewport height */
@@ -260,7 +261,7 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 760px) {
   .jr__hero-branch {
     display: none;
   }
@@ -783,8 +784,18 @@
   }
 
   .jr__branch-wrapper {
-    /* Make branch smaller on mobile */
-    width: clamp(120px, 20vw, 200px);
-    right: 1rem;
+    display: none;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .jr__branch-wrapper {
+    right: 1.25rem;
+    width: clamp(190px, 27vw, 250px);
+    height: 84vh;
+  }
+
+  .jr__stories {
+    padding-right: clamp(8rem, 18vw, 11rem);
   }
 }

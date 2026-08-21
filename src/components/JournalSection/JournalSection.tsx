@@ -87,6 +87,23 @@ export default function JournalSection({
       const branchPaths = Array.from(
         document.querySelectorAll<SVGGeometryElement>("[data-jr-branch] path")
       );
+      let inertiaReset: ReturnType<typeof setTimeout> | undefined;
+      const settleBranch = branchWrapper
+        ? gsap.quickTo(branchWrapper, "y", {
+            duration: 0.8,
+            ease: "power3.out",
+          })
+        : undefined;
+      let previousScrollY = window.scrollY;
+      const onScroll = () => {
+        if (!branchWrapper || !settleBranch) return;
+        const delta = window.scrollY - previousScrollY;
+        previousScrollY = window.scrollY;
+        settleBranch(gsap.utils.clamp(-30, 30, -delta * 0.35));
+        if (inertiaReset) window.clearTimeout(inertiaReset);
+        inertiaReset = window.setTimeout(() => settleBranch(0), 90);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
 
       ctx = gsap.context(() => {
         // Hero: headline lines rise out of their masks, the furniture
@@ -181,6 +198,8 @@ export default function JournalSection({
 
     return () => {
       alive = false;
+      window.removeEventListener("scroll", onScroll);
+      if (inertiaReset) window.clearTimeout(inertiaReset);
       ctx?.revert();
     };
   }, [posts.length, exhibits.length, mounted]);

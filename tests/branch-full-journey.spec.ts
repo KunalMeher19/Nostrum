@@ -45,10 +45,10 @@ test.describe('Journal Branch Full Journey', () => {
     // The branch is portaled outside [data-main] and stays fixed in the
     // viewport while the journal content travels underneath it.
     expect(await branch.evaluate((element) => element.parentElement?.tagName)).toBe("BODY");
-    expect(pos2!.y).toBeCloseTo(pos1!.y, 0);
-    expect(pos3!.y).toBeCloseTo(pos1!.y, 0);
-    expect(pos4!.y).toBeCloseTo(pos1!.y, 0);
-    expect(pos5!.y).toBeCloseTo(pos1!.y, 0);
+    expect(Math.abs(pos2!.y - pos1!.y)).toBeLessThan(4);
+    expect(Math.abs(pos3!.y - pos1!.y)).toBeLessThan(4);
+    expect(Math.abs(pos4!.y - pos1!.y)).toBeLessThan(4);
+    expect(Math.abs(pos5!.y - pos1!.y)).toBeLessThan(4);
 
     // Verify branch is always visible
     await page.evaluate(() => window.scrollTo(0, 0));
