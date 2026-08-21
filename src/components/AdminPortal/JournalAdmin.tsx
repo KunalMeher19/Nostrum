@@ -15,6 +15,7 @@ import {
   type MuseumRoom,
 } from "@/lib/api";
 import { MediaGrid } from "./MediaLibrary";
+import AdminSkeleton from "./AdminSkeletons";
 
 export default function JournalAdmin() {
   const { t } = useLocale();
@@ -149,7 +150,7 @@ function PostsAdmin() {
         />
       )}
 
-      {posts === null && !failed && <p className="ad__quiet">{t("portal.loading")}</p>}
+      {posts === null && !failed && <AdminSkeleton variant="ledger" />}
       {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
       {posts !== null && posts.length === 0 && (
         <p className="ad__quiet">{t("admin.posts_none")}</p>
@@ -386,7 +387,7 @@ function MuseumAdmin() {
         />
       )}
 
-      {exhibits === null && !failed && <p className="ad__quiet">{t("portal.loading")}</p>}
+      {exhibits === null && !failed && <AdminSkeleton variant="product" />}
       {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
 
       <ul className="ad__list">

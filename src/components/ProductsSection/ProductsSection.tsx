@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import "./products-section.css";
 import { onLenis } from "../SmoothScroll/lenisStore";
 import { useCart } from "../Cart/CartContext";
-import { getCatalogEntry } from "@/lib/products";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import { LocaleLink } from "../LocaleContext/LocaleLink";
 import PremiumSlider from "../PremiumSlider/PremiumSlider";
@@ -36,15 +35,6 @@ type Product = {
   live?: boolean;
 };
 
-// Static fallback — x1 / x2 / x3 of the 5L bottle (§7). Shown until the
-// admin marks products "featured on home", and whenever the products API
-// is unreachable, so this section never renders empty.
-const PRODUCTS: Product[] = [
-  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/11.webp" },
-  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66", image: "/products/2.webp" },
-  { id: "two-litre", nameKey: "shop.product_twolitre", detailKey: "shop.detail_twolitre", price: "€16", image: "/products/4.webp" },
-];
-
 /* Shape returned by GET /api/products/featured. */
 type LiveProduct = {
   slug: string;
@@ -68,10 +58,9 @@ export default function ProductsSection() {
   const [addedId, setAddedId] = useState<string | null>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Featured products come from the admin (products marked "featured on
-  // home"). Until any are marked — or if the API is unreachable — the
-  // static trio above stands in, so the grid is never empty.
-  const [tiles, setTiles] = useState<Product[]>(PRODUCTS);
+  // Featured products come only from the public API. An empty tile list keeps
+  // the branded loading state visible when the backend cannot be reached.
+  const [tiles, setTiles] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const liveRef = useRef<Map<string, LiveProduct>>(new Map());
 
@@ -101,7 +90,6 @@ export default function ProductsSection() {
       })
       .catch(() => {
         setLoading(false);
-        /* keep the static fallback */
       });
     return () => {
       alive = false;
@@ -127,23 +115,7 @@ export default function ProductsSection() {
         1
       );
     } else {
-      const entry = getCatalogEntry(id);
-      if (!entry) return;
-      const { product, qty } = entry;
-      const size =
-        product.sizes.find((s) => s.id === product.defaultSizeId) ??
-        product.sizes[0];
-      addItem(
-        {
-          slug: product.slug,
-          name: product.name,
-          subtitle: product.subtitle,
-          sizeId: size.id,
-          sizeLabel: size.label,
-          image: size.image,
-        },
-        qty
-      );
+      return;
     }
     setAddedId(id);
     if (addedTimer.current) clearTimeout(addedTimer.current);
@@ -427,7 +399,19 @@ export default function ProductsSection() {
           </div>
 
           <ul className="shop__grid">
-            {tiles.map((product) => {
+            {loading || tiles.length === 0
+              ? [1, 2, 3].map((n) => (
+                  <li key={n} className="shop-card shop-card--skeleton" aria-hidden="true">
+                    <div className="shop-card__media shop-card__media--skeleton">
+                      <span className="shop-card__skeleton-shimmer" />
+                    </div>
+                    <div className="shop-card__meta">
+                      <span className="shop-card__skeleton-bar shop-card__skeleton-bar--title" />
+                      <span className="shop-card__skeleton-bar shop-card__skeleton-bar--detail" />
+                    </div>
+                  </li>
+                ))
+              : tiles.map((product) => {
               // Live tiles carry literal copy; static tiles carry i18n keys.
               const name = product.live ? product.nameKey : t(product.nameKey);
               const detail = product.live ? product.detailKey : t(product.detailKey);
@@ -464,7 +448,7 @@ export default function ProductsSection() {
                 </div>
               </li>
               );
-            })}
+              })}
           </ul>
 
           <p className="shop__note">{t("shop.note")}</p>

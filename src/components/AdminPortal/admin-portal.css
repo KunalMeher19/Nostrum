@@ -148,6 +148,122 @@
   color: var(--ad-muted);
 }
 
+/* ── Loading skeletons ───────────────────────────────────────────── */
+
+.ad__skeleton-list,
+.ad__skeleton-table,
+.ad__skeleton-content {
+  position: relative;
+}
+
+.ad__skeleton-ledger,
+.ad__skeleton-product {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4.25rem;
+  padding: 1rem 0.2rem;
+  border-bottom: 1px solid var(--ad-hair);
+}
+
+.ad__skeleton-ledger {
+  grid-template-columns: 7.5rem 1fr 6.5rem 5rem 7.5rem;
+}
+
+.ad__skeleton-product {
+  grid-template-columns: 3rem 1fr 8rem 6rem;
+}
+
+.ad__skeleton-thumb,
+.ad__skeleton-line,
+.ad__skeleton-pill,
+.ad__skeleton-picker {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ad-fg) 8%, transparent);
+}
+
+.ad__skeleton-thumb {
+  width: 3rem;
+  height: 3rem;
+}
+
+.ad__skeleton-line {
+  width: 70%;
+  height: 0.7rem;
+}
+
+.ad__skeleton-line--wide { width: 86%; }
+.ad__skeleton-line--medium { width: 58%; }
+.ad__skeleton-line--short { width: 34%; }
+.ad__skeleton-line--label { width: 32%; margin-bottom: 0.9rem; }
+.ad__skeleton-line--input { width: 72%; margin-top: 0.8rem; }
+
+.ad__skeleton-pill {
+  width: 5.8rem;
+  height: 1.6rem;
+  border: 1px solid color-mix(in srgb, var(--ad-fg) 10%, transparent);
+  border-radius: 999px;
+}
+
+.ad__skeleton-table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 0.8fr 0.8fr;
+  gap: 1rem;
+  align-items: center;
+  min-height: 3.2rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ad-fg) 6%, transparent);
+}
+
+.ad__skeleton-content-step {
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--ad-hair);
+}
+
+.ad__skeleton-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 14rem;
+  min-height: 3.4rem;
+  padding: 0.35rem;
+}
+
+.ad__skeleton-picker .ad__skeleton-thumb {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.ad__skeleton-picker .ad__skeleton-line {
+  width: 7rem;
+}
+
+.ad__skeleton-thumb::after,
+.ad__skeleton-line::after,
+.ad__skeleton-pill::after,
+.ad__skeleton-picker::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ad-fg) 12%, transparent), transparent);
+  animation: ad-skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes ad-skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad__skeleton-thumb::after,
+  .ad__skeleton-line::after,
+  .ad__skeleton-pill::after,
+  .ad__skeleton-picker::after {
+    animation: none;
+  }
+}
+
 .ad__note {
   margin: 0 0 1.6rem;
   max-width: 46rem;

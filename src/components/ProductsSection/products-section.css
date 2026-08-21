@@ -253,6 +253,49 @@
     box-shadow 0.6s var(--ease-lux);
 }
 
+.shop-card--skeleton {
+  pointer-events: none;
+}
+
+.shop-card__media--skeleton {
+  background: #f1ede2;
+}
+
+.shop-card__skeleton-shimmer,
+.shop-card__skeleton-bar {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: rgba(20, 22, 15, 0.07);
+}
+
+.shop-card__skeleton-shimmer::after,
+.shop-card__skeleton-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.68), transparent);
+  animation: shop-skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shop-skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.shop-card__skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+}
+
+.shop-card__skeleton-bar {
+  height: 1rem;
+  margin-top: 0.55rem;
+}
+
+.shop-card__skeleton-bar--title { width: 58%; }
+.shop-card__skeleton-bar--detail { width: 38%; height: 0.65rem; }
+
 .shop-card:hover .shop-card__media {
   transform: scale(1.012);
   filter: brightness(1.03);

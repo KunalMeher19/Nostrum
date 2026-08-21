@@ -20,6 +20,72 @@
     clamp(5rem, 10vh, 8rem);
 }
 
+.pdp-skeleton__crumb {
+  width: 13rem;
+  height: 0.7rem;
+  margin-bottom: clamp(1.75rem, 4vh, 3rem);
+  background: rgba(20, 22, 15, 0.07);
+}
+
+.pdp-skeleton__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.pdp-skeleton__media {
+  position: relative;
+  aspect-ratio: 4 / 4.6;
+  overflow: hidden;
+  background: #f1ede2;
+  border: 1px solid color-mix(in srgb, var(--nostrum-gold-metal) 45%, transparent);
+}
+
+.pdp-skeleton__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  padding-top: 1rem;
+}
+
+.pdp-skeleton__shimmer,
+.pdp-skeleton__bar {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: rgba(20, 22, 15, 0.07);
+}
+
+.pdp-skeleton__shimmer {
+  position: absolute;
+  inset: 0;
+}
+
+.pdp-skeleton__bar--name { width: 68%; height: 3.8rem; }
+.pdp-skeleton__bar--subtitle { width: 46%; height: 0.75rem; }
+.pdp-skeleton__bar--price { width: 34%; height: 1.8rem; }
+.pdp-skeleton__bar--field { width: 27%; height: 0.7rem; }
+.pdp-skeleton__bar--controls { width: 75%; height: 2.8rem; }
+.pdp-skeleton__bar--button { width: 100%; height: 3.5rem; }
+
+.pdp-skeleton__rule {
+  width: 100%;
+  height: 1px;
+  background: color-mix(in srgb, var(--nostrum-gold-metal) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-card__skeleton-shimmer::after,
+  .shop-card__skeleton-bar::after,
+  .pcard__skeleton-shimmer::after,
+  .pcard__skeleton-bar::after,
+  .pdp-skeleton__shimmer::after,
+  .pdp-skeleton__bar::after {
+    animation: none;
+  }
+}
+
 /* ---- Breadcrumb ----------------------------------------------------- */
 .pdp__crumb {
   display: flex;
@@ -601,12 +667,14 @@
 /* ---- Responsive ----------------------------------------------------------------- */
 @media (max-width: 900px) {
   .pdp__grid,
+  .pdp-skeleton__grid,
   .pdp__below {
     grid-template-columns: 1fr;
     gap: clamp(2rem, 6vh, 3rem);
   }
 
-  .pdp__media {
+  .pdp__media,
+  .pdp-skeleton__media {
     aspect-ratio: 4 / 4.2;
   }
 

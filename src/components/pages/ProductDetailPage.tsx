@@ -10,7 +10,6 @@ import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
 import {
   formatEuro,
-  getCatalogEntry,
   lineTotal,
   tierFor,
   type Product,
@@ -49,33 +48,37 @@ export default function ProductPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
   const id = params?.id ?? "";
-  const entry = getCatalogEntry(id);
-  const product = entry?.product ?? null;
-
   const { addItem } = useCart();
 
-  const [sizeId, setSizeId] = useState(product?.defaultSizeId ?? "");
+  const [sizeId, setSizeId] = useState("");
   const [oilTypeId, setOilTypeId] = useState<string | null>(null);
   const [photoVariantIdx, setPhotoVariantIdx] = useState(0);
-  const [qty, setQty] = useState(entry?.qty ?? 1);
+  const [qty, setQty] = useState(1);
   const [customQty, setCustomQty] = useState(false);
   const [added, setAdded] = useState(false);
   const [liveProduct, setLiveProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [fetchFailed, setFetchFailed] = useState(false);
 
   const rootRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Resolve live products by slug first; static aliases remain the fallback.
+  // Resolve the product from the public API; this page has no static fallback.
   useEffect(() => {
     if (!id) return;
     let alive = true;
     fetch("/api/proxy/products")
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => {
+        if (!r.ok) throw new Error("Product API unavailable");
+        return r.json();
+      })
       .then((data: { products?: LiveProduct[] } | null) => {
         const p = data?.products?.find((item) => item.slug === id);
-        if (!alive || !p || !p.sizes?.length) return;
+        if (!alive) return;
+        setLoading(false);
+        if (!p || !p.sizes?.length) return;
         const size = p.sizes.find((s: any) => s.id === p.defaultSizeId) ?? p.sizes[0];
         // Convert API product to internal Product format
         setLiveProduct({
@@ -105,14 +108,16 @@ export default function ProductPage() {
         setQty(1);
       })
       .catch(() => {
-        // Product not found
+        if (!alive) return;
+        setLoading(false);
+        setFetchFailed(true);
       });
     return () => {
       alive = false;
     };
   }, [id]);
 
-  const activeProduct = liveProduct ?? product;
+  const activeProduct = liveProduct;
 
   // Reset oil type selection when size changes
   useEffect(() => {
@@ -259,6 +264,29 @@ export default function ProductPage() {
     () => activeProduct?.sizes.find((s) => s.id === sizeId) ?? activeProduct?.sizes[0],
     [activeProduct, sizeId]
   );
+
+  if (loading || fetchFailed) {
+    return (
+      <main data-main className="pdp pdp--loading" aria-busy="true" aria-label="Loading product">
+        <div className="pdp__inner pdp-skeleton">
+          <div className="pdp-skeleton__crumb" />
+          <div className="pdp-skeleton__grid">
+            <div className="pdp-skeleton__media"><span className="pdp-skeleton__shimmer" /></div>
+            <div className="pdp-skeleton__panel">
+              <span className="pdp-skeleton__bar pdp-skeleton__bar--name" />
+              <span className="pdp-skeleton__bar pdp-skeleton__bar--subtitle" />
+              <span className="pdp-skeleton__rule" />
+              <span className="pdp-skeleton__bar pdp-skeleton__bar--price" />
+              <span className="pdp-skeleton__bar pdp-skeleton__bar--field" />
+              <span className="pdp-skeleton__bar pdp-skeleton__bar--controls" />
+              <span className="pdp-skeleton__bar pdp-skeleton__bar--button" />
+              <span className="pdp-skeleton__bar pdp-skeleton__bar--button" />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (!activeProduct || !size) {
     return (

@@ -11,6 +11,7 @@ import {
   type SiteContentResponse,
 } from "@/lib/api";
 import { ImagePicker } from "./JournalAdmin";
+import AdminSkeleton from "./AdminSkeletons";
 
 const STEP_COUNT = 5;
 
@@ -73,7 +74,7 @@ export default function ContentView() {
   if (!draft) {
     return (
       <div className="ad__view">
-        <p className="ad__quiet">{t("portal.loading")}</p>
+        <AdminSkeleton variant="content" />
       </div>
     );
   }

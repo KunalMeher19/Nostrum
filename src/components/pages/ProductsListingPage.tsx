@@ -6,7 +6,6 @@ import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
 import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import "./products.css";
 import { useCart } from "@/components/Cart/CartContext";
-import { getCatalogEntry } from "@/lib/products";
 import { CURTAIN_REVEAL_EVENT } from "@/components/RouteCurtain/curtainNav";
 
 /* ------------------------------------------------------------------ */
@@ -37,13 +36,6 @@ type LiveProduct = {
   defaultSizeId: string;
 };
 
-// Static fallback — shown if the API is unreachable or returns no products
-const FALLBACK_TILES: Tile[] = [
-  { id: "single", nameKey: "shop.product_single", detailKey: "shop.detail_single", price: "€35", image: "/products/11.webp" },
-  { id: "duo", nameKey: "shop.product_duo", detailKey: "shop.detail_duo", price: "€66", image: "/products/2.webp" },
-  { id: "two-litre", nameKey: "shop.product_twolitre", detailKey: "shop.detail_twolitre", price: "€16", image: "/products/4.webp" },
-];
-
 export default function ProductsPage() {
   const { t } = useLocale();
   const rootRef = useRef<HTMLElement>(null);
@@ -52,7 +44,7 @@ export default function ProductsPage() {
   const [addedId, setAddedId] = useState<string | null>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [tiles, setTiles] = useState<Tile[]>(FALLBACK_TILES);
+  const [tiles, setTiles] = useState<Tile[]>([]);
   const liveProductsRef = useRef(new Map<string, LiveProduct>());
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +79,6 @@ export default function ProductsPage() {
       })
       .catch(() => {
         setLoading(false);
-        /* keep the static fallback */
       });
     return () => {
       alive = false;
@@ -118,26 +109,7 @@ export default function ProductsPage() {
       return;
     }
 
-    const entry = getCatalogEntry(id);
-    if (!entry) return;
-    const { product, qty } = entry;
-    const size =
-      product.sizes.find((s) => s.id === product.defaultSizeId) ??
-      product.sizes[0];
-    addItem(
-      {
-        slug: product.slug,
-        name: product.name,
-        subtitle: product.subtitle,
-        sizeId: size.id,
-        sizeLabel: size.label,
-        image: size.image,
-      },
-      qty
-    );
-    setAddedId(id);
-    if (addedTimer.current) clearTimeout(addedTimer.current);
-    addedTimer.current = setTimeout(() => setAddedId(null), 1600);
+    return;
   };
 
   useEffect(
@@ -243,7 +215,19 @@ export default function ProductsPage() {
         </div>
 
         <ul className="products__grid">
-          {tiles.map((tile) => (
+          {loading || tiles.length === 0
+            ? [1, 2, 3].map((n) => (
+                <li key={n} className="pcard pcard--skeleton" aria-hidden="true">
+                  <div className="pcard__media pcard__media--skeleton">
+                    <span className="pcard__skeleton-shimmer" />
+                  </div>
+                  <div className="pcard__meta">
+                    <span className="pcard__skeleton-bar pcard__skeleton-bar--title" />
+                    <span className="pcard__skeleton-bar pcard__skeleton-bar--detail" />
+                  </div>
+                </li>
+              ))
+            : tiles.map((tile) => (
             <li key={tile.id} className="pcard" data-tile>
               <div className="pcard__media">
                 {tile.image && (
@@ -275,7 +259,7 @@ export default function ProductsPage() {
                 </div>
               </div>
             </li>
-          ))}
+            ))}
         </ul>
 
         <p className="products__note" data-rise>

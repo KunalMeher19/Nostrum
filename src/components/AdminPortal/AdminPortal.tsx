@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale } from "../LocaleContext/LocaleContext";
 import JournalAdmin from "./JournalAdmin";
 import ContentView from "./ContentView";
+import AdminSkeleton from "./AdminSkeletons";
 import { MediaGrid } from "./MediaLibrary";
 import {
   api,
@@ -151,7 +152,7 @@ function OrdersView() {
         ))}
       </div>
 
-      {orders === null && !failed && <p className="ad__quiet">{t("portal.loading")}</p>}
+      {orders === null && !failed && <AdminSkeleton variant="ledger" />}
       {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
       {orders !== null && orders.length === 0 && (
         <p className="ad__quiet">{t("admin.orders_none")}</p>
@@ -379,9 +380,7 @@ function CustomersView() {
         </a>
       </div>
 
-      {customers === null && !failed && (
-        <p className="ad__quiet">{t("portal.loading")}</p>
-      )}
+      {customers === null && !failed && <AdminSkeleton variant="table" />}
       {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
 
       {customers && (
@@ -546,9 +545,7 @@ function AuditView() {
     <div className="ad__view">
       <p className="ad__note">{t("admin.audit_note")}</p>
 
-      {events === null && !failed && (
-        <p className="ad__quiet">{t("portal.loading")}</p>
-      )}
+      {events === null && !failed && <AdminSkeleton variant="table" />}
       {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
       {events !== null && events.length === 0 && (
         <p className="ad__quiet">{t("admin.audit_none")}</p>
@@ -655,7 +652,7 @@ function ShopView() {
         />
       )}
 
-      {products === null && !failed && <p className="ad__quiet">{t("portal.loading")}</p>}
+      {products === null && !failed && <AdminSkeleton variant="product" />}
       {failed && <p className="ad__quiet">{t("portal.error_load")}</p>}
 
       <ul className="ad__list">
