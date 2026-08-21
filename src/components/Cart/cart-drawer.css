@@ -507,6 +507,7 @@
 }
 
 .cart-drawer__suggest-media {
+  position: relative;
   width: 3.1rem;
   aspect-ratio: 4 / 4.6;
   display: grid;

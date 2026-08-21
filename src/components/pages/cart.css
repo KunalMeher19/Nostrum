@@ -360,6 +360,7 @@
 }
 
 .cart__suggest-media {
+  position: relative;
   aspect-ratio: 4 / 4.6;
   display: grid;
   place-items: center;
