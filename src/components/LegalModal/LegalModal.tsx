@@ -167,7 +167,11 @@ export default function LegalModal() {
         )}
 
         {/* Content */}
-        <div className="legal-modal__content" ref={contentRef}>
+        <div
+          className="legal-modal__content"
+          ref={contentRef}
+          data-lenis-prevent
+        >
           {doc.sections.map((section, sectionIdx) => (
             <section
               key={sectionIdx}

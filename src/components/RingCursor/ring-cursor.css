@@ -12,7 +12,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 6000; /* above the nav overlay + everything else */
+  z-index: 12000; /* above every full-screen overlay, including legal modals */
   width: 1.125rem; /* 18px — small, unobtrusive ring */
   height: 1.125rem;
   pointer-events: none; /* never intercepts clicks/hover */
