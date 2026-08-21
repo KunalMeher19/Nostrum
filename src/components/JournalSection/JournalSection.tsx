@@ -76,6 +76,8 @@ export default function JournalSection({
 
     let ctx: { revert: () => void } | undefined;
     let alive = true;
+    let inertiaReset: number | undefined;
+    let removeScrollListener: (() => void) | undefined;
     (async () => {
       const gsapMod = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
@@ -87,7 +89,6 @@ export default function JournalSection({
       const branchPaths = Array.from(
         document.querySelectorAll<SVGGeometryElement>("[data-jr-branch] path")
       );
-      let inertiaReset: ReturnType<typeof setTimeout> | undefined;
       const settleBranch = branchWrapper
         ? gsap.quickTo(branchWrapper, "y", {
             duration: 0.8,
@@ -104,6 +105,7 @@ export default function JournalSection({
         inertiaReset = window.setTimeout(() => settleBranch(0), 90);
       };
       window.addEventListener("scroll", onScroll, { passive: true });
+      removeScrollListener = () => window.removeEventListener("scroll", onScroll);
 
       ctx = gsap.context(() => {
         // Hero: headline lines rise out of their masks, the furniture
@@ -198,7 +200,7 @@ export default function JournalSection({
 
     return () => {
       alive = false;
-      window.removeEventListener("scroll", onScroll);
+      removeScrollListener?.();
       if (inertiaReset) window.clearTimeout(inertiaReset);
       ctx?.revert();
     };
