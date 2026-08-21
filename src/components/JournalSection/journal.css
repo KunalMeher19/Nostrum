@@ -789,11 +789,26 @@
 }
 
 @media (min-width: 761px) and (max-width: 900px) {
+  .jr__hero {
+    min-height: 66svh;
+    padding-top: clamp(4.5rem, 8vh, 6rem);
+    padding-bottom: 1.2rem;
+  }
+
+  .jr__hero-foot {
+    padding-top: clamp(2rem, 5vh, 3.5rem);
+  }
+
   .jr__branch-wrapper {
     top: 61%;
     right: 0.5rem;
     width: clamp(190px, 27vw, 250px);
     height: 84vh;
+  }
+
+  .jr__hero-branch {
+    transform: scaleY(1.45);
+    transform-origin: top center;
   }
 
   .jr__stories {
