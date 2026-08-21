@@ -151,7 +151,7 @@ export default function AccountPortal({
         {tab === "orders" && (
           <div className="pt__orders">
             {orders === null && !failed && (
-              <p className="pt__quiet">{t("portal.loading")}</p>
+              <OrderListSkeleton />
             )}
             {failed && <p className="pt__quiet">{t("portal.error_load")}</p>}
 
@@ -225,6 +225,36 @@ export default function AccountPortal({
         </footer>
       </div>
     </section>
+  );
+}
+
+function OrderListSkeleton() {
+  return (
+    <div className="pt__orders-skeleton" aria-hidden="true">
+      <div className="pt__skeleton-group">
+        <span className="pt__skeleton-heading" />
+        <OrderSkeletonRow />
+      </div>
+      <div className="pt__skeleton-group">
+        <span className="pt__skeleton-heading" />
+        <OrderSkeletonRow />
+        <OrderSkeletonRow />
+        <OrderSkeletonRow />
+      </div>
+    </div>
+  );
+}
+
+function OrderSkeletonRow() {
+  return (
+    <div className="pt__skeleton-row">
+      <span className="pt__skeleton-line pt__skeleton-line--number" />
+      <span className="pt__skeleton-line pt__skeleton-line--date" />
+      <span className="pt__skeleton-line pt__skeleton-line--items" />
+      <span className="pt__skeleton-line pt__skeleton-line--total" />
+      <span className="pt__skeleton-pill" />
+      <span className="pt__skeleton-plus" />
+    </div>
   );
 }
 
