@@ -53,6 +53,7 @@ export default function ProductsPage() {
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [tiles, setTiles] = useState<Tile[]>(FALLBACK_TILES);
+  const liveProductsRef = useRef(new Map<string, LiveProduct>());
   const [loading, setLoading] = useState(true);
 
   // Fetch products from the API
@@ -64,6 +65,10 @@ export default function ProductsPage() {
         if (!alive) return;
         setLoading(false);
         if (!d?.products?.length) return;
+
+        liveProductsRef.current = new Map(
+          d.products.map((product) => [product.slug, product])
+        );
 
         // Convert API products to tiles
         setTiles(
@@ -90,6 +95,29 @@ export default function ProductsPage() {
   }, []);
 
   const quickAdd = (id: string) => {
+    const live = liveProductsRef.current.get(id);
+    if (live) {
+      const size =
+        live.sizes.find((item) => item.id === live.defaultSizeId) ??
+        live.sizes[0];
+      if (!size) return;
+      addItem(
+        {
+          slug: live.slug,
+          name: live.name,
+          subtitle: live.subtitle,
+          sizeId: size.id,
+          sizeLabel: size.label,
+          image: live.images[0],
+        },
+        1
+      );
+      setAddedId(id);
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+      addedTimer.current = setTimeout(() => setAddedId(null), 1600);
+      return;
+    }
+
     const entry = getCatalogEntry(id);
     if (!entry) return;
     const { product, qty } = entry;

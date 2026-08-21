@@ -34,6 +34,16 @@ import {
 const TAB_KEYS = ["tab_description", "tab_details", "tab_shipping"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
+type LiveProduct = {
+  slug: string;
+  name: string;
+  subtitle: string;
+  images: string[];
+  sizes: Array<{ id: string; label: string; price: number }>;
+  defaultSizeId: string;
+  packs?: Array<{ qty: number; discount: number }>;
+};
+
 export default function ProductPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -57,15 +67,15 @@ export default function ProductPage() {
   const panelRef = useRef<HTMLElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // If not in static catalog, try to fetch from API
+  // Resolve live products by slug first; static aliases remain the fallback.
   useEffect(() => {
-    if (product || !id) return;
+    if (!id) return;
     let alive = true;
-    fetch(`/api/proxy/products/${id}`)
+    fetch("/api/proxy/products")
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!alive || !data?.product) return;
-        const p = data.product;
+      .then((data: { products?: LiveProduct[] } | null) => {
+        const p = data?.products?.find((item) => item.slug === id);
+        if (!alive || !p || !p.sizes?.length) return;
         const size = p.sizes.find((s: any) => s.id === p.defaultSizeId) ?? p.sizes[0];
         // Convert API product to internal Product format
         setLiveProduct({
@@ -80,7 +90,7 @@ export default function ProductPage() {
             image: p.images[0],
           })),
           defaultSizeId: p.defaultSizeId ?? size.id,
-          packs: [
+          packs: p.packs ?? [
             { qty: 1, discount: 0 },
             { qty: 2, discount: 0.05 },
             { qty: 3, discount: 0.1 },
@@ -100,7 +110,7 @@ export default function ProductPage() {
     return () => {
       alive = false;
     };
-  }, [id, product]);
+  }, [id]);
 
   const activeProduct = liveProduct ?? product;
 

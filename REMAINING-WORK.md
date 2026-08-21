@@ -306,6 +306,8 @@ Client reported mobile scrolling lag in the collection section on the home page,
 - Theme inversion (dark → light) works seamlessly on both desktop grid and mobile slider.
 - Quick add-to-cart functional on both layouts.
 
+- **Product-page cart identity — FIXED 2026-08-21:** `/products` was rendering live API products but its quick-add handler ignored that data and always resolved through the static catalogue. The detail page also skipped live resolution for IDs present in the static alias map, so distinct live products could collapse into the one static olive-oil product. Both paths now resolve live products by slug, size, image, and quantity like the home Collection handler, with the static aliases retained as the API-down fallback. **Verified:** changed files pass the TypeScript check; the repository check still reports two unrelated pre-existing `unknown` errors in `tests/mobile-browser-audit.spec.ts`.
+
 **Outstanding (future optimization):**
 - Test on actual iOS Safari and Android Chrome devices to confirm address bar behavior (currently verified via responsive dev tools).
 - Consider lazy-loading GSAP Draggable/InertiaPlugin on desktop to reduce bundle size (desktop doesn't need them).
@@ -403,6 +405,8 @@ The following are already using env vars or the real brand email — no code edi
 ---
 
 ## Decision log (client + project decisions, newest first)
+
+- **2026-08-21** · Product-page add-to-cart fix: live `/products` and `/product/[id]` paths now use the same API product identity, size, and image payload as the working home Collection quick-add. Static aliases remain only as the graceful fallback when the API is unavailable. The TypeScript validation reached the changed files cleanly; two pre-existing errors remain in `tests/mobile-browser-audit.spec.ts`.
 
 - **2026-08-17** · Journal SVG scroll fix + cookie banner persistence improvements (2.14). **Hero branch now scrolls through entire page:** the single `data-jr-branch` SVG in the hero now travels from top through the end of the stories section via GSAP ScrollTrigger (dynamically calculated based on stories height). **Removed duplicate sticky leaves panel:** deleted the `jr__leaves` sidebar and its separate olive branch SVG — the stories section is now single-column, no grid. CSS updated to remove 2-column grid layout and all sticky leaves styles. **Cookie banner shows more reliably:** reduced idle timeout from 3500ms to 2500ms (client reported "doesn't always appear"). **Basic analytics even when rejected:** `Analytics.tsx` rewritten with three consent levels — "none" (wait), "basic" (reject/preferences → GA4 with `client_storage: 'none'`, no Google Signals, no ad personalization, anonymized IP only), "full" (accept → all GA4 features). Previously reject loaded nothing; now it loads privacy-respecting basic measurement (page views, devices, referrers, no user tracking). Banner copy updated to explain the two-tier system. **Verified:** `tsc --noEmit` clean, 87/87 backend tests green, Journal page renders with single scrolling branch.
 
