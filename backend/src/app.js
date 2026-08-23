@@ -10,6 +10,7 @@ const {
 const { sanitizeBody } = require('./middlewares/sanitize.middleware');
 
 const healthRoutes = require('./routes/health.routes');
+const authRoutes = require('./routes/auth.routes');
 const meRoutes = require('./routes/me.routes');
 const ordersRoutes = require('./routes/orders.routes');
 const adminRoutes = require('./routes/admin.routes');
@@ -100,6 +101,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/admin', adminRoutes);

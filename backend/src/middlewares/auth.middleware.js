@@ -5,11 +5,16 @@
 // AUTH_SECRET between the Next.js app and this API lets Express decrypt
 // the same session the browser already holds — no second login system.
 //
+// LOGOUT ENFORCEMENT: tokens are blacklisted in Redis when the user signs
+// out, checked here on every request. Prevents token replay attacks after
+// logout.
+//
 // The frontend calls this API with `credentials: "include"`, so the
 // session cookie rides along on same-site requests in dev (localhost).
 const { jwtDecrypt } = require('jose');
 const { hkdfSync } = require('crypto');
 const User = require('../models/user.model');
+const { isBlacklisted } = require('../services/token-blacklist.service');
 
 const SESSION_COOKIES = [
   'authjs.session-token', // http (dev)
@@ -49,7 +54,8 @@ function parseCookies(header = '') {
   return out;
 }
 
-/** Extracts and decrypts the session token; returns payload or null. */
+/** Extracts and decrypts the session token; returns payload or null.
+ * Checks Redis blacklist to enforce instant logout. */
 async function readSession(req) {
   const cookies = parseCookies(req.headers.cookie);
   for (const name of SESSION_COOKIES) {
@@ -67,6 +73,14 @@ async function readSession(req) {
       const { payload } = await jwtDecrypt(raw, deriveKey(name), {
         clockTolerance: 15,
       });
+
+      // Check if token is blacklisted (user logged out)
+      const jti = payload.jti;
+      if (jti && await isBlacklisted(jti)) {
+        console.log(`[auth] blocked blacklisted token: ${jti.substring(0, 8)}...`);
+        return null; // Treat as unauthorized
+      }
+
       return payload;
     } catch {
       // Try the next cookie name.

@@ -77,6 +77,19 @@ export default function AccountPortal({
     [detail]
   );
 
+  const handleLogout = useCallback(async () => {
+    try {
+      // Blacklist the current token in Redis before signing out
+      await api("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      // If blacklist fails, still sign out (clear cookie)
+      console.warn("Token blacklist failed:", err);
+    } finally {
+      // Sign out via Auth.js (clears cookie)
+      await signOut({ callbackUrl: `/${locale}/account` });
+    }
+  }, [locale]);
+
   const active = orders?.filter((o) => o.active) ?? [];
   const history = orders?.filter((o) => !o.active) ?? [];
 
@@ -218,7 +231,7 @@ export default function AccountPortal({
           <button
             type="button"
             className="pt__foot-link"
-            onClick={() => void signOut({ callbackUrl: `/${locale}/account` })}
+            onClick={handleLogout}
           >
             {t("account.signout")}
           </button>

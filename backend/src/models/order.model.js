@@ -87,7 +87,9 @@ const orderSchema = new mongoose.Schema(
     shippingAddress: { type: addressSchema, default: null },
     carrier: { type: String, default: null }, // e.g. "SEUR", "Correos Express"
     trackingCode: { type: String, default: null },
-    stripeSessionId: { type: String, default: null }, // Stripe Checkout Session ID
+    stripeSessionId: { type: String, default: null, index: true }, // Stripe Checkout Session ID
+    stripePaymentIntentId: { type: String, default: null, index: true }, // Stripe Payment Intent ID
+    idempotencyKey: { type: String, default: null, unique: true, sparse: true }, // Client-side idempotency key
     placedAt: { type: Date, required: true, index: true },
     updatedAt: { type: Date, default: Date.now },
   },

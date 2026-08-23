@@ -5,12 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
 import { useCart } from "@/components/Cart/CartContext";
+import { clearCheckoutIdempotency } from "@/lib/api";
 import "./checkout-result.css";
 
 /* ------------------------------------------------------------------ */
 /* Checkout Success — payment confirmed, order created by the webhook. */
-/* Clear the cart, show a confirmation message with the session ID     */
-/* (the order number comes later via email once the webhook fires).    */
+/* Clear the cart + idempotency key, show a confirmation message with  */
+/* the session ID (order number comes via email once webhook fires).   */
 /* ------------------------------------------------------------------ */
 
 export default function CheckoutSuccessSection() {
@@ -22,6 +23,8 @@ export default function CheckoutSuccessSection() {
   useEffect(() => {
     // Clear the cart exactly once on mount (payment succeeded).
     clear();
+    // Clear the idempotency key so the next checkout generates a fresh one.
+    clearCheckoutIdempotency();
     const sid = searchParams.get("session_id");
     setSessionId(sid);
   }, [clear, searchParams]);

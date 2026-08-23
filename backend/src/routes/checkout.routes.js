@@ -1,8 +1,18 @@
-// POST /api/checkout · create a Stripe Checkout Session.
+// POST /api/checkout · create a Stripe Checkout Session with idempotency.
 //
 // Validates cart lines against the live products collection (never trust
 // browser prices), creates a Stripe Checkout Session in hosted-UI mode,
 // and returns the session URL for the frontend to redirect to.
+//
+// IDEMPOTENCY: accepts an idempotencyKey from the client. If a session
+// was already created with that key (within 24h), returns the existing
+// session instead of creating a duplicate. Prevents double-charging when
+// the user clicks checkout multiple times or the browser retries a failed
+// request.
+//
+// REDIS-BACKED: when REDIS_URL is set, idempotency cache is stored in
+// Redis (shared across all backend instances, survives restarts). When
+// REDIS_URL is unset, falls back to in-memory cache (single instance, dev).
 //
 // Shipping: flat fee from SHIPPING_COST_EUR env var (cents, default 0)
 // while the client decides on courier services. Swap to Stripe Shipping
@@ -17,8 +27,59 @@ const Stripe = require('stripe');
 const Product = require('../models/product.model');
 const { readSession } = require('../middlewares/auth.middleware');
 const { publicWriteLimiter } = require('../middlewares/rate-limit.middleware');
+const { getRedis } = require('../db/redis');
 
 const router = express.Router();
+
+// Cache TTL: 24 hours (86400 seconds in Redis, ms for in-memory)
+const CACHE_TTL_SECONDS = 24 * 60 * 60;
+const CACHE_TTL_MS = CACHE_TTL_SECONDS * 1000;
+
+// In-memory fallback cache (used when REDIS_URL is unset).
+// Structure: Map<idempotencyKey, { sessionId, createdAt }>
+const memoryCache = new Map();
+
+// Periodic cleanup of expired in-memory entries (runs every hour)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of memoryCache.entries()) {
+    if (now - value.createdAt > CACHE_TTL_MS) {
+      memoryCache.delete(key);
+    }
+  }
+}, 60 * 60 * 1000);
+
+// Get cached session ID for an idempotency key (Redis or in-memory).
+async function getCachedSession(idempotencyKey) {
+  const redis = getRedis();
+  if (redis) {
+    // Redis mode: read from Redis
+    const sessionId = await redis.get(`checkout:${idempotencyKey}`);
+    return sessionId; // null if not found or expired
+  } else {
+    // In-memory mode: read from Map
+    const cached = memoryCache.get(idempotencyKey);
+    if (cached && Date.now() - cached.createdAt < CACHE_TTL_MS) {
+      return cached.sessionId;
+    }
+    return null;
+  }
+}
+
+// Cache a session ID for an idempotency key (Redis or in-memory).
+async function setCachedSession(idempotencyKey, sessionId) {
+  const redis = getRedis();
+  if (redis) {
+    // Redis mode: store with TTL
+    await redis.setex(`checkout:${idempotencyKey}`, CACHE_TTL_SECONDS, sessionId);
+  } else {
+    // In-memory mode: store with timestamp
+    memoryCache.set(idempotencyKey, {
+      sessionId,
+      createdAt: Date.now(),
+    });
+  }
+}
 
 // Stripe client — lazy so the process boots cleanly without the key
 // (dev / CI). Returns null when unconfigured; callers return 503.
@@ -55,9 +116,30 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     }
 
     // ------------------------------------------------------------------
-    // 1. Parse + coarse-validate the incoming cart lines.
+    // 1. Parse + coarse-validate the incoming cart lines + idempotency key.
     // ------------------------------------------------------------------
-    const { items, locale } = req.body ?? {};
+    const { items, locale, idempotencyKey } = req.body ?? {};
+
+    // Idempotency key is required to prevent duplicate charges
+    if (typeof idempotencyKey !== 'string' || idempotencyKey.length < 16 || idempotencyKey.length > 100) {
+      return res.status(400).json({ error: 'invalid_idempotency_key' });
+    }
+
+    // Check if we already created a session for this idempotency key
+    const cachedSessionId = await getCachedSession(idempotencyKey);
+    if (cachedSessionId) {
+      try {
+        // Verify the session still exists in Stripe
+        const session = await stripe.checkout.sessions.retrieve(cachedSessionId);
+        if (session && session.url) {
+          console.log(`[checkout] returning cached session for idempotency key: ${idempotencyKey}`);
+          return res.json({ url: session.url, cached: true });
+        }
+      } catch (err) {
+        // Session expired or deleted — continue to create a new one
+        console.warn(`[checkout] cached session ${cachedSessionId} not found; creating new session`);
+      }
+    }
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'cart_empty' });
@@ -90,6 +172,9 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     const productMap = Object.fromEntries(products.map((p) => [p.slug, p]));
 
     const lineItems = [];
+    let hasStockIssue = false;
+    let stockErrorDetail = null;
+
     for (const item of items) {
       const product = productMap[item.slug];
       if (!product) {
@@ -99,13 +184,18 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       if (!size) {
         return res.status(409).json({ error: 'size_not_found', slug: item.slug, sizeId: item.sizeId });
       }
+
+      // Pre-check stock availability (webhook will do atomic check again)
       if (typeof size.stock === 'number' && size.stock < item.qty) {
-        return res.status(409).json({
+        hasStockIssue = true;
+        stockErrorDetail = {
           error: 'out_of_stock',
           slug: item.slug,
           sizeId: item.sizeId,
           available: size.stock,
-        });
+          requested: item.qty,
+        };
+        break;
       }
 
       // Stripe line_items take unit_amount in the SMALLEST currency unit
@@ -129,6 +219,10 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       });
     }
 
+    if (hasStockIssue) {
+      return res.status(409).json(stockErrorDetail);
+    }
+
     // ------------------------------------------------------------------
     // 3. Optional: pre-fill the email for logged-in users.
     // ------------------------------------------------------------------
@@ -147,7 +241,7 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     const cancelUrl = `${frontendUrl}${localePrefix}/shop/checkout/cancel`;
 
     // ------------------------------------------------------------------
-    // 5. Create the Stripe Checkout Session.
+    // 5. Create the Stripe Checkout Session with Stripe's idempotency.
     // ------------------------------------------------------------------
     const shippingCost = shippingCents();
 
@@ -167,6 +261,12 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       success_url: successUrl,
       cancel_url: cancelUrl,
       locale: LOCALE_MAP[locale] ?? 'auto',
+      // Payment intent data for better tracking
+      payment_intent_data: {
+        metadata: {
+          idempotencyKey,
+        },
+      },
       // Automatic tax is disabled until the client adds their Spanish tax
       // registration to Stripe. Enable with: automatic_tax: { enabled: true }
     };
@@ -188,20 +288,48 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       sessionParams.customer_email = customerEmail;
     }
 
-    // Carry the cart payload + user id in metadata so the webhook can
-    // build the order without re-fetching the session's line_items.
+    // Carry the cart payload + user id + idempotency key in metadata so
+    // the webhook can build the order without re-fetching the session's
+    // line_items and can implement its own idempotency check.
     sessionParams.metadata = {
       cartJson: JSON.stringify(
         items.map((i) => ({ slug: i.slug, sizeId: i.sizeId, qty: i.qty }))
       ),
       locale: locale ?? 'en',
+      idempotencyKey,
       ...(session?.uid ? { userId: String(session.uid) } : {}),
     };
 
-    const stripeSession = await stripe.checkout.sessions.create(sessionParams);
+    // Use Stripe's native idempotency by passing the key as a request option.
+    // This ensures that if the exact same request is sent twice (network retry,
+    // user double-click), Stripe returns the same session instead of creating
+    // a duplicate charge.
+    const stripeSession = await stripe.checkout.sessions.create(
+      sessionParams,
+      {
+        idempotencyKey: `checkout_${idempotencyKey}`,
+      }
+    );
+
+    // Cache the session for fast repeated requests (Redis or in-memory)
+    await setCachedSession(idempotencyKey, stripeSession.id);
+
+    console.log(`[checkout] created session ${stripeSession.id} for idempotency key: ${idempotencyKey}`);
 
     res.json({ url: stripeSession.url });
   } catch (err) {
+    // Stripe errors
+    if (err.type === 'StripeCardError') {
+      return res.status(402).json({ error: 'card_declined', message: err.message });
+    }
+    if (err.type === 'StripeInvalidRequestError') {
+      console.error('[checkout] Stripe invalid request:', err.message);
+      return res.status(400).json({ error: 'invalid_request' });
+    }
+    if (err.type === 'StripeAPIError' || err.type === 'StripeConnectionError') {
+      console.error('[checkout] Stripe API error:', err.message);
+      return res.status(503).json({ error: 'payment_service_unavailable' });
+    }
     next(err);
   }
 });

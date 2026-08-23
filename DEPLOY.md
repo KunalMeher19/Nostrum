@@ -37,9 +37,9 @@ Two apps deploy together:
 | `SHUTDOWN_GRACE_MS` | optional | Drain window for graceful shutdown (default 10000). In-flight requests get this long on SIGTERM before a hard exit. |
 | `REDIS_URL` | when scaling | Optional. Set to move rate-limit buckets to Redis so multiple API instances share budgets. Unset = in-memory (fine for one instance). |
 | `RATE_*` | optional | Tune limiter tiers without a deploy; see `backend/src/config/rate-limit.config.js` (global/write/heavy/anon/publicWrite). |
-| `STRIPE_SECRET_KEY` | yes (checkout) | Stripe secret key (`sk_live_…` or `sk_test_…`). Without it, `POST /api/checkout` returns 503. |
-| `STRIPE_WEBHOOK_SECRET` | yes (checkout) | Signing secret from the Stripe webhook endpoint (`whsec_…`). Required to verify `checkout.session.completed` events. |
-| `SHIPPING_COST_EUR` | optional | Flat shipping fee in EUR cents added to every order. Defaults to 0 until the client confirms rates. E.g. `490` = €4.90. |
+| `STRIPE_SECRET_KEY` | yes (checkout) | Stripe secret key (`sk_live_…` for production or `sk_test_…` for testing). Get from Stripe Dashboard → Developers → API keys. Without it, `POST /api/checkout` returns 503. **Test mode keys start with `sk_test_`, live mode keys start with `sk_live_`.** |
+| `STRIPE_WEBHOOK_SECRET` | yes (checkout) | Webhook signing secret (`whsec_…`). Get from Stripe Dashboard → Developers → Webhooks → Add endpoint → set URL to `https://nostrum-production.up.railway.app/api/stripe/webhook` → select event `checkout.session.completed` → save → reveal signing secret. Required to verify webhook events and prevent spoofing. |
+| `SHIPPING_COST_EUR` | optional | Flat shipping fee in EUR cents added to every order. Defaults to 0 (free shipping). E.g. `490` = €4.90, `1200` = €12.00. Update when client confirms courier rates. |
 
 ## Launch checklist
 
@@ -51,9 +51,93 @@ Two apps deploy together:
 6. Run `cd backend && npm test` (full suite) and `npm run build` at root.
 7. Smoke: contact form submit, newsletter subscribe → unsubscribe link, admin CSV exports, invoice PDF download, journal pages.
 
+## Stripe Payment Setup (Step-by-step)
+
+**CRITICAL: Client confirmed Stripe as the payment gateway. Payment system is fully built and idempotent. Only keys are needed to go live.**
+
+### 1. Get Stripe API Keys
+
+1. Log in to Stripe Dashboard: https://dashboard.stripe.com
+2. Navigate to: **Developers** → **API keys**
+3. Copy the **Secret key** (starts with `sk_test_` for test mode or `sk_live_` for production)
+   - **For testing:** Use test mode keys first
+   - **For production:** Activate your account and use live mode keys
+
+### 2. Set Up Webhook Endpoint
+
+1. In Stripe Dashboard, go to: **Developers** → **Webhooks**
+2. Click **Add endpoint**
+3. Set **Endpoint URL** to: `https://nostrum-production.up.railway.app/api/stripe/webhook`
+4. Click **Select events**
+5. Search and select: `checkout.session.completed`
+6. Click **Add endpoint**
+7. Click on the newly created webhook endpoint
+8. Click **Reveal** under **Signing secret** (starts with `whsec_…`)
+9. Copy this signing secret
+
+### 3. Add Keys to Railway
+
+1. Go to Railway dashboard: https://railway.app
+2. Select your **Nostrum backend** project
+3. Go to **Variables** tab
+4. Add these environment variables:
+   ```
+   STRIPE_SECRET_KEY=sk_test_xxxxx  (or sk_live_xxxxx for production)
+   STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+   SHIPPING_COST_EUR=0  (or amount in cents, e.g. 490 for €4.90)
+   ```
+5. Click **Deploy** to restart the backend with new variables
+
+### 4. Test the Payment Flow
+
+**Test Mode (recommended first):**
+1. Use test keys (`sk_test_...`)
+2. Cart → Checkout button redirects to Stripe hosted page
+3. Use Stripe test card: `4242 4242 4242 4242`, any future expiry, any CVC
+4. Complete payment → redirects to success page
+5. Check Railway logs: should see `[stripe webhook] order created: NST-2026-XXXX`
+6. Check admin portal: order should appear with status "placed"
+7. Customer should receive order confirmation email (when Resend is configured)
+
+**Test card numbers (Stripe test mode):**
+- Success: `4242 4242 4242 4242`
+- Decline: `4000 0000 0000 0002`
+- Insufficient funds: `4000 0000 0000 9995`
+
+**Live Mode (after testing):**
+1. Activate Stripe account (add business details)
+2. Replace `STRIPE_SECRET_KEY` with live key (`sk_live_...`)
+3. Create new webhook endpoint for live mode (same URL)
+4. Replace `STRIPE_WEBHOOK_SECRET` with live webhook secret
+5. Deploy backend
+6. Real payments will now be processed
+
+### 5. Idempotency & Error Handling
+
+✅ **Already implemented:**
+- Multiple checkout clicks → same session (no duplicate charges)
+- Network retries → same session returned from cache
+- Webhook retries → idempotent order creation (no duplicates)
+- Out-of-stock race → automatic cancellation + refund notice
+- Payment failures → user-friendly error messages
+- Stock consumption → atomic, no overselling
+
+### 6. Monitoring
+
+After going live, monitor these in Stripe Dashboard:
+- **Payments** → see all successful charges
+- **Logs** → webhook delivery status
+- **Events** → raw event data for debugging
+
+In Railway logs, look for:
+- `[checkout] created session {id} for idempotency key: {key}` → checkout initiated
+- `[stripe webhook] order created: NST-2026-XXXX (session {id})` → order confirmed
+- `[stripe webhook] OUT_OF_STOCK on session {id}` → stock issue (requires manual refund)
+
 ## Still blocked on the client (do before/at launch when provided)
 
+- **Stripe keys** (CRITICAL PATH - see above for complete setup instructions)
 - Email provider (Resend): wire `src/lib/auth/mailer.ts` + `backend/src/services/mailer.service.js` (instructions in each header).
 - Real contact details + WhatsApp number (placeholders in `ContactSection.tsx` / `SiteFooter`).
 - Legal pages (privacy, legal notice, cookies text) and the invoice legal identity (`backend/src/services/invoice.service.js`).
-- Checkout/payments (Shopify vs Stripe decision) and the real shop catalog.
+- Real shop catalog (admin can now enter products directly, waiting for photos/prices).

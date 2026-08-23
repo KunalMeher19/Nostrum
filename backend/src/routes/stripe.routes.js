@@ -1,4 +1,4 @@
-// POST /api/stripe/webhook · verify + handle Stripe events.
+// POST /api/stripe/webhook · verify + handle Stripe events with idempotency.
 //
 // This route MUST be mounted BEFORE express.json so it receives the raw
 // request body — Stripe's signature check requires the exact bytes that
@@ -8,10 +8,16 @@
 // The redirect can be hit by the user refreshing, navigating back, etc.
 // The webhook fires exactly once per completed payment (Stripe retries on
 // non-2xx until acknowledged) — that's the safe creation point.
+//
+// IDEMPOTENCY: uses stripeSessionId as the idempotency key. If an order
+// already exists for a given session ID, returns success without creating
+// a duplicate order. This prevents double-order creation when Stripe
+// retries the webhook or sends duplicate events.
 const express = require('express');
 const Stripe = require('stripe');
 const orders = require('../services/orders.service');
 const Product = require('../models/product.model');
+const { Order } = require('../models/order.model');
 
 const router = express.Router();
 
@@ -29,6 +35,7 @@ async function buildOrderPayload(session) {
   const cart = JSON.parse(session.metadata?.cartJson ?? '[]');
   const locale = session.metadata?.locale ?? 'en';
   const userId = session.metadata?.userId ?? null;
+  const idempotencyKey = session.metadata?.idempotencyKey ?? null;
 
   // Re-fetch server-side prices (the cart metadata holds the slug/sizeId
   // the browser sent; prices come from the DB, not from Stripe or the
@@ -97,8 +104,12 @@ async function buildOrderPayload(session) {
     statusHistory: [{ status: 'placed', at: new Date() }],
     shippingAddress,
     placedAt: new Date(),
-    // Store the Stripe session id for reference / potential refund lookups.
+    // Store the Stripe session id for idempotency and reference
     stripeSessionId: session.id,
+    // Store the payment intent id for refunds
+    stripePaymentIntentId: session.payment_intent ?? null,
+    // Store the client's idempotency key
+    idempotencyKey,
     // Locale is carried through metadata (used in future per-locale emails).
     locale,
   };
@@ -146,35 +157,104 @@ router.post(
       return res.json({ received: true });
     }
 
+    // ------------------------------------------------------------------
+    // IDEMPOTENCY CHECK: If an order already exists for this session,
+    // return success immediately without creating a duplicate.
+    // ------------------------------------------------------------------
+    try {
+      const existingOrder = await Order.findOne({
+        stripeSessionId: session.id,
+      }).lean();
+
+      if (existingOrder) {
+        console.log(`[stripe webhook] order already exists for session ${session.id}: ${existingOrder.number}`);
+        return res.json({ received: true, orderId: existingOrder.number, duplicate: true });
+      }
+    } catch (err) {
+      console.error('[stripe webhook] idempotency check failed:', err.message);
+      // If the check itself fails, return 500 so Stripe retries later
+      return res.status(500).json({ error: 'idempotency_check_failed' });
+    }
+
+    // ------------------------------------------------------------------
+    // Order creation with atomic stock consumption
+    // ------------------------------------------------------------------
     try {
       const payload = await buildOrderPayload(session);
 
       if (payload.items.length === 0) {
         console.error(`[stripe webhook] session ${session.id}: no resolvable items; order not created`);
         // Still return 200 — Stripe has no action to retry here.
+        // The payment went through but the cart is empty (products deleted).
+        // Admin will need to manually refund via Stripe dashboard.
         return res.json({ received: true, warning: 'no_items' });
       }
 
       const order = await orders.createOrder(payload);
       console.log(`[stripe webhook] order created: ${order.number} (session ${session.id})`);
+
+      return res.json({ received: true, orderId: order.number });
     } catch (err) {
       if (err.code === 'OUT_OF_STOCK') {
         // Stock ran out between session creation and webhook delivery.
-        // Log it; the admin will need to issue a manual refund via the
-        // Stripe dashboard. TODO: trigger a refund + apology mail.
+        // This is a rare race condition. Log it with full details.
         console.error(
           `[stripe webhook] OUT_OF_STOCK on session ${session.id}:`,
-          err.item
+          JSON.stringify(err.item)
         );
+        console.error(`[stripe webhook] payment intent: ${session.payment_intent}`);
+
         // Return 200 so Stripe doesn't retry — the item is genuinely gone.
-        return res.json({ received: true, warning: 'out_of_stock' });
+        // The payment went through but we can't fulfill the order.
+        // Store a partial order record for admin visibility and manual handling.
+        try {
+          const payload = await buildOrderPayload(session);
+          // Create order with cancelled status and a note about the stock issue
+          payload.status = 'cancelled';
+          payload.statusHistory = [
+            { status: 'placed', at: new Date() },
+            { status: 'cancelled', at: new Date() },
+          ];
+          const cancelledOrder = await orders.createOrder(payload);
+          console.log(`[stripe webhook] created cancelled order for out-of-stock: ${cancelledOrder.number}`);
+
+          // TODO: Trigger automatic refund via Stripe API
+          // await stripe.refunds.create({ payment_intent: session.payment_intent });
+          // TODO: Send apology email to customer with refund notification
+
+        } catch (orderErr) {
+          console.error('[stripe webhook] failed to create cancelled order record:', orderErr.message);
+        }
+
+        return res.json({
+          received: true,
+          warning: 'out_of_stock',
+          requires_manual_refund: true,
+          payment_intent: session.payment_intent,
+        });
       }
-      // For any other error (DB down, etc.) return 500 so Stripe retries.
+
+      // Handle duplicate order number race (extremely rare but possible)
+      if (err.code === 11000 && err.keyPattern?.number) {
+        console.warn(`[stripe webhook] duplicate order number collision for session ${session.id}`);
+        // This could mean another webhook instance already created the order
+        // Return 200 to acknowledge (don't retry) but log for investigation
+        return res.json({ received: true, warning: 'order_number_collision' });
+      }
+
+      // Handle duplicate session ID race (also rare)
+      if (err.code === 11000 && err.keyPattern?.stripeSessionId) {
+        console.warn(`[stripe webhook] duplicate session ID collision for ${session.id}`);
+        // Another webhook instance is processing this same session
+        return res.json({ received: true, warning: 'session_id_collision' });
+      }
+
+      // For any other error (DB down, network issue, etc.) return 500
+      // so Stripe retries the webhook later.
       console.error('[stripe webhook] order creation failed:', err.message);
+      console.error('[stripe webhook] stack:', err.stack);
       return res.status(500).json({ error: 'order_creation_failed' });
     }
-
-    res.json({ received: true });
   }
 );
 

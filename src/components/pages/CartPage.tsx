@@ -33,11 +33,18 @@ export default function CartPage() {
   const rootRef = useRef<HTMLElement>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const checkoutInProgressRef = useRef(false);
 
   async function handleCheckout() {
-    if (checkoutLoading || items.length === 0) return;
+    // Prevent multiple simultaneous checkout attempts
+    if (checkoutInProgressRef.current || checkoutLoading || items.length === 0) {
+      return;
+    }
+
+    checkoutInProgressRef.current = true;
     setCheckoutLoading(true);
     setCheckoutError(null);
+
     try {
       const payload = items.map((it) => ({
         slug: it.slug,
@@ -46,9 +53,21 @@ export default function CartPage() {
       }));
       const { url } = await startCheckout(payload, locale);
       // Redirect to Stripe's hosted checkout page.
+      // Note: idempotency is handled inside startCheckout, so even if
+      // this function is called multiple times, the same session URL
+      // will be returned without creating duplicate charges.
       window.location.href = url;
-    } catch {
-      setCheckoutError(t("cart.checkout_error"));
+    } catch (err) {
+      checkoutInProgressRef.current = false;
+      // Parse specific error messages from the backend
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes('out_of_stock') || message.includes('409')) {
+        setCheckoutError(t("cart.out_of_stock_error") || "Some items are no longer available");
+      } else if (message.includes('503')) {
+        setCheckoutError(t("cart.service_unavailable") || "Payment service temporarily unavailable");
+      } else {
+        setCheckoutError(t("cart.checkout_error"));
+      }
       setCheckoutLoading(false);
     }
   }

@@ -297,11 +297,71 @@ export type CheckoutItem = {
   qty: number;
 };
 
+/** Generate a unique idempotency key for checkout requests.
+ *  Format: timestamp-random to ensure uniqueness across sessions. */
+function generateIdempotencyKey(): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 15);
+  const random2 = Math.random().toString(36).substring(2, 15);
+  return `${timestamp}-${random}${random2}`;
+}
+
 /** POST /api/checkout — validate cart server-side, create a Stripe
- *  Checkout Session, and return the hosted checkout URL. */
+ *  Checkout Session, and return the hosted checkout URL.
+ *
+ *  Includes automatic idempotency: generates a unique key that is stored
+ *  in localStorage. If the user clicks checkout multiple times or the
+ *  request is retried, the same key is sent so Stripe returns the existing
+ *  session instead of creating duplicate charges. */
 export function startCheckout(items: CheckoutItem[], locale: string) {
+  // Generate or retrieve idempotency key from localStorage
+  const storageKey = 'nostrum_checkout_idempotency';
+  let idempotencyKey: string;
+
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Reuse the key if it's less than 10 minutes old
+        if (parsed.key && Date.now() - parsed.timestamp < 10 * 60 * 1000) {
+          idempotencyKey = parsed.key;
+        } else {
+          idempotencyKey = generateIdempotencyKey();
+          localStorage.setItem(storageKey, JSON.stringify({
+            key: idempotencyKey,
+            timestamp: Date.now(),
+          }));
+        }
+      } catch {
+        idempotencyKey = generateIdempotencyKey();
+        localStorage.setItem(storageKey, JSON.stringify({
+          key: idempotencyKey,
+          timestamp: Date.now(),
+        }));
+      }
+    } else {
+      idempotencyKey = generateIdempotencyKey();
+      localStorage.setItem(storageKey, JSON.stringify({
+        key: idempotencyKey,
+        timestamp: Date.now(),
+      }));
+    }
+  } else {
+    // Server-side: generate a new key (won't be cached)
+    idempotencyKey = generateIdempotencyKey();
+  }
+
   return api<{ url: string }>("/api/checkout", {
     method: "POST",
-    body: JSON.stringify({ items, locale }),
+    body: JSON.stringify({ items, locale, idempotencyKey }),
   });
+}
+
+/** Clear the checkout idempotency key after successful payment.
+ *  Call this from the success page to allow the user to make a new purchase. */
+export function clearCheckoutIdempotency() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('nostrum_checkout_idempotency');
+  }
 }
