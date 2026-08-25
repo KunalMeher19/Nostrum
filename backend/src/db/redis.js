@@ -34,9 +34,30 @@ function getRedis() {
         connectTimeout: 10000,
         // Keep connection alive
         keepAlive: 30000,
+        // Lazy connection - don't block on initial connect
+        lazyConnect: true,
       });
-      client.on('error', (err) => console.error('[redis]', err.message));
+
+      // Handle connection errors gracefully - DNS issues on Railway, etc.
+      let connectionFailed = false;
+      client.on('error', (err) => {
+        if (err.code === 'ENOTFOUND' || err.message.includes('getaddrinfo')) {
+          if (!connectionFailed) {
+            console.error('[redis] DNS resolution failed; falling back to in-memory rate limiting');
+            console.error('[redis] If you need distributed rate limiting, use UPSTASH_REDIS_REST_URL instead');
+            connectionFailed = true;
+          }
+        } else {
+          console.error('[redis]', err.message);
+        }
+      });
       client.on('connect', () => console.log('[redis] connected via native Redis protocol'));
+
+      // Try to connect immediately; if it fails, we'll catch it via the error handler
+      client.connect().catch(() => {
+        // Connection failed at startup - limiters will handle this gracefully
+      });
+
       return client;
     }
 
