@@ -85,6 +85,10 @@ export default function CheckoutSuccessSection() {
     const pollInterval = 2000; // 2 seconds
 
     async function poll() {
+      if (!sid) {
+        setLoading(false);
+        return;
+      }
       attempts++;
       setPollAttempts(attempts);
       const fetched = await fetchOrderBySession(sid);
@@ -103,6 +107,9 @@ export default function CheckoutSuccessSection() {
 
     poll();
   }, [clear, searchParams]);
+
+  // Show loading state while polling
+  if (loading) {
     return (
       <section className="checkout-result">
         <div className="checkout-result__inner">
