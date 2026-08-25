@@ -8,9 +8,12 @@
 // Store: in-memory (per process) by default — fine for a single
 // instance. Set REDIS_URL to move the buckets to Redis (rate-limit-redis
 // via src/db/redis.js) so horizontally-scaled instances share budgets.
+// Alternatively, use UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+// for HTTP-based Redis access (no DNS issues on Railway).
 const { rateLimit } = require('express-rate-limit');
 const tiers = require('../config/rate-limit.config');
-const { getRedis } = require('../db/redis');
+const { getRedis, isRestClient } = require('../db/redis');
+const { UpstashRestStore } = require('./upstash-rest-store');
 
 const SESSION_COOKIE = 'authjs.session-token'; // matches auth.middleware
 
@@ -29,6 +32,13 @@ let storeSeq = 0;
 function makeStore() {
   const redis = getRedis();
   if (!redis) return undefined; // in-memory default
+
+  // Check if it's a REST client (Upstash REST API)
+  if (isRestClient(redis)) {
+    return new UpstashRestStore(redis, `rl:${storeSeq++}:`);
+  }
+
+  // Native ioredis client - use rate-limit-redis
   const { RedisStore } = require('rate-limit-redis');
   return new RedisStore({
     sendCommand: (...args) => redis.call(...args),

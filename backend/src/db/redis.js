@@ -6,17 +6,16 @@
 // the limiters keep their in-memory stores — zero behavior change.
 //
 // For Upstash: supports both native Redis protocol and REST API. If DNS
-// resolution fails (Railway networking issue), set UPSTASH_REDIS_REST_URL
-// and UPSTASH_REDIS_REST_TOKEN instead.
+// resolution fails (Railway networking issue), use UPSTASH_REDIS_REST_URL
+// and UPSTASH_REDIS_REST_TOKEN for HTTP-based access.
 let client = null;
-let clientFailed = false; // Track if we've already tried and failed
+let restClient = null;
 
 function getRedis() {
-  if (clientFailed) return null; // Don't retry after failure
   if (!process.env.REDIS_URL && !process.env.UPSTASH_REDIS_REST_URL) return null;
-  if (!client) {
-    // Try native Redis protocol first (ioredis) — supports all commands including
-    // Lua scripts needed by rate-limit-redis. Only fall back to REST API if this fails.
+
+  if (!client && !restClient) {
+    // Priority 1: Try native Redis protocol (ioredis) — supports all commands
     if (process.env.REDIS_URL) {
       const Redis = require('ioredis');
 
@@ -24,48 +23,46 @@ function getRedis() {
       const isUpstash = process.env.REDIS_URL.includes('upstash.io');
       const needsTls = process.env.REDIS_URL.startsWith('rediss://') || isUpstash;
 
-      const tempClient = new Redis(process.env.REDIS_URL, {
-        // Upstash-compatible settings: TLS required, family 6 for IPv6 support
+      client = new Redis(process.env.REDIS_URL, {
         tls: needsTls ? {} : undefined,
         family: 6, // Upstash uses IPv6
-        // Fail fast instead of queueing commands forever if Redis is down;
-        // express-rate-limit then surfaces the error, not a hung request.
-        maxRetriesPerRequest: 0, // Fail immediately, don't retry
+        maxRetriesPerRequest: 2,
         enableOfflineQueue: false,
-        // Upstash connection timeout
-        connectTimeout: 5000, // Shorter timeout to fail fast
-        lazyConnect: true, // Don't connect until we explicitly call connect()
+        connectTimeout: 10000,
+        keepAlive: 30000,
       });
 
-      // Try to connect synchronously during startup
-      tempClient.connect().then(() => {
-        console.log('[redis] connected via native Redis protocol');
-        client = tempClient;
-      }).catch((err) => {
+      client.on('error', (err) => {
         if (err.code === 'ENOTFOUND' || err.message.includes('getaddrinfo')) {
-          console.error('[redis] DNS resolution failed; using in-memory rate limiting');
-          console.error('[redis] Railway networking cannot resolve Upstash hostnames');
+          console.error('[redis] DNS resolution failed; falling back to REST API if available');
+          client = null; // Mark as failed so we try REST next
         } else {
-          console.error('[redis] connection failed:', err.message);
+          console.error('[redis]', err.message);
         }
-        clientFailed = true;
-        tempClient.disconnect();
       });
 
-      // Return null immediately - don't wait for async connection
-      // The limiters will use in-memory storage
-      return null;
+      client.on('connect', () => console.log('[redis] connected via native Redis protocol'));
+      return client;
     }
 
-    // Upstash REST API fallback: rate-limit-redis needs Lua script support
-    // (EVAL/EVALSHA) which the REST client doesn't fully expose. If you see
-    // rate-limit errors, set REDIS_URL (native protocol) instead.
+    // Priority 2: Upstash REST API (HTTP-based, no DNS issues on Railway)
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-      console.warn('[redis] REST API detected but rate-limit-redis needs native protocol; using in-memory rate limiting');
-      return null;
+      const { Redis } = require('@upstash/redis');
+      restClient = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+      console.log('[redis] connected via Upstash REST API');
+      return restClient;
     }
   }
-  return client;
+
+  return client || restClient;
 }
 
-module.exports = { getRedis };
+// Check if the client is a REST client (vs native ioredis)
+function isRestClient(redis) {
+  return redis && typeof redis.get === 'function' && !redis.call;
+}
+
+module.exports = { getRedis, isRestClient };
