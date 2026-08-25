@@ -11,9 +11,14 @@ function getRedis() {
   if (!client) {
     // Lazy require: ioredis is only loaded when actually configured.
     const Redis = require('ioredis');
+
+    // Upstash uses TLS even with redis:// URLs (not rediss://)
+    const isUpstash = process.env.REDIS_URL.includes('upstash.io');
+    const needsTls = process.env.REDIS_URL.startsWith('rediss://') || isUpstash;
+
     client = new Redis(process.env.REDIS_URL, {
       // Upstash-compatible settings: TLS required, family 6 for IPv6 support
-      tls: process.env.REDIS_URL.startsWith('rediss://') ? {} : undefined,
+      tls: needsTls ? {} : undefined,
       family: 6, // Upstash uses IPv6
       // Fail fast instead of queueing commands forever if Redis is down;
       // express-rate-limit then surfaces the error, not a hung request.
