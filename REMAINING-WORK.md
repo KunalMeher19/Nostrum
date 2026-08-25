@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
+> Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
 > Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins “How it is made” images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below). Updated 2026-08-18 after mobile responsiveness overhaul (see 2.15 below). Updated 2026-08-21 after adding admin skeleton loading states across all data tabs and the customer portal order list, then restoring and tuning the Journal branch portal for desktop/tablet and applying the final desktop position/inertia pass. Updated 2026-08-21 after wiring empty-cart drawer suggestions to the live catalog and correcting cart thumbnail alignment, then removing the remaining horizontal letterboxing and fixing /cart reload image overflow. Updated 2026-08-21 after making the cart page hydration-aware. Updated 2026-08-23 after implementing production-grade Stripe payment system with complete idempotency (see 2.16 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
@@ -448,6 +448,41 @@ Client confirmed Stripe as the payment gateway. The initial implementation from 
 ### 2.17 Security audit + hardening round — DONE 2026-08-25
 
 Full 36-item security audit run against the codebase. 22 items confirmed clean (CSRF, NoSQL injection, CORS, admin authz, payment integrity, session management, JWT secrets, IDOR, rate limits, signed webhooks, etc.). 5 code fixes applied + 1 added (locale enum). 87/87 backend tests green after all changes.
+
+### 2.18 Critical: Redis connection failure causing admin panel 500 errors — FIXED 2026-08-25
+
+**Issue reported**: Admin panel showing 500 Internal Server Error on `/api/proxy/admin/orders`, `/api/proxy/admin/customers`, and all other admin endpoints. No data loading in admin tabs.
+
+**Root cause discovered via backend logs** (`logs.1787667458203.json` from Railway):
+- `REDIS_URL` environment variable set in Railway but connection failing
+- Error: `Stream isn't writeable and enableOfflineQueue options is false`
+- Repeated `[redis] read ECONNRESET` throughout logs
+- Rate limiter initialization failing on startup because Redis store couldn't connect
+- All rate-limited routes (including admin routes with `requireAdmin`) returning 500 errors
+
+**Architecture context** (from `backend/src/db/redis.js` and `rate-limit.middleware.js`):
+- Redis is **OPTIONAL** for this application
+- Used for: (1) rate-limit bucket sharing across multiple instances, (2) checkout idempotency cache
+- When `REDIS_URL` is unset: falls back to in-memory stores (perfectly fine for single-instance deployment)
+- When `REDIS_URL` is set but invalid: initialization fails → rate limiters fail → all routes fail with 500
+
+**Fix implemented**: 
+- **SOLUTION**: Remove the invalid `REDIS_URL` from Railway environment variables
+- **REASONING**: Single Railway instance doesn't need Redis — in-memory rate limiting works perfectly
+- **STEPS**: Railway dashboard → Backend service → Variables → Delete `REDIS_URL` → Auto-redeploy
+- **RESULT**: Backend starts cleanly, rate limiters use in-memory stores, admin panel loads normally
+
+**Documentation updated**:
+- `docs/REDIS-VERIFICATION.md` updated with "Critical Fix" section at top
+- Explains when Redis is needed (horizontal scaling) vs optional (single instance)
+- Provides both quick fix (remove REDIS_URL) and alternative (provision real Redis)
+
+**When Redis becomes necessary**:
+- Only when horizontally scaling to 2+ Railway instances
+- Provides shared rate-limit buckets and persistent idempotency cache across restarts
+- Until then, in-memory storage is simpler and eliminates this dependency
+
+**Verified**: After removing `REDIS_URL`, backend logs show clean startup (`MongoDB connected`, `Nostrum API listening on port 8080`) with no Redis errors, and admin panel loads orders/customers/products without 500 errors.
 
 **Fixes applied:**
 
