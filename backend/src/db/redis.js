@@ -4,12 +4,33 @@
 // move to Redis so every API instance shares the same budgets. When it
 // is unset (local dev, single instance, tests) this exports null and
 // the limiters keep their in-memory stores — zero behavior change.
+//
+// For Upstash: supports both native Redis protocol and REST API. If DNS
+// resolution fails (Railway networking issue), set UPSTASH_REDIS_REST_URL
+// and UPSTASH_REDIS_REST_TOKEN instead.
 let client = null;
 
 function getRedis() {
-  if (!process.env.REDIS_URL) return null;
+  if (!process.env.REDIS_URL && !process.env.UPSTASH_REDIS_REST_URL) return null;
   if (!client) {
-    // Lazy require: ioredis is only loaded when actually configured.
+    // Upstash REST API fallback (better for Railway networking)
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      const { Redis } = require('@upstash/redis');
+      client = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+      // Wrap to match ioredis interface for rate-limit-redis
+      const originalClient = client;
+      client.call = async (...args) => {
+        const [command, ...params] = args;
+        return originalClient[command.toLowerCase()](...params);
+      };
+      console.log('[redis] connected to Upstash via REST API');
+      return client;
+    }
+
+    // Standard Redis protocol (ioredis)
     const Redis = require('ioredis');
 
     // Upstash uses TLS even with redis:// URLs (not rediss://)
@@ -30,7 +51,7 @@ function getRedis() {
       keepAlive: 30000,
     });
     client.on('error', (err) => console.error('[redis]', err.message));
-    client.on('connect', () => console.log('[redis] connected to Upstash'));
+    client.on('connect', () => console.log('[redis] connected to Upstash via native protocol'));
   }
   return client;
 }
