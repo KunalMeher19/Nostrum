@@ -31,22 +31,7 @@ function makeStore() {
   if (!redis) return undefined; // in-memory default
   const { RedisStore } = require('rate-limit-redis');
   return new RedisStore({
-    sendCommand: async (...args) => {
-      try {
-        // If Redis is disconnected (DNS failure, network issue), fall back gracefully
-        if (redis.status !== 'ready' && redis.status !== 'connecting') {
-          return undefined; // Triggers in-memory fallback in rate-limit-redis
-        }
-        return await redis.call(...args);
-      } catch (err) {
-        // Command failed - log once and fall back to in-memory
-        if (!makeStore.errorLogged) {
-          console.error('[redis] rate-limit command failed; using in-memory fallback');
-          makeStore.errorLogged = true;
-        }
-        return undefined;
-      }
-    },
+    sendCommand: (...args) => redis.call(...args),
     prefix: `rl:${storeSeq++}:`,
   });
 }

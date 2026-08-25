@@ -9,8 +9,10 @@
 // resolution fails (Railway networking issue), set UPSTASH_REDIS_REST_URL
 // and UPSTASH_REDIS_REST_TOKEN instead.
 let client = null;
+let clientFailed = false; // Track if we've already tried and failed
 
 function getRedis() {
+  if (clientFailed) return null; // Don't retry after failure
   if (!process.env.REDIS_URL && !process.env.UPSTASH_REDIS_REST_URL) return null;
   if (!client) {
     // Try native Redis protocol first (ioredis) — supports all commands including
@@ -22,43 +24,37 @@ function getRedis() {
       const isUpstash = process.env.REDIS_URL.includes('upstash.io');
       const needsTls = process.env.REDIS_URL.startsWith('rediss://') || isUpstash;
 
-      client = new Redis(process.env.REDIS_URL, {
+      const tempClient = new Redis(process.env.REDIS_URL, {
         // Upstash-compatible settings: TLS required, family 6 for IPv6 support
         tls: needsTls ? {} : undefined,
         family: 6, // Upstash uses IPv6
         // Fail fast instead of queueing commands forever if Redis is down;
         // express-rate-limit then surfaces the error, not a hung request.
-        maxRetriesPerRequest: 2,
+        maxRetriesPerRequest: 0, // Fail immediately, don't retry
         enableOfflineQueue: false,
         // Upstash connection timeout
-        connectTimeout: 10000,
-        // Keep connection alive
-        keepAlive: 30000,
-        // Lazy connection - don't block on initial connect
-        lazyConnect: true,
+        connectTimeout: 5000, // Shorter timeout to fail fast
+        lazyConnect: true, // Don't connect until we explicitly call connect()
       });
 
-      // Handle connection errors gracefully - DNS issues on Railway, etc.
-      let connectionFailed = false;
-      client.on('error', (err) => {
+      // Try to connect synchronously during startup
+      tempClient.connect().then(() => {
+        console.log('[redis] connected via native Redis protocol');
+        client = tempClient;
+      }).catch((err) => {
         if (err.code === 'ENOTFOUND' || err.message.includes('getaddrinfo')) {
-          if (!connectionFailed) {
-            console.error('[redis] DNS resolution failed; falling back to in-memory rate limiting');
-            console.error('[redis] If you need distributed rate limiting, use UPSTASH_REDIS_REST_URL instead');
-            connectionFailed = true;
-          }
+          console.error('[redis] DNS resolution failed; using in-memory rate limiting');
+          console.error('[redis] Railway networking cannot resolve Upstash hostnames');
         } else {
-          console.error('[redis]', err.message);
+          console.error('[redis] connection failed:', err.message);
         }
-      });
-      client.on('connect', () => console.log('[redis] connected via native Redis protocol'));
-
-      // Try to connect immediately; if it fails, we'll catch it via the error handler
-      client.connect().catch(() => {
-        // Connection failed at startup - limiters will handle this gracefully
+        clientFailed = true;
+        tempClient.disconnect();
       });
 
-      return client;
+      // Return null immediately - don't wait for async connection
+      // The limiters will use in-memory storage
+      return null;
     }
 
     // Upstash REST API fallback: rate-limit-redis needs Lua script support
