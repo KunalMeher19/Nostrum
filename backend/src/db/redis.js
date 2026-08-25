@@ -13,21 +13,13 @@ let client = null;
 function getRedis() {
   if (!process.env.REDIS_URL && !process.env.UPSTASH_REDIS_REST_URL) return null;
   if (!client) {
-    // Upstash REST API fallback (better for Railway networking)
+    // Upstash REST API fallback: rate-limit-redis needs Lua script support
+    // (EVAL/EVALSHA) which the REST client doesn't fully expose. Since Railway
+    // runs a single instance (no horizontal scaling), fall back to in-memory
+    // rate limiting when using REST API — zero behavior change for the user.
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-      const { Redis } = require('@upstash/redis');
-      client = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-      });
-      // Wrap to match ioredis interface for rate-limit-redis
-      const originalClient = client;
-      client.call = async (...args) => {
-        const [command, ...params] = args;
-        return originalClient[command.toLowerCase()](...params);
-      };
-      console.log('[redis] connected to Upstash via REST API');
-      return client;
+      console.log('[redis] REST API detected; using in-memory rate limiting (single-instance deployment)');
+      return null;
     }
 
     // Standard Redis protocol (ioredis)
