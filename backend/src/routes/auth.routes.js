@@ -34,7 +34,9 @@ router.post('/logout', async (req, res, next) => {
     // Blacklist the token in Redis with TTL = remaining token lifetime
     await blacklistToken(jti, exp);
 
-    console.log(`[auth/logout] blacklisted token for user: ${payload.email || payload.uid}`);
+    // Log uid prefix only — never log email addresses (GDPR / PII hygiene).
+    const uidHint = String(payload.uid ?? payload.sub ?? 'unknown').slice(0, 8);
+    console.log(`[auth/logout] blacklisted token for uid: ${uidHint}…`);
 
     res.json({ success: true, message: 'logged_out' });
   } catch (err) {

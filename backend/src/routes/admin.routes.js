@@ -1,5 +1,6 @@
 // /api/admin · role-gated admin API (orders, customers, products).
 const express = require('express');
+const sanitizeHtml = require('sanitize-html');
 const { requireAuth, requireAdmin } = require('../middlewares/auth.middleware');
 const { writeLimiter, heavyLimiter } = require('../middlewares/rate-limit.middleware');
 const { requireObjectId } = require('../middlewares/sanitize.middleware');
@@ -422,9 +423,27 @@ router.post('/upload', async (req, res, next) => {
     if (!fileBuffer) return res.status(400).json({ error: 'no_file' });
     if (fileBuffer.length > 8 * 1024 * 1024) return res.status(413).json({ error: 'file_too_large' });
 
-    // Validate MIME
-    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowed.includes(mimeType)) return res.status(400).json({ error: 'invalid_file_type' });
+    // Validate by magic bytes — never trust the Content-Type header inside
+    // a multipart body, which the uploader controls. Each format has a known
+    // byte signature at offset 0 (JPEG: FF D8 FF; PNG: 89 50 4E 47; WebP:
+    // RIFF????WEBP; GIF: 47 49 46 38).
+    function detectMimeFromBytes(buf) {
+      if (buf.length < 4) return null;
+      if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return 'image/jpeg';
+      if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return 'image/png';
+      if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return 'image/gif';
+      if (buf.length >= 12 &&
+          buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 &&
+          buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50) return 'image/webp';
+      return null;
+    }
+    const detectedMime = detectMimeFromBytes(fileBuffer);
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!detectedMime || !allowedMimes.includes(detectedMime)) {
+      return res.status(400).json({ error: 'invalid_file_type' });
+    }
+    // Use the detected MIME (not the header value) for the upload
+    mimeType = detectedMime;
 
     // Upload to ImageKit via their REST API
     const FormData = (await import('node:stream')).Transform; // just checking node version
@@ -505,13 +524,37 @@ async function uniqueSlug(title) {
   return slug;
 }
 
+// Allowed HTML for post bodies: basic rich text only. No scripts, no
+// iframes, no event handlers, no style attributes. This runs on write
+// so even if the renderer ever switches to dangerouslySetInnerHTML the
+// stored content is already clean.
+const POST_BODY_ALLOWED = {
+  allowedTags: ['p', 'br', 'b', 'i', 'em', 'strong', 'u', 'a', 'ul', 'ol', 'li', 'blockquote', 'h2', 'h3', 'h4'],
+  allowedAttributes: { a: ['href', 'title', 'target', 'rel'] },
+  allowedSchemes: ['https', 'http', 'mailto'],
+  // Force all links to be safe: rel="noopener noreferrer" on target="_blank"
+  transformTags: {
+    a: (tagName, attribs) => ({
+      tagName,
+      attribs: {
+        ...attribs,
+        ...(attribs.target === '_blank' ? { rel: 'noopener noreferrer' } : {}),
+      },
+    }),
+  },
+};
+
 function postFields(body) {
   const b = body || {};
   const updates = {};
   if (typeof b.title === 'string' && b.title.trim())
     updates.title = b.title.trim().slice(0, 160);
   if (typeof b.excerpt === 'string') updates.excerpt = b.excerpt.trim().slice(0, 300);
-  if (typeof b.body === 'string') updates.body = b.body.slice(0, 20000);
+  if (typeof b.body === 'string') {
+    // Sanitize on write: strips script tags, event handlers, and any
+    // markup outside the allowed set before storing in the DB.
+    updates.body = sanitizeHtml(b.body.slice(0, 20000), POST_BODY_ALLOWED);
+  }
   if (typeof b.coverImage === 'string')
     updates.coverImage = b.coverImage.slice(0, 300) || null;
   return updates;

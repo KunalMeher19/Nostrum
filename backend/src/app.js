@@ -96,7 +96,11 @@ app.use((req, res, next) => {
 app.use('/api', globalLimiter, anonLimiter);
 
 if (process.env.NODE_ENV !== 'test') {
-  app.use(morgan('dev'));
+  // 'dev' format uses ANSI colour codes designed for a local terminal; in
+  // production (Railway) those codes land in the log stream as raw escape
+  // characters. Use 'combined' (Apache format) for production — structured,
+  // no colour noise, includes remote IP, user-agent, and response time.
+  app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 }
 
 // Routes
@@ -135,8 +139,14 @@ app.use((err, req, res, next) => {
   }
   const status = err.status || 500;
   if (process.env.NODE_ENV !== 'test') console.error(err);
+  // Never send raw err.message to the client — it can contain internal
+  // details (stack paths, query structure, library internals). 4xx errors
+  // from our own route logic use string codes (e.g. 'cart_empty'), not
+  // natural-language messages, so there is no legitimate reason to pass
+  // err.message through. Anything that slips past the explicit checks
+  // above is treated as a 500.
   res.status(status).json({
-    error: status < 500 && err.message ? err.message : 'Internal server error',
+    error: status < 500 ? (err.code ?? 'bad_request') : 'Internal server error',
   });
 });
 

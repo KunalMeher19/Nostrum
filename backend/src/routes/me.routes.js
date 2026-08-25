@@ -34,7 +34,10 @@ router.patch('/', writeLimiter, requireAuth, async (req, res, next) => {
     if (typeof req.body.name === 'string' && req.body.name.trim()) {
       updates.name = req.body.name.trim().slice(0, 120);
     }
-    if (typeof req.body.locale === 'string') updates.locale = req.body.locale;
+    if (typeof req.body.locale === 'string') {
+      const VALID_LOCALES = ['en', 'es', 'ca', 'it', 'el'];
+      if (VALID_LOCALES.includes(req.body.locale)) updates.locale = req.body.locale;
+    }
     // Marketing consent is an explicit opt-in/out toggle (GDPR). Google
     // sign-ins never see the signup checkbox, so this is their control.
     if (typeof req.body.marketingConsent === 'boolean') {

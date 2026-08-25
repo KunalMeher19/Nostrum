@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
+> Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
 > Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins “How it is made” images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below). Updated 2026-08-18 after mobile responsiveness overhaul (see 2.15 below). Updated 2026-08-21 after adding admin skeleton loading states across all data tabs and the customer portal order list, then restoring and tuning the Journal branch portal for desktop/tablet and applying the final desktop position/inertia pass. Updated 2026-08-21 after wiring empty-cart drawer suggestions to the live catalog and correcting cart thumbnail alignment, then removing the remaining horizontal letterboxing and fixing /cart reload image overflow. Updated 2026-08-21 after making the cart page hydration-aware. Updated 2026-08-23 after implementing production-grade Stripe payment system with complete idempotency (see 2.16 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
@@ -444,6 +444,30 @@ Client confirmed Stripe as the payment gateway. The initial implementation from 
   - Code is complete and consent-gated (`src/components/Analytics/Analytics.tsx`). Fires only after cookie banner accepted.
 - **Google OAuth — DONE 2026-08-12:** `AUTH_GOOGLE_ID` + `AUTH_GOOGLE_SECRET` set in Vercel. Google Sign-In working end-to-end. See 1.4 for full details.
 - **WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED by client decision 2026-08-11:** not building until explicitly requested by client. Will resume when asked.
+
+### 2.17 Security audit + hardening round — DONE 2026-08-25
+
+Full 36-item security audit run against the codebase. 22 items confirmed clean (CSRF, NoSQL injection, CORS, admin authz, payment integrity, session management, JWT secrets, IDOR, rate limits, signed webhooks, etc.). 5 code fixes applied + 1 added (locale enum). 87/87 backend tests green after all changes.
+
+**Fixes applied:**
+
+- **#19 XSS — journal post body sanitized on write** (`backend/src/routes/admin.routes.js`): installed `sanitize-html@2.13.1`; `postFields()` now strips scripts, event handlers, iframes, and all tags outside an explicit allowlist (p, b, em, strong, a, ul/ol/li, blockquote, h2-h4) before the body is stored in the DB. Currently the renderer uses React text nodes (not `dangerouslySetInnerHTML`) so there was no active XSS path, but this is defense-in-depth if the renderer ever changes.
+- **#21 File upload — magic byte MIME validation** (`admin.routes.js`): upload handler now reads the first 12 bytes of the file buffer and checks against known image signatures (JPEG `FF D8 FF`, PNG `89 50 4E 47`, GIF `47 49 46 38`, WebP `RIFF????WEBP`) instead of trusting the Content-Type field inside the multipart body, which the uploader controls. The detected MIME replaces the header value for the ImageKit upload.
+- **#11 PII in logs — email removed from logout log** (`backend/src/routes/auth.routes.js`): logout log now records only the first 8 chars of the user's internal UID. Email addresses never appear in Railway stdout.
+- **#12 Verbose 4xx — raw `err.message` removed from error responses** (`backend/src/app.js`): global error handler now returns `err.code` (our own string codes, e.g. `'cart_empty'`) or `'bad_request'` for 4xx, and `'Internal server error'` for 5xx. Raw library error messages can no longer leak internal details.
+- **#10 morgan format in production** (`backend/src/app.js`): uses `morgan('combined')` (structured Apache format, no ANSI codes) in production, `morgan('dev')` only locally.
+- **#16 locale enum validation** (`backend/src/routes/me.routes.js`): `PATCH /api/me` now only accepts locale values in `['en','es','ca','it','el']`; any other string is silently ignored.
+
+**Informational — confirmed clean, no code change needed:**
+- Bcrypt cost = 12 ✅ (`src/lib/auth/users.ts`)
+- Post body renders as React text nodes, not `dangerouslySetInnerHTML` ✅
+- Next.js production source maps disabled by default (no `productionBrowserSourceMaps` in `next.config.mjs`) ✅
+- Password minimum 8 chars enforced in both register and reset routes ✅
+
+**Informational — operational steps (no code change, confirm in dashboards):**
+- **Atlas IP allowlist**: confirm `0.0.0.0/0` is NOT in the allowlist; restrict to Railway egress IPs only.
+- **Railway env vars**: confirm no public GitHub integration that could expose env vars.
+- **Default admin password**: `NostrumAdmin2026!` is in `backend/.env` (local dev). If production Atlas was seeded with this and the password was never changed, rotate it via the admin portal.
 
 ---
 
