@@ -65,10 +65,26 @@
   },
   "checkout_success": {
     "title": "Pago confirmado",
-    "message": "Tu pedido ha sido recibido. Recibirás un email de confirmación con tu número de pedido y detalles de seguimiento.",
+    "message": "Tu pedido ha sido recibido. Te enviamos un email de confirmación.",
     "session": "Referencia",
     "view_orders": "Ver tus pedidos",
-    "continue_shopping": "Seguir comprando"
+    "continue_shopping": "Seguir comprando",
+    "loading_order": "Confirmando tu pedido",
+    "order_number": "Número de pedido",
+    "items_ordered": "Artículos pedidos",
+    "delivery_address": "Dirección de entrega",
+    "delivery_estimate": "Entrega estimada",
+    "delivery_window": "3–5 días laborables",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "shipping_free": "Gratis",
+    "total_paid": "Total pagado",
+    "email_sent": "Se ha enviado un email de confirmación a",
+    "what_next": "Qué pasa ahora",
+    "next_1": "Prepararemos tu pedido en menos de 24 horas.",
+    "next_2": "Recibirás un email de envío con enlace de seguimiento cuando salga de nuestra almazara.",
+    "next_3": "Llegada estimada: 3–5 días laborables en España y la UE.",
+    "order_not_ready": "Tu pedido se está confirmando. Suele tardar unos segundos."
   },
   "checkout_cancel": {
     "title": "Pago cancelado",

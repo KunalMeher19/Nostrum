@@ -65,10 +65,26 @@
   },
   "checkout_success": {
     "title": "Payment confirmed",
-    "message": "Your order has been received. You will receive a confirmation email shortly with your order number and tracking details.",
+    "message": "Your order has been received. A confirmation email is on its way to you.",
     "session": "Reference",
     "view_orders": "View your orders",
-    "continue_shopping": "Continue shopping"
+    "continue_shopping": "Continue shopping",
+    "loading_order": "Confirming your order",
+    "order_number": "Order number",
+    "items_ordered": "Items ordered",
+    "delivery_address": "Delivery address",
+    "delivery_estimate": "Estimated delivery",
+    "delivery_window": "3–5 working days",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shipping_free": "Free",
+    "total_paid": "Total paid",
+    "email_sent": "A confirmation email has been sent to",
+    "what_next": "What happens next",
+    "next_1": "We will prepare your order within 24 hours.",
+    "next_2": "You will receive a shipping email with a tracking link once it leaves our grove.",
+    "next_3": "Expected arrival: 3–5 working days across Spain and the EU.",
+    "order_not_ready": "Your order is being confirmed. This usually takes a few seconds."
   },
   "checkout_cancel": {
     "title": "Checkout cancelled",

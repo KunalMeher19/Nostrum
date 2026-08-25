@@ -65,10 +65,26 @@
   },
   "checkout_success": {
     "title": "Pagament confirmat",
-    "message": "La teva comanda ha estat rebuda. Rebràs un correu de confirmació amb el teu número de comanda i detalls de seguiment.",
+    "message": "La teva comanda ha estat rebuda. Et fem arribar un correu de confirmació.",
     "session": "Referència",
     "view_orders": "Veure les teves comandes",
-    "continue_shopping": "Continua comprant"
+    "continue_shopping": "Continua comprant",
+    "loading_order": "Confirmant la teva comanda",
+    "order_number": "Número de comanda",
+    "items_ordered": "Articles demanats",
+    "delivery_address": "Adreça d'entrega",
+    "delivery_estimate": "Lliurament estimat",
+    "delivery_window": "3–5 dies laborables",
+    "subtotal": "Subtotal",
+    "shipping": "Enviament",
+    "shipping_free": "Gratuït",
+    "total_paid": "Total pagat",
+    "email_sent": "S'ha enviat un correu de confirmació a",
+    "what_next": "Què passa ara",
+    "next_1": "Prepararem la teva comanda en menys de 24 hores.",
+    "next_2": "Rebràs un correu d'enviament amb un enllaç de seguiment quan surti del nostre molí.",
+    "next_3": "Arribada estimada: 3–5 dies laborables a Espanya i la UE.",
+    "order_not_ready": "La teva comanda s'està confirmant. Sol tardar uns segons."
   },
   "checkout_cancel": {
     "title": "Pagament cancel·lat",
