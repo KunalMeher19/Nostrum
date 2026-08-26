@@ -1,10 +1,10 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
+> Updated 2026-08-26 after implementing Redis with custom rate-limit store and IP blacklisting (see 2.19 below). Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
 > Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins “How it is made” images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below). Updated 2026-08-18 after mobile responsiveness overhaul (see 2.15 below). Updated 2026-08-21 after adding admin skeleton loading states across all data tabs and the customer portal order list, then restoring and tuning the Journal branch portal for desktop/tablet and applying the final desktop position/inertia pass. Updated 2026-08-21 after wiring empty-cart drawer suggestions to the live catalog and correcting cart thumbnail alignment, then removing the remaining horizontal letterboxing and fixing /cart reload image overflow. Updated 2026-08-21 after making the cart page hydration-aware. Updated 2026-08-23 after implementing production-grade Stripe payment system with complete idempotency (see 2.16 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
-> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), **Stripe Checkout integration with bulletproof idempotency + comprehensive error handling (session creation + webhook handler with duplicate prevention, automatic stock management, race condition handling)**, rate limiting tiers + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11. Mobile-responsive with premium GSAP slider for collection section 2026-08-18.**
+> What already exists and works: auth (Auth.js v5 + Express JWE verify, Google flow built), customer portal (with stats strip + premium pass), admin portal (orders / customers CSV / shop editor / journal authoring / audit trail viewer), Journal blog + digital museum, pdfkit invoices, orders + products + journal APIs in MongoDB (with stock consumption, shipping-status mails, tracking links, guest order lookup + public /track page), **Stripe Checkout integration with bulletproof idempotency + comprehensive error handling (session creation + webhook handler with duplicate prevention, automatic stock management, race condition handling)**, **Redis-backed rate limiting with custom store and IP blacklisting (env-gated; Upstash REST API + native protocol fallback)** + NoSQL-injection guards + backend test suite, cookie banner with real consent state, GDPR consent on signup, contact + newsletter backends with unsubscribe, consent-gated GA4 loader, 5 locales, DEPLOY.md. **Backend deployed to Railway (eu-west-1), MongoDB on Atlas (eu-west-1), health endpoint confirmed live 2026-08-11. Mobile-responsive with premium GSAP slider for collection section 2026-08-18.**
 
 ---
 
@@ -424,7 +424,7 @@ Client confirmed Stripe as the payment gateway. The initial implementation from 
 
 ---
 
-- **Redis for rate limiting — DONE (env-gated):** set `REDIS_URL` and all limiter tiers share buckets via rate-limit-redis (`backend/src/db/redis.js`); unset = in-memory as before.
+- **Redis for rate limiting — COMPLETELY REBUILT 2026-08-26 (see 2.19):** Custom rate-limit store with IP blacklisting support replaces `rate-limit-redis`. Dual-protocol Redis client (native + Upstash REST fallback). Admin Security tab for blacklist management. Set `REDIS_URL` (and optionally `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`) for distributed rate limiting + persistent IP blacklist; unset = in-memory as before. Previous 2.18 note was temporary fix for bad `REDIS_URL`; this is the production implementation.
 - **Shared validator layer — RESOLVED:** deleted the empty `validator.middleware.js` stub; inline validation is the project convention across all routes.
 - **`broker/broker.js` — RESOLVED:** deleted (unused).
 - **Deployment config — DOCUMENTED:** see `DEPLOY.md` (env reference for both apps + launch checklist). Actual values set at deploy time.
@@ -483,6 +483,61 @@ Full 36-item security audit run against the codebase. 22 items confirmed clean (
 - Until then, in-memory storage is simpler and eliminates this dependency
 
 **Verified**: After removing `REDIS_URL`, backend logs show clean startup (`MongoDB connected`, `Nostrum API listening on port 8080`) with no Redis errors, and admin panel loads orders/customers/products without 500 errors.
+
+### 2.19 Redis rate limiting + IP blacklisting with custom store — DONE 2026-08-26
+
+**Implementation**: Full Redis integration for distributed rate limiting with IP blacklisting capability. Built on top of the 2.18 fix — this supersedes the "remove REDIS_URL" recommendation when the client wants Redis.
+
+**What was built**:
+- **Custom rate-limit store** (`backend/src/db/rate-limit-redis.js`): Replaces `rate-limit-redis` with a custom implementation that supports both rate limiting AND IP blacklisting through Redis
+- **Dual-protocol Redis client** (`backend/src/db/redis.js`): Attempts native Redis protocol first (fastest), gracefully falls back to Upstash REST API on DNS/network failure, returns `null` on complete failure so app continues with in-memory stores
+- **IP blacklist API** (`backend/src/routes/admin.routes.js`): 
+  - `GET /api/admin/blacklist` — list all blacklisted IPs
+  - `POST /api/admin/blacklist` — add IP to blacklist (validates IPv4/IPv6)
+  - `DELETE /api/admin/blacklist/:ip` — remove IP from blacklist
+- **Blacklist middleware** (`backend/src/middleware/blacklist.middleware.js`): Checks incoming requests against Redis blacklist, returns 403 for blocked IPs, gracefully continues if Redis is unavailable
+- **Admin UI** (`src/components/AdminPortal/SecurityView.tsx`): New "Security" tab in admin portal with IP blacklist management — view list, add IP with validation, remove IP with confirmation
+
+**Architecture decisions**:
+- **Custom store over rate-limit-redis**: Needed to support both rate-limit buckets AND blacklist lookups in the same Redis instance without separate connections
+- **Upstash REST API fallback**: Railway/Vercel environments sometimes have DNS issues with direct Redis connections; REST API works over HTTPS everywhere
+- **Graceful degradation**: If Redis is completely unavailable, rate limiting falls back to in-memory (loses distribution but app stays up)
+- **Blacklist in middleware, not rate limiter**: Checked BEFORE rate limiting so blocked IPs never consume rate-limit buckets
+
+**Files created**:
+- `backend/src/db/rate-limit-redis.js` — custom rate-limit store with blacklist support
+- `backend/src/middleware/blacklist.middleware.js` — IP blacklist enforcement middleware
+- `src/components/AdminPortal/SecurityView.tsx` — admin UI for blacklist management
+- `src/components/AdminPortal/security-view.css` — styles for Security tab
+
+**Files modified**:
+- `backend/src/db/redis.js` — dual-protocol client (native Redis + Upstash REST fallback)
+- `backend/src/middleware/rate-limit.middleware.js` — integrated custom store
+- `backend/src/routes/admin.routes.js` — added blacklist CRUD endpoints
+- `backend/src/app.js` — mounted blacklist middleware before all routes
+- `src/components/AdminPortal/AdminPortal.tsx` — added Security tab
+- `src/lib/api.ts` — added blacklist API methods + types
+- All 5 locale files — added `admin.tab_security`, `admin.blacklist_*` keys
+
+**Environment variables** (all optional):
+- `REDIS_URL` — connection string (if unset, uses in-memory stores)
+- `UPSTASH_REDIS_REST_URL` — REST API endpoint (if Redis protocol fails)
+- `UPSTASH_REDIS_REST_TOKEN` — REST API token
+
+**When to use Redis**:
+- Horizontal scaling (2+ Railway instances) — shares rate-limit state
+- IP blacklisting — persistent across restarts, shared across instances
+- Stripe idempotency cache — survives restarts (currently in-memory)
+
+**Single instance (current deployment)**: Redis is optional; in-memory works fine. Only add Redis when scaling horizontally or when blacklist persistence is needed.
+
+**Verified**: 
+- Backend starts cleanly with and without `REDIS_URL`
+- Rate limiting works in both Redis and in-memory modes
+- IP blacklist persists across requests when Redis is connected
+- Admin Security tab loads, add/remove operations work
+- Graceful fallback: DNS failure → Upstash REST; complete failure → in-memory
+- All middleware integration points tested
 
 **Fixes applied:**
 
@@ -573,6 +628,8 @@ The following are already using env vars or the real brand email — no code edi
 ---
 
 ## Decision log (client + project decisions, newest first)
+
+- **2026-08-26** · Redis rate limiting + IP blacklisting implementation: Custom rate-limit store built to replace `rate-limit-redis`, supporting both distributed rate limiting AND IP blacklisting through the same Redis instance. Dual-protocol Redis client attempts native protocol first (fastest), falls back to Upstash REST API on DNS/network failure (Railway/Vercel DNS issues), and gracefully degrades to in-memory if Redis is completely unavailable. Admin Security tab added for IP blacklist management (view/add/remove). Blacklist middleware checks IPs before rate limiting so blocked IPs never consume rate-limit buckets. Architecture choice: custom store over library because we needed blacklist + rate limiting without separate connections; Upstash REST fallback because cloud environments sometimes have DNS issues with direct Redis; graceful degradation because app uptime matters more than distributed state. Redis remains optional for single-instance deployments (current Railway setup) — only becomes necessary when horizontally scaling to 2+ instances or when persistent IP blacklist is needed. Verified: backend starts cleanly with/without Redis, rate limiting works in both modes, blacklist persists when Redis connected, admin UI functional.
 
 - **2026-08-21** · Cart hydration loading: the CartProvider now exposes `isHydrated`, and `/cart` renders a product-list plus order-summary skeleton until localStorage hydration completes. The empty-cart invitation only renders after hydration confirms there are no items, preventing the empty UI flash on reload when a saved cart exists. Responsive and reduced-motion styles added. Verified with Playwright for both saved-cart reloads and fresh empty carts, then `npm run build`.
 
