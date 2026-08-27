@@ -429,10 +429,10 @@
 .checkout-review__item-image {
   width: 4rem;
   height: 4rem;
-  object-fit: contain;
+  object-fit: cover;
   background: #f7f6f2;
   border-radius: 0.375rem;
-  padding: 0.5rem;
+  padding: 0;
   flex-shrink: 0;
 }
 

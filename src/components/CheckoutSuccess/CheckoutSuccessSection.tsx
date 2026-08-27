@@ -114,9 +114,6 @@ export default function CheckoutSuccessSection() {
     return (
       <section className="checkout-result">
         <div className="checkout-result__inner">
-          <div className="checkout-result__icon checkout-result__icon--success checkout-result__icon--pulse">
-            ✓
-          </div>
           <h1 className="checkout-result__title">{t("checkout_success.loading_order")}</h1>
           <p className="checkout-result__message">{t("checkout_success.message")}</p>
         </div>
@@ -129,9 +126,6 @@ export default function CheckoutSuccessSection() {
     return (
       <section className="checkout-result">
         <div className="checkout-result__inner">
-          <div className="checkout-result__icon checkout-result__icon--success">
-            ✓
-          </div>
           <h1 className="checkout-result__title">{t("checkout_success.title")}</h1>
           <p className="checkout-result__message">{t("checkout_success.order_not_ready")}</p>
           {sessionId && (
