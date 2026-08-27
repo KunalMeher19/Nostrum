@@ -151,7 +151,7 @@ export default function CheckoutSuccessSection() {
     );
   }
 
-  // Order fetched — show the full order card
+  // Order fetched — show the full order card in compact two-column layout
   const addr = order.shippingAddress;
   const delivery = deliveryWindow(order.placedAt, locale);
 
@@ -164,68 +164,75 @@ export default function CheckoutSuccessSection() {
         <h1 className="checkout-result__title">{t("checkout_success.title")}</h1>
         <p className="checkout-result__message">{t("checkout_success.message")}</p>
 
-        {/* Order number */}
+        {/* Order number - prominent display */}
         <div className="checkout-result__order-number">
           <span className="checkout-result__label">{t("checkout_success.order_number")}</span>
           <span className="checkout-result__value">{order.number}</span>
         </div>
 
-        {/* Items ordered */}
-        <div className="checkout-result__section">
-          <h2 className="checkout-result__section-title">{t("checkout_success.items_ordered")}</h2>
-          <ul className="checkout-result__items">
-            {order.items.map((item, i) => (
-              <li key={i} className="checkout-result__item">
-                <span className="checkout-result__item-name">
-                  {item.productName} · {item.sizeLabel}
-                </span>
-                <span className="checkout-result__item-qty">×{item.qty}</span>
-                <span className="checkout-result__item-price">{formatEuro(item.lineTotal)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="checkout-result__totals">
-            <div className="checkout-result__total-line">
-              <span>{t("checkout_success.subtotal")}</span>
-              <span>{formatEuro(order.subtotal)}</span>
-            </div>
-            <div className="checkout-result__total-line">
-              <span>{t("checkout_success.shipping")}</span>
-              <span>
-                {order.shippingCost > 0
-                  ? formatEuro(order.shippingCost)
-                  : t("checkout_success.shipping_free")}
-              </span>
-            </div>
-            <div className="checkout-result__total-line checkout-result__total-line--final">
-              <span>{t("checkout_success.total_paid")}</span>
-              <span>{formatEuro(order.total)}</span>
-            </div>
-          </div>
-        </div>
+        {/* Two-column grid for compact layout */}
+        <div className="checkout-result__grid">
 
-        {/* Delivery address */}
-        {addr && (
+          {/* Left column: Items + Totals */}
           <div className="checkout-result__section">
-            <h2 className="checkout-result__section-title">{t("checkout_success.delivery_address")}</h2>
-            <address className="checkout-result__address">
-              {addr.fullName && <div>{addr.fullName}</div>}
-              {addr.line1 && <div>{addr.line1}</div>}
-              {addr.line2 && <div>{addr.line2}</div>}
-              <div>
-                {[addr.postalCode, addr.city, addr.region].filter(Boolean).join(", ")}
+            <h2 className="checkout-result__section-title">{t("checkout_success.items_ordered")}</h2>
+            <ul className="checkout-result__items">
+              {order.items.map((item, i) => (
+                <li key={i} className="checkout-result__item">
+                  <span className="checkout-result__item-name">
+                    {item.productName} · {item.sizeLabel}
+                  </span>
+                  <span className="checkout-result__item-qty">×{item.qty}</span>
+                  <span className="checkout-result__item-price">{formatEuro(item.lineTotal)}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="checkout-result__totals">
+              <div className="checkout-result__total-line">
+                <span>{t("checkout_success.subtotal")}</span>
+                <span>{formatEuro(order.subtotal)}</span>
               </div>
-              {addr.country && <div>{addr.country}</div>}
-              {addr.phone && <div>{addr.phone}</div>}
-            </address>
+              <div className="checkout-result__total-line">
+                <span>{t("checkout_success.shipping")}</span>
+                <span>
+                  {order.shippingCost > 0
+                    ? formatEuro(order.shippingCost)
+                    : t("checkout_success.shipping_free")}
+                </span>
+              </div>
+              <div className="checkout-result__total-line checkout-result__total-line--final">
+                <span>{t("checkout_success.total_paid")}</span>
+                <span>{formatEuro(order.total)}</span>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Expected delivery */}
-        <div className="checkout-result__section">
-          <h2 className="checkout-result__section-title">{t("checkout_success.delivery_estimate")}</h2>
-          <p className="checkout-result__delivery">{delivery}</p>
-          <p className="checkout-result__note">{t("checkout_success.delivery_window")}</p>
+          {/* Right column: Delivery info + Address */}
+          <div>
+            {/* Expected delivery */}
+            <div className="checkout-result__section">
+              <h2 className="checkout-result__section-title">{t("checkout_success.delivery_estimate")}</h2>
+              <p className="checkout-result__delivery">{delivery}</p>
+              <p className="checkout-result__note">{t("checkout_success.delivery_window")}</p>
+            </div>
+
+            {/* Delivery address */}
+            {addr && (
+              <div className="checkout-result__section">
+                <h2 className="checkout-result__section-title">{t("checkout_success.delivery_address")}</h2>
+                <address className="checkout-result__address">
+                  {addr.fullName && <div>{addr.fullName}</div>}
+                  {addr.line1 && <div>{addr.line1}</div>}
+                  {addr.line2 && <div>{addr.line2}</div>}
+                  <div>
+                    {[addr.postalCode, addr.city, addr.region].filter(Boolean).join(", ")}
+                  </div>
+                  {addr.country && <div>{addr.country}</div>}
+                  {addr.phone && <div>{addr.phone}</div>}
+                </address>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Email confirmation notice */}
@@ -235,7 +242,7 @@ export default function CheckoutSuccessSection() {
           </p>
         </div>
 
-        {/* What happens next */}
+        {/* What happens next - compact numbered list */}
         <div className="checkout-result__section">
           <h2 className="checkout-result__section-title">{t("checkout_success.what_next")}</h2>
           <ol className="checkout-result__steps">
