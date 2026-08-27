@@ -378,11 +378,17 @@ export default function CheckoutReviewPage() {
                   const image = sizeImage(product, it.sizeId);
                   return (
                     <li key={it.key} className="checkout-review__item">
-                      {image ? <img src={image} alt="" className="checkout-review__item-image" /> : <span className="checkout-review__item-image" aria-hidden="true" />}
-                      <span className="checkout-review__item-name">
-                        {it.name} · {it.sizeLabel}
-                      </span>
-                      <span className="checkout-review__item-qty">×{it.qty}</span>
+                      {image ? (
+                        <img src={image} alt="" className="checkout-review__item-image" />
+                      ) : (
+                        <span className="checkout-review__item-image" aria-hidden="true" />
+                      )}
+                      <div>
+                        <span className="checkout-review__item-name">
+                          {it.name} · {it.sizeLabel}
+                        </span>
+                        <span className="checkout-review__item-qty">×{it.qty}</span>
+                      </div>
                       <span className="checkout-review__item-price">{formatEuro(itemTotal)}</span>
                     </li>
                   );
@@ -402,6 +408,14 @@ export default function CheckoutReviewPage() {
                   <span>{t("checkout.total") || "Total"}</span>
                   <span>{formatEuro(total)}</span>
                 </div>
+              </div>
+
+              <div className="checkout-review__summary-note">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2Z" stroke="#b6922e" strokeWidth="1.5"/>
+                  <path d="M10 6V10L12.5 12.5" stroke="#b6922e" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <p>{t("checkout.premium_note") || "Premium extra virgin olive oil, sourced with care and delivered to your door."}</p>
               </div>
 
               {checkoutError && (
