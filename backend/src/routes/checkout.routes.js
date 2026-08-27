@@ -116,9 +116,9 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     }
 
     // ------------------------------------------------------------------
-    // 1. Parse + coarse-validate the incoming cart lines + idempotency key.
+    // 1. Parse + coarse-validate the incoming cart lines + idempotency key + shipping address.
     // ------------------------------------------------------------------
-    const { items, locale, idempotencyKey } = req.body ?? {};
+    const { items, locale, idempotencyKey, shippingAddress } = req.body ?? {};
 
     // Idempotency key is required to prevent duplicate charges
     if (typeof idempotencyKey !== 'string' || idempotencyKey.length < 16 || idempotencyKey.length > 100) {
@@ -243,9 +243,10 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
 
     // ------------------------------------------------------------------
     // 3. Optional: pre-fill the email for logged-in users.
+    //    AND: Pre-fill shipping address from the checkout page.
     // ------------------------------------------------------------------
     const session = await readSession(req);
-    const customerEmail = session?.email ?? undefined;
+    const customerEmail = session?.email ?? shippingAddress?.email ?? undefined;
 
     // ------------------------------------------------------------------
     // 4. Build success/cancel URLs (locale-aware, 5 locales).
@@ -266,16 +267,8 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     const sessionParams = {
       mode: 'payment',
       line_items: lineItems,
-      // Stripe collects the shipping address; we freeze a copy into the
-      // order record when the webhook fires.
-      shipping_address_collection: {
-        allowed_countries: [
-          'ES', 'FR', 'DE', 'IT', 'PT', 'GB', 'NL', 'BE', 'AT', 'CH',
-          'PL', 'SE', 'DK', 'NO', 'FI', 'IE', 'GR', 'HR', 'CZ', 'SK',
-          'RO', 'HU', 'SI', 'LT', 'LV', 'EE', 'BG', 'CY', 'LU', 'MT',
-          'US', 'CA', 'AU',
-        ],
-      },
+      // NO longer collect shipping address - it's already collected on our /checkout page
+      // Instead, we'll pass the pre-filled address via customer_details and shipping_details
       success_url: successUrl,
       cancel_url: cancelUrl,
       locale: LOCALE_MAP[locale] ?? 'auto',
@@ -285,9 +278,28 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
           idempotencyKey,
         },
       },
+      // Pre-fill customer email and phone from the checkout form
+      customer_email: customerEmail,
       // Automatic tax is disabled until the client adds their Spanish tax
       // registration to Stripe. Enable with: automatic_tax: { enabled: true }
     };
+
+    // Pre-fill shipping details if provided from the checkout page
+    if (shippingAddress) {
+      // Stripe expects shipping_details in this format
+      sessionParams.shipping_details = {
+        name: shippingAddress.fullName || '',
+        phone: shippingAddress.phone || '',
+        address: {
+          line1: shippingAddress.line1 || '',
+          line2: shippingAddress.line2 || '',
+          city: shippingAddress.city || '',
+          state: shippingAddress.region || '',
+          postal_code: shippingAddress.postalCode || '',
+          country: shippingAddress.country || '',
+        },
+      };
+    }
 
     // Attach a flat shipping option only when a non-zero cost is configured.
     if (shippingCost > 0) {
@@ -300,10 +312,6 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
           },
         },
       ];
-    }
-
-    if (customerEmail) {
-      sessionParams.customer_email = customerEmail;
     }
 
     // Carry the cart payload + user id + idempotency key in metadata so

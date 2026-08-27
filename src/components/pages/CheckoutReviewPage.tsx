@@ -5,25 +5,13 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/Cart/CartContext";
 import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
-import { startCheckout } from "@/lib/api";
+import { startCheckout, type CheckoutShippingAddress } from "@/lib/api";
 import {
   formatEuro,
   getProduct,
   lineTotal,
 } from "@/lib/products";
 import "./checkout-review.css";
-
-interface AddressData {
-  fullName: string;
-  email: string;
-  phone: string;
-  line1: string;
-  line2: string;
-  city: string;
-  postalCode: string;
-  region: string;
-  country: string;
-}
 
 export default function CheckoutReviewPage() {
   const { items, subtotal, isHydrated } = useCart();
@@ -36,7 +24,7 @@ export default function CheckoutReviewPage() {
   const [userLoading, setUserLoading] = useState(true);
 
   // Address form state
-  const [address, setAddress] = useState<AddressData>({
+  const [address, setAddress] = useState<CheckoutShippingAddress>({
     fullName: "",
     email: "",
     phone: "",
@@ -114,7 +102,8 @@ export default function CheckoutReviewPage() {
         qty: it.qty,
       }));
 
-      const { url } = await startCheckout(payload, locale);
+      // Pass the shipping address to the checkout API
+      const { url } = await startCheckout(payload, locale, address);
 
       // Store address in sessionStorage to show on success page
       sessionStorage.setItem("checkoutAddress", JSON.stringify(address));
@@ -134,7 +123,7 @@ export default function CheckoutReviewPage() {
     }
   }
 
-  function updateField(field: keyof AddressData, value: string) {
+  function updateField(field: keyof CheckoutShippingAddress, value: string) {
     setAddress((prev) => ({ ...prev, [field]: value }));
   }
 

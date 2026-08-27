@@ -306,14 +306,27 @@ function generateIdempotencyKey(): string {
   return `${timestamp}-${random}${random2}`;
 }
 
+/** Shipping address shape for checkout (required fields for payment) */
+export type CheckoutShippingAddress = {
+  fullName: string;
+  email: string;
+  phone?: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  postalCode: string;
+  region?: string;
+  country: string;
+};
+
 /** POST /api/checkout — validate cart server-side, create a Stripe
- *  Checkout Session, and return the hosted checkout URL.
+ *  Checkout Session with pre-filled shipping address, and return the hosted checkout URL.
  *
  *  Includes automatic idempotency: generates a unique key that is stored
  *  in localStorage. If the user clicks checkout multiple times or the
  *  request is retried, the same key is sent so Stripe returns the existing
  *  session instead of creating duplicate charges. */
-export function startCheckout(items: CheckoutItem[], locale: string) {
+export function startCheckout(items: CheckoutItem[], locale: string, shippingAddress: CheckoutShippingAddress) {
   // Generate or retrieve idempotency key from localStorage
   const storageKey = 'nostrum_checkout_idempotency';
   let idempotencyKey: string;
@@ -354,7 +367,7 @@ export function startCheckout(items: CheckoutItem[], locale: string) {
 
   return api<{ url: string }>("/api/checkout", {
     method: "POST",
-    body: JSON.stringify({ items, locale, idempotencyKey }),
+    body: JSON.stringify({ items, locale, idempotencyKey, shippingAddress }),
   });
 }
 
