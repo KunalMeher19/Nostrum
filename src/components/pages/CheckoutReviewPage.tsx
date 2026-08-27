@@ -43,21 +43,45 @@ export default function CheckoutReviewPage() {
     }
   }, [isHydrated, items.length, router, locale]);
 
-  // Fetch user session
+  // Fetch user session and profile (with saved address)
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("/api/auth/session");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.user) {
-            setUser(data.user);
-            // Pre-fill email and name if logged in
-            setAddress((prev) => ({
-              ...prev,
-              email: data.user.email || prev.email,
-              fullName: data.user.name || prev.fullName,
-            }));
+        const sessionRes = await fetch("/api/auth/session");
+        if (sessionRes.ok) {
+          const sessionData = await sessionRes.json();
+          if (sessionData.user) {
+            setUser(sessionData.user);
+
+            // Fetch full profile to get saved shipping address
+            try {
+              const profileRes = await fetch("/api/me");
+              if (profileRes.ok) {
+                const profile = await profileRes.json();
+
+                // Pre-fill email, name, and saved shipping address
+                setAddress((prev) => ({
+                  ...prev,
+                  email: sessionData.user.email || prev.email,
+                  fullName: profile.shipping?.fullName || sessionData.user.name || prev.fullName,
+                  phone: profile.shipping?.phone || prev.phone,
+                  line1: profile.shipping?.line1 || prev.line1,
+                  line2: profile.shipping?.line2 || prev.line2,
+                  city: profile.shipping?.city || prev.city,
+                  region: profile.shipping?.region || prev.region,
+                  postalCode: profile.shipping?.postalCode || prev.postalCode,
+                  country: profile.shipping?.country || prev.country,
+                }));
+              }
+            } catch (profileErr) {
+              console.error("Failed to fetch user profile:", profileErr);
+              // Still pre-fill email and name from session
+              setAddress((prev) => ({
+                ...prev,
+                email: sessionData.user.email || prev.email,
+                fullName: sessionData.user.name || prev.fullName,
+              }));
+            }
           }
         }
       } catch (err) {
