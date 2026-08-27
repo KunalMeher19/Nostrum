@@ -141,10 +141,13 @@ export default function CartPage() {
                 {COLLECTION_TILES.map((tile) => {
                   const price = tilePrice(tile.id);
                   const image = tileImage(tile.id);
+                  // Use the actual product slug instead of the tile ID
+                  const product = getProduct(tile.id);
+                  const productSlug = product?.slug || tile.id;
                   return (
                     <li key={tile.id}>
                       <LocaleLink
-                        href={`/product/${tile.id}`}
+                        href={`/product/${productSlug}`}
                         className="cart__suggest-card"
                       >
                         <span className="cart__suggest-media" aria-hidden="true">
