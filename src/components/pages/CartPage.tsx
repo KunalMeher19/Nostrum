@@ -32,6 +32,22 @@ export default function CartPage() {
   const { t, locale } = useLocale();
   const router = useRouter();
   const rootRef = useRef<HTMLElement>(null);
+  const [liveProducts, setLiveProducts] = useState<Array<{slug: string; name: string; sizes: Array<{id: string; label: string; price: number}>}>>([]);
+
+  // Fetch live products for empty cart suggestions
+  useEffect(() => {
+    fetch("/api/proxy/products")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.products) {
+          setLiveProducts(data.products.slice(0, 3)); // Take first 3 products
+        }
+      })
+      .catch(() => {
+        // Fallback to nothing if API fails
+        setLiveProducts([]);
+      });
+  }, []);
 
   function handleCheckout() {
     // Navigate to checkout review page instead of going directly to Stripe
@@ -138,38 +154,70 @@ export default function CartPage() {
                 {t("cart.suggest_eyebrow")}
               </p>
               <ul className="cart__suggest-grid">
-                {COLLECTION_TILES.map((tile) => {
-                  const price = tilePrice(tile.id);
-                  const image = tileImage(tile.id);
-                  // Use the actual product slug instead of the tile ID
-                  const product = getProduct(tile.id);
-                  const productSlug = product?.slug || tile.id;
-                  return (
-                    <li key={tile.id}>
-                      <LocaleLink
-                        href={`/product/${productSlug}`}
-                        className="cart__suggest-card"
-                      >
-                        <span className="cart__suggest-media" aria-hidden="true">
-                          {image ? <img src={image} alt="" /> : "N"}
-                        </span>
-                        <span className="cart__suggest-name">
-                          {t(tile.nameKey)}
-                        </span>
-                        <span className="cart__suggest-line">
-                          <span className="cart__suggest-detail">
-                            {t(tile.detailKey)}
+                {liveProducts.length > 0 ? (
+                  liveProducts.map((product) => {
+                    const defaultSize = product.sizes[0];
+                    const price = defaultSize?.price;
+                    const image = sizeImage(getProduct(product.slug) || {slug: product.slug} as any, defaultSize?.id || "5l");
+                    return (
+                      <li key={product.slug}>
+                        <LocaleLink
+                          href={`/product/${product.slug}`}
+                          className="cart__suggest-card"
+                        >
+                          <span className="cart__suggest-media" aria-hidden="true">
+                            {image ? <img src={image} alt="" /> : "N"}
                           </span>
-                          {price !== null && (
-                            <span className="cart__suggest-price">
-                              {formatEuro(price)}
+                          <span className="cart__suggest-name">
+                            {product.name}
+                          </span>
+                          <span className="cart__suggest-line">
+                            <span className="cart__suggest-detail">
+                              {defaultSize?.label || "5L"}
                             </span>
-                          )}
-                        </span>
-                      </LocaleLink>
-                    </li>
-                  );
-                })}
+                            {price && (
+                              <span className="cart__suggest-price">
+                                {formatEuro(price)}
+                              </span>
+                            )}
+                          </span>
+                        </LocaleLink>
+                      </li>
+                    );
+                  })
+                ) : (
+                  COLLECTION_TILES.map((tile) => {
+                    const price = tilePrice(tile.id);
+                    const image = tileImage(tile.id);
+                    const product = getProduct(tile.id);
+                    const productSlug = product?.slug || tile.id;
+                    return (
+                      <li key={tile.id}>
+                        <LocaleLink
+                          href={`/product/${productSlug}`}
+                          className="cart__suggest-card"
+                        >
+                          <span className="cart__suggest-media" aria-hidden="true">
+                            {image ? <img src={image} alt="" /> : "N"}
+                          </span>
+                          <span className="cart__suggest-name">
+                            {t(tile.nameKey)}
+                          </span>
+                          <span className="cart__suggest-line">
+                            <span className="cart__suggest-detail">
+                              {t(tile.detailKey)}
+                            </span>
+                            {price !== null && (
+                              <span className="cart__suggest-price">
+                                {formatEuro(price)}
+                              </span>
+                            )}
+                          </span>
+                        </LocaleLink>
+                      </li>
+                    );
+                  })
+                )}
               </ul>
             </div>
           </div>
