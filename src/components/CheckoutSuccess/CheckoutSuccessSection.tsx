@@ -160,9 +160,6 @@ export default function CheckoutSuccessSection() {
     <section className="checkout-result">
       <div className="checkout-result__inner checkout-result__inner--rich">
         <CheckoutSteps />
-        <div className="checkout-result__icon checkout-result__icon--success">
-          ✓
-        </div>
         <h1 className="checkout-result__title">{t("checkout_success.title")}</h1>
         <p className="checkout-result__message">{t("checkout_success.message")}</p>
 
@@ -212,7 +209,7 @@ export default function CheckoutSuccessSection() {
                 </span>
               </div>
               <div className="checkout-result__total-line checkout-result__total-line--final">
-                <span>{t("checkout_success.total")}</span>
+                <span>{t("checkout_success.total_paid")}</span>
                 <span>{formatEuro(order.total)}</span>
               </div>
             </div>
@@ -290,8 +287,8 @@ function CheckoutSteps() {
         <span>Review &amp; confirm</span>
       </span>
       <span className="checkout-steps__line is-complete" aria-hidden="true" />
-      <span className="checkout-steps__step is-active">
-        <span className="checkout-steps__dot">3</span>
+      <span className="checkout-steps__step is-complete">
+        <span className="checkout-steps__dot">✓</span>
         <span>Payment</span>
       </span>
     </nav>
