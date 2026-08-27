@@ -201,13 +201,27 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       // Stripe line_items take unit_amount in the SMALLEST currency unit
       // (cents). Round to avoid float drift.
       const unitCents = Math.round(size.price * 100);
+
+      // Stripe requires absolute URLs for images. Convert relative paths to absolute.
+      let productImages = [];
+      if (product.images?.length) {
+        const firstImage = product.images[0];
+        // If it's already an absolute URL (starts with http), use as-is
+        if (firstImage.startsWith('http')) {
+          productImages = [firstImage];
+        } else {
+          // Relative path - prepend frontend URL
+          productImages = [`${frontendUrl}${firstImage}`];
+        }
+      }
+
       lineItems.push({
         price_data: {
           currency: 'eur',
           product_data: {
             name: `${product.name} — ${size.label}`,
             description: product.subtitle ?? undefined,
-            images: product.images?.length ? [product.images[0]] : [],
+            images: productImages,
             metadata: {
               productSlug: product.slug,
               sizeId: size.id,
