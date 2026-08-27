@@ -163,6 +163,10 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     // ------------------------------------------------------------------
     // 2. Server-side price lookup. Never use browser-supplied prices.
     // ------------------------------------------------------------------
+
+    // Get frontend URL early - needed for converting relative image paths to absolute URLs
+    const frontendUrl = (process.env.FRONTEND_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+
     const slugs = [...new Set(items.map((i) => i.slug))];
     const products = await Product.find({
       slug: { $in: slugs },
@@ -246,7 +250,7 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     // ------------------------------------------------------------------
     // 4. Build success/cancel URLs (locale-aware, 5 locales).
     // ------------------------------------------------------------------
-    const frontendUrl = (process.env.FRONTEND_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+    // frontendUrl already defined above (needed for image URLs)
     const localePrefix = LOCALE_MAP[locale] ? `/${locale}` : '/en';
 
     // {CHECKOUT_SESSION_ID} is a Stripe template literal — NOT a JS
