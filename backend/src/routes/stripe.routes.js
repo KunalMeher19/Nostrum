@@ -77,7 +77,8 @@ async function buildOrderPayload(session) {
   const shippingCost = (session.shipping_cost?.amount_total ?? 0) / 100;
   const total = Math.round((subtotal + shippingCost) * 100) / 100;
 
-  // Stripe shipping_details shape → our addressSchema shape.
+  // Prefer Stripe-collected details when available. Otherwise use the exact
+  // address confirmed on our review page, carried through metadata.
   const sd = session.shipping_details;
   const shippingAddress = sd
     ? {
@@ -90,7 +91,18 @@ async function buildOrderPayload(session) {
         country: sd.address?.country ?? '',
         phone: session.customer_details?.phone ?? '',
       }
-    : null;
+    : session.metadata?.shipLine1
+      ? {
+          fullName: session.metadata.shipName ?? '',
+          line1: session.metadata.shipLine1 ?? '',
+          line2: session.metadata.shipLine2 ?? '',
+          city: session.metadata.shipCity ?? '',
+          region: session.metadata.shipRegion ?? '',
+          postalCode: session.metadata.shipPostalCode ?? '',
+          country: session.metadata.shipCountry ?? '',
+          phone: session.metadata.shipPhone ?? '',
+        }
+      : null;
 
   return {
     userId: userId ?? null,

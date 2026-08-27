@@ -216,6 +216,42 @@
   padding-right: 3rem;
 }
 
+/* Keep the address card stable while session and saved profile data load. */
+.checkout-review__form-grid--skeleton {
+  align-items: end;
+}
+
+.checkout-review__skeleton {
+  display: block;
+  height: 3.25rem;
+  border: 2px solid rgba(20, 22, 15, 0.06);
+  border-radius: 8px;
+  background: linear-gradient(
+    100deg,
+    rgba(20, 22, 15, 0.05) 20%,
+    rgba(255, 255, 255, 0.8) 38%,
+    rgba(20, 22, 15, 0.05) 55%
+  );
+  background-size: 220% 100%;
+  animation: checkout-review-shimmer 1.4s ease-in-out infinite;
+}
+
+.checkout-review__skeleton--full {
+  grid-column: 1 / -1;
+}
+
+@keyframes checkout-review-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-review__skeleton {
+    animation: none;
+    background: rgba(20, 22, 15, 0.05);
+  }
+}
+
 /* ---- Summary (right sidebar, sticky on desktop) ------------- */
 .checkout-review__summary {
   position: relative;

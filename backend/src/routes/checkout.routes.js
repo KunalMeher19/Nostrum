@@ -284,23 +284,6 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       // registration to Stripe. Enable with: automatic_tax: { enabled: true }
     };
 
-    // Pre-fill shipping details if provided from the checkout page
-    if (shippingAddress) {
-      // Stripe expects shipping_details in this format
-      sessionParams.shipping_details = {
-        name: shippingAddress.fullName || '',
-        phone: shippingAddress.phone || '',
-        address: {
-          line1: shippingAddress.line1 || '',
-          line2: shippingAddress.line2 || '',
-          city: shippingAddress.city || '',
-          state: shippingAddress.region || '',
-          postal_code: shippingAddress.postalCode || '',
-          country: shippingAddress.country || '',
-        },
-      };
-    }
-
     // Attach a flat shipping option only when a non-zero cost is configured.
     if (shippingCost > 0) {
       sessionParams.shipping_options = [
@@ -324,6 +307,19 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       locale: locale ?? 'en',
       idempotencyKey,
       ...(session?.uid ? { userId: String(session.uid) } : {}),
+      ...(shippingAddress
+        ? {
+            shipName: String(shippingAddress.fullName ?? '').slice(0, 500),
+            shipEmail: String(shippingAddress.email ?? '').slice(0, 500),
+            shipPhone: String(shippingAddress.phone ?? '').slice(0, 500),
+            shipLine1: String(shippingAddress.line1 ?? '').slice(0, 500),
+            shipLine2: String(shippingAddress.line2 ?? '').slice(0, 500),
+            shipCity: String(shippingAddress.city ?? '').slice(0, 500),
+            shipRegion: String(shippingAddress.region ?? '').slice(0, 500),
+            shipPostalCode: String(shippingAddress.postalCode ?? '').slice(0, 500),
+            shipCountry: String(shippingAddress.country ?? '').slice(0, 500),
+          }
+        : {}),
     };
 
     // Use Stripe's native idempotency by passing the key as a request option.

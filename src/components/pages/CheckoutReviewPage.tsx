@@ -180,10 +180,13 @@ export default function CheckoutReviewPage() {
             )}
 
             {/* Shipping address */}
-            <section className="checkout-review__section">
+            <section className="checkout-review__section" aria-busy={userLoading}>
               <h2 className="checkout-review__section-title">{t("checkout.shipping_address") || "Shipping address"}</h2>
 
-              <div className="checkout-review__form-grid">
+              {userLoading ? (
+                <AddressFormSkeleton />
+              ) : (
+                <div className="checkout-review__form-grid">
                 <div className="checkout-review__form-group checkout-review__form-group--full">
                   <label htmlFor="fullName">
                     {t("checkout.full_name") || "Full name"} <span>*</span>
@@ -304,7 +307,8 @@ export default function CheckoutReviewPage() {
                     <option value="AU">Australia</option>
                   </select>
                 </div>
-              </div>
+                </div>
+              )}
             </section>
           </div>
 
@@ -352,7 +356,7 @@ export default function CheckoutReviewPage() {
               <button
                 type="submit"
                 className="checkout-review__btn-primary"
-                disabled={checkoutLoading}
+                disabled={userLoading || checkoutLoading}
               >
                 {checkoutLoading
                   ? (t("checkout.processing") || "Processing...")
@@ -367,5 +371,21 @@ export default function CheckoutReviewPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+function AddressFormSkeleton() {
+  return (
+    <div className="checkout-review__form-grid checkout-review__form-grid--skeleton" aria-hidden="true">
+      <span className="checkout-review__skeleton checkout-review__skeleton--full" />
+      <span className="checkout-review__skeleton" />
+      <span className="checkout-review__skeleton" />
+      <span className="checkout-review__skeleton checkout-review__skeleton--full" />
+      <span className="checkout-review__skeleton checkout-review__skeleton--full" />
+      <span className="checkout-review__skeleton" />
+      <span className="checkout-review__skeleton" />
+      <span className="checkout-review__skeleton" />
+      <span className="checkout-review__skeleton" />
+    </div>
   );
 }
