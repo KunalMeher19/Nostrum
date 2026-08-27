@@ -155,9 +155,10 @@ export default function CheckoutReviewPage() {
   return (
     <main data-main className="checkout-review" ref={rootRef}>
       <div className="checkout-review__inner">
+        <CheckoutSteps active="review" />
         <header className="checkout-review__head">
-          <p className="checkout-review__eyebrow">{t("checkout.eyebrow") || "Checkout"}</p>
           <h1 className="checkout-review__title">{t("checkout.title") || "Review & Confirm"}</h1>
+          <p className="checkout-review__intro">{t("checkout.review_intro") || "Please review your details before proceeding to payment."}</p>
         </header>
 
         <form className="checkout-review__layout" onSubmit={handleProceedToPayment}>
@@ -387,5 +388,26 @@ function AddressFormSkeleton() {
       <span className="checkout-review__skeleton" />
       <span className="checkout-review__skeleton" />
     </div>
+  );
+}
+
+function CheckoutSteps({ active }: { active: "review" | "payment" }) {
+  return (
+    <nav className="checkout-steps" aria-label="Checkout progress">
+      <span className={`checkout-steps__step ${active === "review" ? "is-active" : "is-complete"}`}>
+        <span className="checkout-steps__dot">{active === "review" ? "1" : "✓"}</span>
+        <span>Cart</span>
+      </span>
+      <span className="checkout-steps__line" aria-hidden="true" />
+      <span className={`checkout-steps__step ${active === "review" ? "is-active" : ""}`}>
+        <span className="checkout-steps__dot">2</span>
+        <span>Review &amp; confirm</span>
+      </span>
+      <span className="checkout-steps__line" aria-hidden="true" />
+      <span className="checkout-steps__step">
+        <span className="checkout-steps__dot">3</span>
+        <span>Payment</span>
+      </span>
+    </nav>
   );
 }

@@ -158,6 +158,7 @@ export default function CheckoutSuccessSection() {
   return (
     <section className="checkout-result">
       <div className="checkout-result__inner checkout-result__inner--rich">
+        <CheckoutSteps />
         <div className="checkout-result__icon checkout-result__icon--success">
           ✓
         </div>
@@ -263,5 +264,26 @@ export default function CheckoutSuccessSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function CheckoutSteps() {
+  return (
+    <nav className="checkout-steps checkout-steps--result" aria-label="Checkout progress">
+      <span className="checkout-steps__step is-complete">
+        <span className="checkout-steps__dot">✓</span>
+        <span>Cart</span>
+      </span>
+      <span className="checkout-steps__line is-complete" aria-hidden="true" />
+      <span className="checkout-steps__step is-complete">
+        <span className="checkout-steps__dot">✓</span>
+        <span>Review &amp; confirm</span>
+      </span>
+      <span className="checkout-steps__line is-complete" aria-hidden="true" />
+      <span className="checkout-steps__step is-active">
+        <span className="checkout-steps__dot">3</span>
+        <span>Payment</span>
+      </span>
+    </nav>
   );
 }
