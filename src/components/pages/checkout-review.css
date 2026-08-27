@@ -1,0 +1,345 @@
+/* ============================================================
+   Checkout Review Page — Amazon-style address confirmation
+   White Shop theme (light bg, ink text), two-column layout
+   ============================================================ */
+
+.checkout-review {
+  min-height: 100vh;
+  background: var(--shop-bg, #F5F5F3);
+  color: var(--shop-text, #14160F);
+  padding: clamp(3rem, 8vw, 5rem) 0 clamp(4rem, 10vw, 8rem);
+}
+
+.checkout-review__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+}
+
+/* ---- Header ------------------------------------------------- */
+.checkout-review__head {
+  margin-bottom: clamp(2.5rem, 6vw, 4rem);
+  text-align: center;
+}
+
+.checkout-review__eyebrow {
+  font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold, #E6B422);
+  margin: 0 0 0.75rem;
+  font-weight: 500;
+}
+
+.checkout-review__title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--shop-text, #14160F);
+}
+
+/* ---- Layout: Two columns (address left, summary right) ----- */
+.checkout-review__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(2rem, 5vw, 3rem);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .checkout-review__layout {
+    grid-template-columns: 1.5fr 1fr;
+  }
+}
+
+.checkout-review__main {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3vw, 2rem);
+}
+
+/* ---- User status banner ------------------------------------- */
+.checkout-review__user-status {
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  font-size: 0.9375rem;
+}
+
+.checkout-review__user-welcome {
+  margin: 0;
+  color: var(--shop-text, #14160F);
+}
+
+.checkout-review__user-welcome strong {
+  color: var(--gold, #E6B422);
+  font-weight: 600;
+}
+
+.checkout-review__user-guest {
+  margin: 0;
+  color: var(--shop-muted, #6B6B5F);
+}
+
+.checkout-review__user-guest a {
+  color: var(--gold, #E6B422);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.checkout-review__user-guest a:hover {
+  opacity: 0.7;
+}
+
+/* ---- Section ------------------------------------------------ */
+.checkout-review__section {
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
+  border-radius: 4px;
+  padding: clamp(1.5rem, 4vw, 2rem);
+}
+
+.checkout-review__section-title {
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  font-weight: 600;
+  margin: 0 0 1.5rem;
+  color: var(--shop-text, #14160F);
+}
+
+/* ---- Form grid ---------------------------------------------- */
+.checkout-review__form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 600px) {
+  .checkout-review__form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .checkout-review__form-group--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.checkout-review__form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkout-review__form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--shop-text, #14160F);
+  letter-spacing: 0.01em;
+}
+
+.checkout-review__form-group label span {
+  color: #C53030;
+}
+
+.checkout-review__form-group input,
+.checkout-review__form-group select {
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  border: 1px solid #D0D0C8;
+  border-radius: 4px;
+  background: #FAFAF9;
+  color: var(--shop-text, #14160F);
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.checkout-review__form-group input:focus,
+.checkout-review__form-group select:focus {
+  outline: none;
+  border-color: var(--gold, #E6B422);
+  background: #FFFFFF;
+}
+
+.checkout-review__form-group input::placeholder {
+  color: #A0A095;
+}
+
+/* ---- Summary (right sidebar, sticky on desktop) ------------- */
+.checkout-review__summary {
+  position: relative;
+}
+
+@media (min-width: 900px) {
+  .checkout-review__summary {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
+.checkout-review__summary-panel {
+  background: #FFFFFF;
+  border: 1px solid #E0E0D8;
+  border-radius: 4px;
+  padding: clamp(1.5rem, 4vw, 2rem);
+}
+
+.checkout-review__summary-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem;
+  color: var(--shop-text, #14160F);
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #E0E0D8;
+}
+
+/* ---- Items list --------------------------------------------- */
+.checkout-review__items {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.checkout-review__item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #F0F0ED;
+  font-size: 0.875rem;
+}
+
+.checkout-review__item:last-child {
+  border-bottom: none;
+}
+
+.checkout-review__item-name {
+  color: var(--shop-text, #14160F);
+  font-weight: 500;
+}
+
+.checkout-review__item-qty {
+  color: var(--shop-muted, #6B6B5F);
+  font-size: 0.8125rem;
+}
+
+.checkout-review__item-price {
+  color: var(--shop-text, #14160F);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ---- Totals ------------------------------------------------- */
+.checkout-review__totals {
+  padding: 1.5rem 0;
+  border-top: 1px solid #E0E0D8;
+  border-bottom: 2px solid #14160F;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-review__total-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.9375rem;
+  color: var(--shop-text, #14160F);
+}
+
+.checkout-review__total-line--final {
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E0E0D8;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--gold, #E6B422);
+}
+
+/* ---- Error message ------------------------------------------ */
+.checkout-review__error {
+  background: #FEF5F5;
+  border: 1px solid #F5C6C6;
+  border-radius: 4px;
+  padding: 0.875rem 1rem;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: #C53030;
+  line-height: 1.5;
+}
+
+/* ---- Buttons ------------------------------------------------ */
+.checkout-review__btn-primary {
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--gold, #E6B422);
+  color: #14160F;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(230, 180, 34, 0.15);
+}
+
+.checkout-review__btn-primary:hover:not(:disabled) {
+  background: #F5C632;
+  box-shadow: 0 4px 16px rgba(230, 180, 34, 0.25);
+  transform: translateY(-1px);
+}
+
+.checkout-review__btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.checkout-review__btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkout-review__btn-back {
+  display: block;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--shop-text, #14160F);
+  background: transparent;
+  border: 1px solid #D0D0C8;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.checkout-review__btn-back:hover {
+  border-color: var(--gold, #E6B422);
+  color: var(--gold, #E6B422);
+  background: #FEFEF8;
+}
+
+/* ---- Responsive tweaks -------------------------------------- */
+@media (max-width: 599px) {
+  .checkout-review__form-group input,
+  .checkout-review__form-group select {
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+}
+
+/* ---- Reduced motion ----------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .checkout-review__btn-primary,
+  .checkout-review__btn-back,
+  .checkout-review__form-group input,
+  .checkout-review__form-group select {
+    transition: none;
+  }
+}

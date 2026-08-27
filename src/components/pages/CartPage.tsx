@@ -1,11 +1,11 @@
   "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import "./cart.css";
 import { useCart } from "@/components/Cart/CartContext";
 import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
-import { startCheckout } from "@/lib/api";
 import {
   CURTAIN_REVEAL_EVENT,
 } from "@/components/RouteCurtain/curtainNav";
@@ -30,45 +30,19 @@ import {
 export default function CartPage() {
   const { items, count, subtotal, isHydrated, setQty, removeItem } = useCart();
   const { t, locale } = useLocale();
+  const router = useRouter();
   const rootRef = useRef<HTMLElement>(null);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const checkoutInProgressRef = useRef(false);
 
-  async function handleCheckout() {
-    // Prevent multiple simultaneous checkout attempts
-    if (checkoutInProgressRef.current || checkoutLoading || items.length === 0) {
-      return;
-    }
+  function handleCheckout() {
+    // Navigate to checkout review page instead of going directly to Stripe
+    if (items.length === 0) return;
 
-    checkoutInProgressRef.current = true;
-    setCheckoutLoading(true);
-    setCheckoutError(null);
-
-    try {
-      const payload = items.map((it) => ({
-        slug: it.slug,
-        sizeId: it.sizeId,
-        qty: it.qty,
-      }));
-      const { url } = await startCheckout(payload, locale);
-      // Redirect to Stripe's hosted checkout page.
-      // Note: idempotency is handled inside startCheckout, so even if
-      // this function is called multiple times, the same session URL
-      // will be returned without creating duplicate charges.
-      window.location.href = url;
-    } catch (err) {
-      checkoutInProgressRef.current = false;
-      // Parse specific error messages from the backend
-      const message = err instanceof Error ? err.message : String(err);
-      if (message.includes('out_of_stock') || message.includes('409')) {
-        setCheckoutError(t("cart.out_of_stock_error") || "Some items are no longer available");
-      } else if (message.includes('503')) {
-        setCheckoutError(t("cart.service_unavailable") || "Payment service temporarily unavailable");
-      } else {
-        setCheckoutError(t("cart.checkout_error"));
-      }
-      setCheckoutLoading(false);
+    // Use curtain navigation for smooth transition
+    const curtainNav = (window as any).__curtainNav;
+    if (curtainNav) {
+      curtainNav(`/${locale}/checkout`);
+    } else {
+      router.push(`/${locale}/checkout`);
     }
   }
 
@@ -259,16 +233,12 @@ export default function CartPage() {
                 <p className="cart__summary-eyebrow">{t("cart.subtotal")}</p>
                 <p className="cart__summary-total">{formatEuro(subtotal)}</p>
                 <p className="cart__note">{t("cart.shipping_note")}</p>
-                {checkoutError && (
-                  <p className="cart__error">{checkoutError}</p>
-                )}
                 <button
                   type="button"
                   className="cart__checkout"
                   onClick={handleCheckout}
-                  disabled={checkoutLoading}
                 >
-                  {checkoutLoading ? t("cart.checkout_loading") : t("cart.checkout")}
+                  {t("cart.checkout")}
                 </button>
                 <LocaleLink href="/products" className="cart__shop-more">
                   {t("cart.add_more")}
