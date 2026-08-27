@@ -113,7 +113,7 @@ export default function CheckoutSuccessSection() {
   if (loading) {
     return (
       <section className="checkout-result">
-        <div className="checkout-result__inner">
+        <div className="checkout-result__inner checkout-result__inner--loading">
           <div className="checkout-result__loader">
             <svg className="checkout-result__spinner" viewBox="0 0 50 50">
               <circle
@@ -165,6 +165,12 @@ export default function CheckoutSuccessSection() {
   return (
     <section className="checkout-result">
       <div className="checkout-result__inner checkout-result__inner--rich">
+        <div className="checkout-result__success-icon">
+          <svg className="checkout-result__checkmark" viewBox="0 0 52 52">
+            <circle className="checkout-result__checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+            <path className="checkout-result__checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </div>
         <CheckoutSteps />
         <h1 className="checkout-result__title">{t("checkout_success.title")}</h1>
         <p className="checkout-result__message">{t("checkout_success.message")}</p>
