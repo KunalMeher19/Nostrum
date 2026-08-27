@@ -517,9 +517,9 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
   background: rgba(182, 146, 46, 0.08);
-  border-radius: 0.5rem;
+  border-radius: 0;
   border-left: 3px solid #b6922e;
 }
 
@@ -686,28 +686,28 @@
 @media (min-width: 1000px) {
   .checkout-review__summary {
     position: sticky;
-    top: 7rem;
+    top: 6rem;
+    align-self: start;
   }
 }
 
 .checkout-review__summary-panel {
   background: #FFFFFF;
   border: 1px solid rgba(20, 22, 15, 0.08);
-  border-radius: 12px;
-  padding: clamp(2rem, 5vw, 2.5rem);
-  box-shadow:
-    0 8px 32px rgba(20, 22, 15, 0.08),
-    0 2px 8px rgba(20, 22, 15, 0.04);
+  border-radius: 0;
+  padding: clamp(1.8rem, 4vw, 2.2rem);
+  box-shadow: 0 2px 8px rgba(20, 22, 15, 0.04);
 }
 
 .checkout-review__summary-title {
-  font-size: 1.25rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  margin: 0 0 1.75rem;
+  margin: 0 0 1.5rem;
   color: #14160F;
-  padding-bottom: 1.25rem;
-  border-bottom: 2px solid rgba(20, 22, 15, 0.08);
-  letter-spacing: -0.01em;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(20, 22, 15, 0.08);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* ---- Items list --------------------------------------------- */
@@ -794,7 +794,7 @@
 /* ---- Buttons (Premium gold primary) ------------------------- */
 .checkout-review__btn-primary {
   width: 100%;
-  padding: 1rem 2rem;
+  padding: 0.95rem 2rem;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -809,6 +809,7 @@
   box-shadow: none;
   position: relative;
   overflow: hidden;
+  margin-bottom: 0.75rem;
 }
 
 .checkout-review__btn-primary::before {
@@ -836,11 +837,11 @@
 .checkout-review__btn-back {
   display: block;
   width: 100%;
-  padding: 1rem 2rem;
-  margin-top: 1rem;
-  font-size: 0.875rem;
+  padding: 0.85rem 2rem;
+  margin-top: 0;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
   text-align: center;
   text-transform: uppercase;
   color: #14160F;
@@ -848,7 +849,7 @@
   border: 2px solid rgba(20, 22, 15, 0.15);
   border-radius: 999px;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
 }
 
 .checkout-review__btn-back:hover {
