@@ -6,6 +6,7 @@ import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
 import { useCart } from "@/components/Cart/CartContext";
 import { clearCheckoutIdempotency, type OrderDetail } from "@/lib/api";
+import { getProduct, sizeImage } from "@/lib/products";
 import "./checkout-result.css";
 
 /* ------------------------------------------------------------------ */
@@ -178,15 +179,24 @@ export default function CheckoutSuccessSection() {
           <div className="checkout-result__section">
             <h2 className="checkout-result__section-title">{t("checkout_success.items_ordered")}</h2>
             <ul className="checkout-result__items">
-              {order.items.map((item, i) => (
-                <li key={i} className="checkout-result__item">
-                  <span className="checkout-result__item-name">
-                    {item.productName} · {item.sizeLabel}
-                  </span>
-                  <span className="checkout-result__item-qty">×{item.qty}</span>
-                  <span className="checkout-result__item-price">{formatEuro(item.lineTotal)}</span>
-                </li>
-              ))}
+              {order.items.map((item, i) => {
+                const product = getProduct(item.productSlug || "extra-virgin-olive-oil");
+                const image = product ? sizeImage(product, item.sizeId || "5l") : null;
+                return (
+                  <li key={i} className="checkout-result__item">
+                    {image ? (
+                      <img src={image} alt="" className="checkout-result__item-image" />
+                    ) : (
+                      <span className="checkout-result__item-image checkout-result__item-image--placeholder" aria-hidden="true" />
+                    )}
+                    <span className="checkout-result__item-name">
+                      {item.productName} · {item.sizeLabel}
+                      <span className="checkout-result__item-qty-inline">Quantity: {item.qty}</span>
+                    </span>
+                    <span className="checkout-result__item-price">{formatEuro(item.lineTotal)}</span>
+                  </li>
+                );
+              })}
             </ul>
             <div className="checkout-result__totals">
               <div className="checkout-result__total-line">
@@ -202,7 +212,7 @@ export default function CheckoutSuccessSection() {
                 </span>
               </div>
               <div className="checkout-result__total-line checkout-result__total-line--final">
-                <span>{t("checkout_success.total_paid")}</span>
+                <span>{t("checkout_success.total")}</span>
                 <span>{formatEuro(order.total)}</span>
               </div>
             </div>
