@@ -179,7 +179,7 @@ export default function CheckoutReviewPage() {
               <div className="checkout-review__user-status">
                 <p className="checkout-review__user-guest">
                   {t("checkout.guest_checkout") || "Guest checkout"} ·{" "}
-                  <LocaleLink href="/auth/signin">{t("checkout.sign_in") || "Sign in"}</LocaleLink>
+                  <LocaleLink href="/account">{t("checkout.sign_in") || "Sign in"}</LocaleLink>
                 </p>
               </div>
             )}

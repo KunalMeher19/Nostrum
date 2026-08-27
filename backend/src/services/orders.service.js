@@ -226,6 +226,18 @@ async function getOrderByNumberAndEmail(number, email) {
   return order ? serializeOrder(order, { detail: true }) : null;
 }
 
+// Claim all guest orders (userId=null) for the given email and assign them
+// to the newly-created user. Called automatically when a user creates an
+// account, so past guest orders appear in their portal immediately.
+async function claimGuestOrders(userId, email) {
+  if (!userId || !email) return 0;
+  const result = await Order.updateMany(
+    { email: email.trim().toLowerCase(), userId: null },
+    { $set: { userId } }
+  );
+  return result.modifiedCount || 0;
+}
+
 module.exports = {
   ACTIVE_STATUSES,
   ORDER_STATUSES,
@@ -241,4 +253,5 @@ module.exports = {
   getOrderDoc,
   createOrder,
   nextOrderNumber,
+  claimGuestOrders,
 };

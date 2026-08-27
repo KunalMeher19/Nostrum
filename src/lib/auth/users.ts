@@ -67,6 +67,22 @@ export async function createCredentialsUser(opts: {
     createdAt: new Date(),
   };
   await db.collection("users").insertOne(doc);
+
+  // Claim guest orders: find all orders with this email and userId=null,
+  // then assign them to the new user. Non-blocking; failure logs but
+  // doesn't block account creation.
+  try {
+    const result = await db.collection("orders").updateMany(
+      { email, userId: null },
+      { $set: { userId: doc._id } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[auth] claimed ${result.modifiedCount} guest order(s) for new user ${doc._id}`);
+    }
+  } catch (err) {
+    console.error("[auth] failed to claim guest orders:", err);
+  }
+
   return doc as DbUser;
 }
 

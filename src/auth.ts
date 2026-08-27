@@ -124,6 +124,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     // OAuth users created by the adapter get defaults stamped in
     // (role, createdAt) since the adapter only writes profile fields.
+    // Also claim any guest orders placed with this email so they appear
+    // in the user's portal immediately.
     async createUser({ user }) {
       if (!user.email || !user.id) return;
       const db = await getDb();
@@ -136,6 +138,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           },
         }
       );
+
+      // Claim guest orders: find all orders with this email and userId=null,
+      // then assign them to the new user. Non-blocking; failure logs but
+      // doesn't block account creation.
+      try {
+        const result = await db.collection("orders").updateMany(
+          { email: user.email.trim().toLowerCase(), userId: null },
+          { $set: { userId: new ObjectId(user.id) } }
+        );
+        if (result.modifiedCount > 0) {
+          console.log(`[auth] claimed ${result.modifiedCount} guest order(s) for new user ${user.id}`);
+        }
+      } catch (err) {
+        console.error("[auth] failed to claim guest orders:", err);
+      }
     },
   },
 });
