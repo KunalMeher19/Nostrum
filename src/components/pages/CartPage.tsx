@@ -33,6 +33,7 @@ export default function CartPage() {
   const router = useRouter();
   const rootRef = useRef<HTMLElement>(null);
   const [liveProducts, setLiveProducts] = useState<Array<{slug: string; name: string; sizes: Array<{id: string; label: string; price: number}>}>>([]);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Fetch live products for empty cart suggestions
   useEffect(() => {
@@ -52,6 +53,8 @@ export default function CartPage() {
   function handleCheckout() {
     // Navigate to checkout review page instead of going directly to Stripe
     if (items.length === 0) return;
+
+    setCheckoutLoading(true);
 
     // Use curtain navigation for smooth transition
     const curtainNav = (window as any).__curtainNav;
@@ -286,10 +289,18 @@ export default function CartPage() {
                 <p className="cart__note">{t("cart.shipping_note")}</p>
                 <button
                   type="button"
-                  className="cart__checkout"
+                  className={`cart__checkout${checkoutLoading ? ' cart__checkout--loading' : ''}`}
                   onClick={handleCheckout}
+                  disabled={checkoutLoading}
                 >
-                  {t("cart.checkout")}
+                  {checkoutLoading ? (
+                    <>
+                      <span className="cart__checkout-spinner" />
+                      {t("cart.checkout")}
+                    </>
+                  ) : (
+                    t("cart.checkout")
+                  )}
                 </button>
                 <LocaleLink href="/products" className="cart__shop-more">
                   {t("cart.add_more")}
