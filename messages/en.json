@@ -100,7 +100,9 @@
     "trust_delivery": "Fast & reliable",
     "trust_delivery_note": "Carefully packed and delivered to you",
     "trust_returns": "Easy returns",
-    "trust_returns_note": "Returns accepted within 14 days"
+    "trust_returns_note": "Returns accepted within 14 days",
+    "review_intro": "Please review your details before proceeding to payment.",
+    "premium_note": "Premium extra virgin olive oil, sourced with care and delivered to your door."
   },
   "checkout_success": {
     "title": "Payment confirmed",

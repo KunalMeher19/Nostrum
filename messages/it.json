@@ -100,7 +100,9 @@
     "trust_delivery": "Veloce e affidabile",
     "trust_delivery_note": "Imballato con cura e consegnato a casa",
     "trust_returns": "Resi facili",
-    "trust_returns_note": "Resi accettati entro 14 giorni"
+    "trust_returns_note": "Resi accettati entro 14 giorni",
+    "review_intro": "Si prega di rivedere i dettagli prima di procedere al pagamento.",
+    "premium_note": "Olio extravergine di oliva premium, ottenuto con cura e consegnato a casa tua."
   },
   "checkout_success": {
     "title": "Pagamento confermato",

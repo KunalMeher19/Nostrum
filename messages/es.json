@@ -100,7 +100,9 @@
     "trust_delivery": "Rápido y fiable",
     "trust_delivery_note": "Embalado con cuidado y entregado en tu puerta",
     "trust_returns": "Devoluciones fáciles",
-    "trust_returns_note": "Devoluciones dentro de 14 días"
+    "trust_returns_note": "Devoluciones dentro de 14 días",
+    "review_intro": "Por favor, revisa tus datos antes de proceder al pago.",
+    "premium_note": "Aceite de oliva virgen extra premium, obtenido con cuidado y entregado a tu puerta."
   },
   "checkout_success": {
     "title": "Pago confirmado",

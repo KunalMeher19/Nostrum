@@ -100,7 +100,9 @@
     "trust_delivery": "Ràpid i fiable",
     "trust_delivery_note": "Embalat amb cura i lliurat a casa",
     "trust_returns": "Devolucions fàcils",
-    "trust_returns_note": "Devolucions en un termini de 14 dies"
+    "trust_returns_note": "Devolucions en un termini de 14 dies",
+    "review_intro": "Si us plau, revisa les teves dades abans de procedir al pagament.",
+    "premium_note": "Oli d'oliva verge extra premium, obtingut amb cura i lliurat a casa teva."
   },
   "checkout_success": {
     "title": "Pagament confirmat",
