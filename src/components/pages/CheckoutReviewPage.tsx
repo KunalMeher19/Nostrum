@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/Cart/CartContext";
 import { useLocale } from "@/components/LocaleContext/LocaleContext";
 import { LocaleLink } from "@/components/LocaleContext/LocaleLink";
-import { startCheckout, type CheckoutShippingAddress } from "@/lib/api";
+import { api, startCheckout, type CheckoutShippingAddress, type Profile } from "@/lib/api";
 import {
   formatEuro,
   getProduct,
@@ -55,24 +55,21 @@ export default function CheckoutReviewPage() {
 
             // Fetch full profile to get saved shipping address
             try {
-              const profileRes = await fetch("/api/me");
-              if (profileRes.ok) {
-                const profile = await profileRes.json();
+              const profile = await api<Profile>("/api/me");
 
-                // Pre-fill email, name, and saved shipping address
-                setAddress((prev) => ({
-                  ...prev,
-                  email: sessionData.user.email || prev.email,
-                  fullName: profile.shipping?.fullName || sessionData.user.name || prev.fullName,
-                  phone: profile.shipping?.phone || prev.phone,
-                  line1: profile.shipping?.line1 || prev.line1,
-                  line2: profile.shipping?.line2 || prev.line2,
-                  city: profile.shipping?.city || prev.city,
-                  region: profile.shipping?.region || prev.region,
-                  postalCode: profile.shipping?.postalCode || prev.postalCode,
-                  country: profile.shipping?.country || prev.country,
-                }));
-              }
+              // Pre-fill email, name, and saved shipping address
+              setAddress((prev) => ({
+                ...prev,
+                email: sessionData.user.email || prev.email,
+                fullName: profile.shipping?.fullName || sessionData.user.name || prev.fullName,
+                phone: profile.shipping?.phone || prev.phone,
+                line1: profile.shipping?.line1 || prev.line1,
+                line2: profile.shipping?.line2 || prev.line2,
+                city: profile.shipping?.city || prev.city,
+                region: profile.shipping?.region || prev.region,
+                postalCode: profile.shipping?.postalCode || prev.postalCode,
+                country: profile.shipping?.country || prev.country,
+              }));
             } catch (profileErr) {
               console.error("Failed to fetch user profile:", profileErr);
               // Still pre-fill email and name from session
