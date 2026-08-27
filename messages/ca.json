@@ -87,7 +87,20 @@
     "proceed_to_payment": "Continuar al pagament",
     "processing": "Processant...",
     "back_to_cart": "Tornar a la cistella",
-    "validation_error": "Si us plau, omple tots els camps obligatoris"
+    "validation_error": "Si us plau, omple tots els camps obligatoris",
+    "edit": "Edita",
+    "done_editing": "Acaba l'edició",
+    "address": "Adreça",
+    "delivery_note_title": "Lliurarem la teva comanda a l'adreça indicada.",
+    "delivery_note_body": "Si alguna dada no és correcta, edita-la abans de continuar.",
+    "trust_secure": "Compra segura",
+    "trust_secure_note": "El teu pagament és segur i xifrat",
+    "trust_quality": "Qualitat premium",
+    "trust_quality_note": "Oli d'oliva verge extra autèntic",
+    "trust_delivery": "Ràpid i fiable",
+    "trust_delivery_note": "Embalat amb cura i lliurat a casa",
+    "trust_returns": "Devolucions fàcils",
+    "trust_returns_note": "Devolucions en un termini de 14 dies"
   },
   "checkout_success": {
     "title": "Pagament confirmat",

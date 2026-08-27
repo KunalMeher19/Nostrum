@@ -10,6 +10,7 @@ import {
   formatEuro,
   getProduct,
   lineTotal,
+  sizeImage,
 } from "@/lib/products";
 import "./checkout-review.css";
 
@@ -22,6 +23,7 @@ export default function CheckoutReviewPage() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [user, setUser] = useState<{ email: string; name?: string } | null>(null);
   const [userLoading, setUserLoading] = useState(true);
+  const [editingAddress, setEditingAddress] = useState(false);
 
   // Address form state
   const [address, setAddress] = useState<CheckoutShippingAddress>({
@@ -148,6 +150,15 @@ export default function CheckoutReviewPage() {
     setAddress((prev) => ({ ...prev, [field]: value }));
   }
 
+  const hasSavedAddress = Boolean(
+    address.fullName &&
+    address.email &&
+    address.line1 &&
+    address.city &&
+    address.postalCode &&
+    address.country
+  );
+
   if (!isHydrated || items.length === 0) {
     return null; // Redirecting or loading
   }
@@ -156,36 +167,65 @@ export default function CheckoutReviewPage() {
     <main data-main className="checkout-review" ref={rootRef}>
       <div className="checkout-review__inner">
         <CheckoutSteps active="review" />
-        <header className="checkout-review__head">
-          <h1 className="checkout-review__title">{t("checkout.title") || "Review & Confirm"}</h1>
-          <p className="checkout-review__intro">{t("checkout.review_intro") || "Please review your details before proceeding to payment."}</p>
-        </header>
-
         <form className="checkout-review__layout" onSubmit={handleProceedToPayment}>
           {/* Left column: Address form */}
           <div className="checkout-review__main">
+            <div className="checkout-review__notice">
+              <span className="checkout-review__notice-icon" aria-hidden="true">&#10003;</span>
+              <span>{t("checkout.review_intro") || "Please review your details before proceeding to payment."}</span>
+            </div>
             {/* User status */}
-            {!userLoading && (
+            {!userLoading && !user && (
               <div className="checkout-review__user-status">
-                {user ? (
-                  <p className="checkout-review__user-welcome">
-                    {t("checkout.logged_in_as") || "Logged in as"} <strong>{user.email}</strong>
-                  </p>
-                ) : (
-                  <p className="checkout-review__user-guest">
-                    {t("checkout.guest_checkout") || "Guest checkout"} ·{" "}
-                    <LocaleLink href="/auth/signin">{t("checkout.sign_in") || "Sign in"}</LocaleLink>
-                  </p>
-                )}
+                <p className="checkout-review__user-guest">
+                  {t("checkout.guest_checkout") || "Guest checkout"} ·{" "}
+                  <LocaleLink href="/auth/signin">{t("checkout.sign_in") || "Sign in"}</LocaleLink>
+                </p>
               </div>
             )}
 
             {/* Shipping address */}
             <section className="checkout-review__section" aria-busy={userLoading}>
-              <h2 className="checkout-review__section-title">{t("checkout.shipping_address") || "Shipping address"}</h2>
+              <div className="checkout-review__section-heading">
+                <h2 className="checkout-review__section-title">{t("checkout.shipping_address") || "Shipping address"}</h2>
+                {hasSavedAddress && !editingAddress && (
+                  <button
+                    type="button"
+                    className="checkout-review__edit"
+                    onClick={() => setEditingAddress(true)}
+                  >
+                    <span aria-hidden="true">&#9998;</span> {t("checkout.edit") || "Edit"}
+                  </button>
+                )}
+              </div>
 
               {userLoading ? (
                 <AddressFormSkeleton />
+              ) : hasSavedAddress && !editingAddress ? (
+                <div className="checkout-review__address-summary">
+                  <div className="checkout-review__address-column">
+                    <p className="checkout-review__address-label">{t("checkout.full_name") || "Full name"}</p>
+                    <p>{address.fullName}</p>
+                    <p className="checkout-review__address-label">{t("checkout.email") || "Email"}</p>
+                    <p>{address.email}</p>
+                    {address.phone && <><p className="checkout-review__address-label">{t("checkout.phone") || "Phone"}</p><p>{address.phone}</p></>}
+                  </div>
+                  <div className="checkout-review__address-column">
+                    <p className="checkout-review__address-label">{t("checkout.address") || "Address"}</p>
+                    <p>{address.line1}</p>
+                    {address.line2 && <p>{address.line2}</p>}
+                    <p>{address.postalCode}, {address.city}</p>
+                    {address.region && <p>{address.region}</p>}
+                    <p>{address.country}</p>
+                  </div>
+                  <div className="checkout-review__delivery-note">
+                    <span className="checkout-review__delivery-icon" aria-hidden="true">&#9633;</span>
+                    <div>
+                      <strong>{t("checkout.delivery_note_title") || "We'll deliver your order to the address above."}</strong>
+                      <span>{t("checkout.delivery_note_body") || "If anything looks incorrect, please edit it before continuing."}</span>
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="checkout-review__form-grid">
                 <div className="checkout-review__form-group checkout-review__form-group--full">
@@ -310,7 +350,19 @@ export default function CheckoutReviewPage() {
                 </div>
                 </div>
               )}
+              {editingAddress && hasSavedAddress && (
+                <button type="button" className="checkout-review__done-editing" onClick={() => setEditingAddress(false)}>
+                  {t("checkout.done_editing") || "Done editing"}
+                </button>
+              )}
             </section>
+
+            <div className="checkout-review__trust-row" aria-label="Checkout benefits">
+              <div><span aria-hidden="true">&#9744;</span><strong>{t("checkout.trust_secure") || "Secure checkout"}</strong><small>{t("checkout.trust_secure_note") || "Your payment is safe and encrypted"}</small></div>
+              <div><span aria-hidden="true">&#10022;</span><strong>{t("checkout.trust_quality") || "Premium quality"}</strong><small>{t("checkout.trust_quality_note") || "100% authentic extra virgin olive oil"}</small></div>
+              <div><span aria-hidden="true">&#9633;</span><strong>{t("checkout.trust_delivery") || "Fast & reliable"}</strong><small>{t("checkout.trust_delivery_note") || "Carefully packed and delivered to you"}</small></div>
+              <div><span aria-hidden="true">&#8634;</span><strong>{t("checkout.trust_returns") || "Easy returns"}</strong><small>{t("checkout.trust_returns_note") || "Returns accepted within 14 days"}</small></div>
+            </div>
           </div>
 
           {/* Right column: Order summary (sticky) */}
@@ -323,8 +375,10 @@ export default function CheckoutReviewPage() {
                   const product = getProduct(it.slug);
                   if (!product) return null;
                   const itemTotal = lineTotal(product, it.sizeId, it.qty);
+                  const image = sizeImage(product, it.sizeId);
                   return (
                     <li key={it.key} className="checkout-review__item">
+                      {image ? <img src={image} alt="" className="checkout-review__item-image" /> : <span className="checkout-review__item-image" aria-hidden="true" />}
                       <span className="checkout-review__item-name">
                         {it.name} · {it.sizeLabel}
                       </span>

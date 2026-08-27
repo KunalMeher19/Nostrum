@@ -87,7 +87,20 @@
     "proceed_to_payment": "Proceed to payment",
     "processing": "Processing...",
     "back_to_cart": "Back to cart",
-    "validation_error": "Please fill in all required fields"
+    "validation_error": "Please fill in all required fields",
+    "edit": "Edit",
+    "done_editing": "Done editing",
+    "address": "Address",
+    "delivery_note_title": "We'll deliver your order to the address above.",
+    "delivery_note_body": "If anything looks incorrect, please edit it before continuing.",
+    "trust_secure": "Secure checkout",
+    "trust_secure_note": "Your payment is safe and encrypted",
+    "trust_quality": "Premium quality",
+    "trust_quality_note": "100% authentic extra virgin olive oil",
+    "trust_delivery": "Fast & reliable",
+    "trust_delivery_note": "Carefully packed and delivered to you",
+    "trust_returns": "Easy returns",
+    "trust_returns_note": "Returns accepted within 14 days"
   },
   "checkout_success": {
     "title": "Payment confirmed",

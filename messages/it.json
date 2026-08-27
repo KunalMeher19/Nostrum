@@ -87,7 +87,20 @@
     "proceed_to_payment": "Procedi al pagamento",
     "processing": "Elaborazione...",
     "back_to_cart": "Torna al carrello",
-    "validation_error": "Compila tutti i campi obbligatori"
+    "validation_error": "Compila tutti i campi obbligatori",
+    "edit": "Modifica",
+    "done_editing": "Fine modifica",
+    "address": "Indirizzo",
+    "delivery_note_title": "Consegneremo il tuo ordine all'indirizzo indicato.",
+    "delivery_note_body": "Se qualcosa non è corretto, modificalo prima di continuare.",
+    "trust_secure": "Checkout sicuro",
+    "trust_secure_note": "Il tuo pagamento è sicuro e crittografato",
+    "trust_quality": "Qualità premium",
+    "trust_quality_note": "Olio extravergine di oliva autentico",
+    "trust_delivery": "Veloce e affidabile",
+    "trust_delivery_note": "Imballato con cura e consegnato a casa",
+    "trust_returns": "Resi facili",
+    "trust_returns_note": "Resi accettati entro 14 giorni"
   },
   "checkout_success": {
     "title": "Pagamento confermato",

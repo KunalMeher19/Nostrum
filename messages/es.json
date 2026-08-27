@@ -87,7 +87,20 @@
     "proceed_to_payment": "Continuar al pago",
     "processing": "Procesando...",
     "back_to_cart": "Volver al carrito",
-    "validation_error": "Por favor complete todos los campos obligatorios"
+    "validation_error": "Por favor complete todos los campos obligatorios",
+    "edit": "Editar",
+    "done_editing": "Terminar edición",
+    "address": "Dirección",
+    "delivery_note_title": "Entregaremos tu pedido en la dirección indicada.",
+    "delivery_note_body": "Si algo no es correcto, edítalo antes de continuar.",
+    "trust_secure": "Compra segura",
+    "trust_secure_note": "Tu pago es seguro y está cifrado",
+    "trust_quality": "Calidad premium",
+    "trust_quality_note": "Aceite de oliva virgen extra auténtico",
+    "trust_delivery": "Rápido y fiable",
+    "trust_delivery_note": "Embalado con cuidado y entregado en tu puerta",
+    "trust_returns": "Devoluciones fáciles",
+    "trust_returns_note": "Devoluciones dentro de 14 días"
   },
   "checkout_success": {
     "title": "Pago confirmado",
