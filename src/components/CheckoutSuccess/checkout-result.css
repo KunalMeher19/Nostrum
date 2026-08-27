@@ -129,6 +129,49 @@
   color: var(--nostrum-gold-metal);
 }
 
+/* Loading spinner */
+.checkout-result__loader {
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: 0 auto 1.5rem;
+  display: grid;
+  place-items: center;
+  animation: fadeSlideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.checkout-result__spinner {
+  width: 100%;
+  height: 100%;
+  animation: rotate 2s linear infinite;
+}
+
+.checkout-result__spinner-path {
+  stroke: #6AAB1E;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
 .checkout-result__title {
   margin: 0 0 0.6rem;
   font-family: var(--font-display), "Segoe UI", Arial, sans-serif;

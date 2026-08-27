@@ -114,6 +114,18 @@ export default function CheckoutSuccessSection() {
     return (
       <section className="checkout-result">
         <div className="checkout-result__inner">
+          <div className="checkout-result__loader">
+            <svg className="checkout-result__spinner" viewBox="0 0 50 50">
+              <circle
+                className="checkout-result__spinner-path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                strokeWidth="3"
+              />
+            </svg>
+          </div>
           <h1 className="checkout-result__title">{t("checkout_success.loading_order")}</h1>
           <p className="checkout-result__message">{t("checkout_success.message")}</p>
         </div>
