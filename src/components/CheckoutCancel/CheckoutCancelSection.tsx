@@ -28,7 +28,7 @@ export default function CheckoutCancelSection() {
           <LocaleLink href="/cart" className="checkout-result__btn-primary">
             {t("checkout_cancel.return_to_cart")}
           </LocaleLink>
-          <LocaleLink href="/products" className="checkout-result__btn-secondary">
+          <LocaleLink href="/shop" className="checkout-result__btn-secondary">
             {t("checkout_cancel.continue_shopping")}
           </LocaleLink>
         </div>
