@@ -570,5 +570,20 @@
     "error": "Qualcosa è andato storto. Riprova.",
     "placed_on": "Effettuato il",
     "search_again": "Cerca un altro ordine"
+  },
+  "notfound": {
+    "title": "Questa pagina non è stata trovata.",
+    "message": "La pagina che stai cercando non esiste o è stata spostata.",
+    "return_home": "Torna alla homepage",
+    "browse_collection": "Sfoglia la nostra collezione",
+    "trust_quality": "Qualità Premium",
+    "trust_quality_desc": "Olio extravergine d'oliva 100% autentico",
+    "trust_sourced": "Con cura e attenzione",
+    "trust_sourced_desc": "Raccolto a mano dai nostri oliveti",
+    "trust_tradition": "Radicato nella tradizione",
+    "trust_tradition_desc": "Artigianato senza tempo in ogni goccia",
+    "help_title": "Hai bisogno di aiuto per trovare qualcosa?",
+    "help_subtitle": "Siamo qui per aiutarti a trovare l'olio d'oliva perfetto.",
+    "contact_us": "Contattaci"
   }
 }

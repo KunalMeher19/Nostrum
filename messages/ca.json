@@ -570,5 +570,20 @@
     "error": "Alguna cosa ha fallat. Torna-ho a provar.",
     "placed_on": "Feta el",
     "search_again": "Cerca una altra comanda"
+  },
+  "notfound": {
+    "title": "Aquesta pàgina no s'ha pogut trobar.",
+    "message": "La pàgina que cerques no existeix o ha estat moguda.",
+    "return_home": "Tornar a la pàgina principal",
+    "browse_collection": "Veure la nostra col·lecció",
+    "trust_quality": "Qualitat Premium",
+    "trust_quality_desc": "Oli d'oliva verge extra 100% autèntic",
+    "trust_sourced": "Amb cura i esmero",
+    "trust_sourced_desc": "Recollit a mà dels nostres olivars",
+    "trust_tradition": "Arrelat en la tradició",
+    "trust_tradition_desc": "Artesania atemporal en cada gota",
+    "help_title": "Necessites ajuda per trobar alguna cosa?",
+    "help_subtitle": "Som aquí per ajudar-te a trobar l'oli d'oliva perfecte.",
+    "contact_us": "Contacta'ns"
   }
 }

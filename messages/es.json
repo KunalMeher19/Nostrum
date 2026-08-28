@@ -570,5 +570,20 @@
     "error": "Algo ha fallado. Inténtalo de nuevo.",
     "placed_on": "Realizado el",
     "search_again": "Buscar otro pedido"
+  },
+  "notfound": {
+    "title": "Esta página no se pudo encontrar.",
+    "message": "La página que buscas no existe o ha sido movida.",
+    "return_home": "Volver a la página principal",
+    "browse_collection": "Ver nuestra colección",
+    "trust_quality": "Calidad Premium",
+    "trust_quality_desc": "Aceite de oliva virgen extra 100% auténtico",
+    "trust_sourced": "Con cuidado y esmero",
+    "trust_sourced_desc": "Recogido a mano de nuestros olivares",
+    "trust_tradition": "Arraigado en la tradición",
+    "trust_tradition_desc": "Artesanía atemporal en cada gota",
+    "help_title": "¿Necesitas ayuda para encontrar algo?",
+    "help_subtitle": "Estamos aquí para ayudarte a encontrar el aceite de oliva perfecto.",
+    "contact_us": "Contáctanos"
   }
 }

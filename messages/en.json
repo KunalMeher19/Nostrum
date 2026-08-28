@@ -570,5 +570,20 @@
     "error": "Something slipped. Please try again.",
     "placed_on": "Placed on",
     "search_again": "Look up another order"
+  },
+  "notfound": {
+    "title": "This page could not be found.",
+    "message": "The page you're looking for doesn't exist or has been moved.",
+    "return_home": "Return to homepage",
+    "browse_collection": "Browse our collection",
+    "trust_quality": "Premium Quality",
+    "trust_quality_desc": "100% authentic extra virgin olive oil",
+    "trust_sourced": "Sourced with care",
+    "trust_sourced_desc": "Handpicked from our groves in your table",
+    "trust_tradition": "Rooted in tradition",
+    "trust_tradition_desc": "Timeless craftsmanship in every drop",
+    "help_title": "Need help finding something?",
+    "help_subtitle": "We're here to help you find the perfect olive oil.",
+    "contact_us": "Contact us"
   }
 }
