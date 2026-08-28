@@ -63,89 +63,110 @@
   letter-spacing: -0.03em;
 }
 
-/* ---- B2B enquiry rail ----------------------------------------------- */
+/* ---- B2B enquiry rail (premium gold frame) -------------------------- */
 .products__b2b {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   display: flex;
-  min-width: 13rem;
+  min-width: 14rem;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem 0.9rem;
-  border-top: 2px dashed var(--nostrum-lime, #a6ce3a);
-  border-bottom: 2px dashed var(--nostrum-lime, #a6ce3a);
-  background: color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 9%, transparent);
+  justify-content: center;
+  padding: 1.15rem 1.5rem;
+  border: 1.5px solid var(--nostrum-gold-metal, #b98a2e);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 3%, transparent),
+    color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 6%, transparent)
+  );
   text-decoration: none;
   white-space: nowrap;
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
-  text-indent: 0.22em;
+  font-size: 0.74rem;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
   text-transform: uppercase;
   color: var(--p-fg);
-  transition: color 0.35s var(--ease-lux), padding 0.45s var(--ease-lux), box-shadow 0.4s var(--ease-lux);
+  transition: all 0.6s var(--ease-lux);
+  box-shadow:
+    0 2px 12px -4px color-mix(in srgb, var(--nostrum-gold-metal, #b98a2e) 18%, transparent),
+    inset 0 0 0 0 var(--nostrum-gold-metal, #e6b422);
+}
+
+/* Corner ornaments */
+.products__b2b::before,
+.products__b2b::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--nostrum-gold-metal, #e6b422);
+  border-style: solid;
+  opacity: 0.7;
+  transition: opacity 0.6s var(--ease-lux), transform 0.6s var(--ease-lux);
 }
 
 .products__b2b::before {
-  content: "";
-  position: absolute;
-  inset: -70% -18%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 18% 50%, color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 34%, transparent) 0, transparent 42%),
-    radial-gradient(ellipse at 82% 48%, color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 22%, transparent) 0, transparent 38%);
-  filter: blur(12px);
-  opacity: 0.42;
-  transform: translate3d(-10%, 0, 0) scaleX(0.9);
-  animation: products-b2b-aurora 9s ease-in-out infinite alternate;
+  top: -1px;
+  left: -1px;
+  border-width: 1.5px 0 0 1.5px;
+}
+
+.products__b2b::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1.5px 1.5px 0;
 }
 
 .products__b2b:hover,
 .products__b2b:focus-visible {
-  padding-left: 1.15rem;
-  color: color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 72%, var(--p-fg));
-  box-shadow: 0 10px 30px -14px
-    color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 55%, transparent);
+  border-color: var(--nostrum-gold-metal, #e6b422);
+  color: var(--p-fg);
+  box-shadow:
+    0 8px 32px -8px color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 42%, transparent),
+    0 0 24px -6px color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 22%, transparent),
+    inset 0 0 0 2px color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+.products__b2b:hover::before,
+.products__b2b:hover::after {
+  opacity: 1;
+  transform: scale(1.15);
 }
 
 .products__b2b:focus-visible {
-  outline: 2px solid var(--nostrum-lime, #a6ce3a);
-  outline-offset: 5px;
+  outline: 2px solid var(--nostrum-gold-metal, #e6b422);
+  outline-offset: 6px;
 }
 
 .products__b2b-label {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
 }
 
 .products__b2b-arrow {
-  position: relative;
+  position: absolute;
+  right: 1.25rem;
   z-index: 1;
   display: inline-flex;
   align-items: center;
-  margin-left: auto;
-  transition: transform 0.45s var(--ease-lux);
+  opacity: 0.75;
+  transition: transform 0.6s var(--ease-lux), opacity 0.6s var(--ease-lux);
 }
 
 .products__b2b:hover .products__b2b-arrow {
-  transform: translateX(4px);
-}
-
-@keyframes products-b2b-aurora {
-  from {
-    transform: translate3d(-10%, 2%, 0) scaleX(0.9);
-  }
-  to {
-    transform: translate3d(10%, -2%, 0) scaleX(1.08);
-  }
+  transform: translateX(6px);
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .products__b2b::before {
-    animation: none;
+  .products__b2b {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .products__b2b:hover {
+    transform: none;
   }
 }
 
