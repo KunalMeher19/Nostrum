@@ -745,102 +745,113 @@
   background: var(--nostrum-gold-metal, #b98a2e);
 }
 
-/* B2B enquiry row below trust badges */
-.pdp__b2b-row {
-  position: relative;
-  overflow: hidden;
+/* B2B enquiry button (matches /products page style) */
+.pdp__b2b-wrapper {
   margin-top: 1.4rem;
-  border-top: 2px dashed var(--nostrum-lime, #a6ce3a);
-  border-bottom: 2px dashed var(--nostrum-lime, #a6ce3a);
-  background: color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 9%, transparent);
 }
-.pdp__b2b-row::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    105deg,
-    transparent 15%,
-    color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 18%, transparent) 50%,
-    transparent 85%
-  );
-  transform: translateX(-100%);
-  transition: transform 0.7s var(--ease-lux);
-}
-.pdp__b2b-link {
+
+.pdp__b2b {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  z-index: 1;
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.45em;
-  padding: 1rem 0.15rem 1rem 0;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
+  justify-content: center;
+  padding: 1.15rem 1.5rem;
+  border: 1.5px solid var(--nostrum-gold-metal, #b98a2e);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 3%, transparent),
+    color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 6%, transparent)
+  );
+  text-decoration: none;
+  white-space: nowrap;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
   text-transform: uppercase;
   color: var(--nostrum-shop-ink);
-  text-decoration: none;
-  transition: color 0.3s var(--ease-lux), padding 0.45s var(--ease-lux);
-}
-.pdp__b2b-label {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-.pdp__b2b-link::before {
-  content: "";
-  position: absolute;
-  inset: -70% -18%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 18% 50%, color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 34%, transparent) 0, transparent 42%),
-    radial-gradient(ellipse at 82% 48%, color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 22%, transparent) 0, transparent 38%);
-  filter: blur(12px);
-  opacity: 0.42;
-  transform: translate3d(-10%, 0, 0) scaleX(0.9);
-  animation: pdp-b2b-aurora 9s ease-in-out infinite alternate;
-}
-.pdp__b2b-link:hover {
-  padding-left: 0.35rem;
-  color: color-mix(in srgb, var(--nostrum-lime, #a6ce3a) 72%, var(--nostrum-shop-ink));
-}
-.pdp__b2b-row:has(.pdp__b2b-link:hover)::before,
-.pdp__b2b-row:has(.pdp__b2b-link:focus-visible)::before {
-  transform: translateX(100%);
-}
-.pdp__b2b-link:focus-visible {
-  outline: 2px solid var(--nostrum-lime, #a6ce3a);
-  outline-offset: 5px;
-}
-.pdp__b2b-link svg {
-  margin-left: auto;
-  flex: 0 0 auto;
-  transition: transform 0.45s var(--ease-lux);
-}
-.pdp__b2b-link:hover svg,
-.pdp__b2b-link:focus-visible svg {
-  transform: translateX(4px);
+  transition: all 0.6s var(--ease-lux);
+  box-shadow:
+    0 2px 12px -4px color-mix(in srgb, var(--nostrum-gold-metal, #b98a2e) 18%, transparent),
+    inset 0 0 0 0 var(--nostrum-gold-metal, #e6b422);
 }
 
-@keyframes pdp-b2b-aurora {
-  from {
-    transform: translate3d(-10%, 2%, 0) scaleX(0.9);
-  }
-  to {
-    transform: translate3d(10%, -2%, 0) scaleX(1.08);
-  }
+/* Corner ornaments */
+.pdp__b2b::before,
+.pdp__b2b::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--nostrum-gold-metal, #e6b422);
+  border-style: solid;
+  opacity: 0.7;
+  transition: opacity 0.6s var(--ease-lux), transform 0.6s var(--ease-lux);
+}
+
+.pdp__b2b::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1.5px 0 0 1.5px;
+}
+
+.pdp__b2b::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1.5px 1.5px 0;
+}
+
+.pdp__b2b:hover,
+.pdp__b2b:focus-visible {
+  border-color: var(--nostrum-gold-metal, #e6b422);
+  color: var(--nostrum-shop-ink);
+  box-shadow:
+    0 8px 32px -8px color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 42%, transparent),
+    0 0 24px -6px color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 22%, transparent),
+    inset 0 0 0 2px color-mix(in srgb, var(--nostrum-gold-metal, #e6b422) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+.pdp__b2b:hover::before,
+.pdp__b2b:hover::after {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.pdp__b2b:focus-visible {
+  outline: 2px solid var(--nostrum-gold-metal, #e6b422);
+  outline-offset: 6px;
+}
+
+.pdp__b2b-label {
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
+}
+
+.pdp__b2b-arrow {
+  position: absolute;
+  right: 1.25rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.75;
+  transition: transform 0.6s var(--ease-lux), opacity 0.6s var(--ease-lux);
+}
+
+.pdp__b2b:hover .pdp__b2b-arrow {
+  transform: translateX(6px);
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pdp__b2b-link::before {
-    animation: none;
+  .pdp__b2b {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .pdp__b2b:hover {
+    transform: none;
   }
 }

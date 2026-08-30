@@ -447,6 +447,15 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   transform: translateY(0);
 }
 
+/* On touch devices (no hover capability), always show sub-links */
+@media (hover: none) {
+  .underlay-nav__sublist {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .underlay-nav__sublink {
   display: inline-flex;
   align-items: center;
