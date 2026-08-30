@@ -1,0 +1,348 @@
+/* ------------------------------------------------------------------ */
+/* 404 Not Found — Premium editorial layout with product hero         */
+/* Light Shop aesthetic matching the reference design                  */
+/* ------------------------------------------------------------------ */
+
+.not-found {
+  min-height: 100svh;
+  /* Sampled from the hero image edges: #F0E9DF (top) → #EAE1D7 (bottom) */
+  background: linear-gradient(160deg, #F0E9DF 0%, #EEE6DC 45%, #EAE1D7 100%);
+  color: #14160f;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Main container — copy sits in the left half, the hero image bleeds from
+   the top-right corner behind it. */
+.not-found__container {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 6rem;
+  max-width: 90rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(4rem, 10vh, 8rem) clamp(3rem, 6vw, 5rem);
+}
+
+/* Left content column */
+.not-found__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 32rem;
+}
+
+.not-found__code {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(6rem, 15vw, 10rem);
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: #14160f;
+}
+
+.not-found__title {
+  margin: 0 0 1rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #14160f;
+}
+
+.not-found__message {
+  margin: 0 0 2rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #6f6a5f;
+}
+
+.not-found__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.not-found__btn-primary,
+.not-found__btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.not-found__btn-primary {
+  background: #405d32;
+  color: #fff;
+  border: 2px solid #405d32;
+}
+
+.not-found__btn-primary:hover {
+  background: #304824;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(64, 93, 50, 0.25);
+}
+
+.not-found__btn-secondary {
+  background: transparent;
+  color: #14160f;
+  border: 2px solid rgba(20, 22, 15, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.not-found__btn-secondary:hover {
+  border-color: #405d32;
+  color: #405d32;
+  transform: translateY(-2px);
+}
+
+.not-found__btn-secondary::after {
+  content: '→';
+  font-size: 1rem;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.not-found__btn-secondary:hover::after {
+  transform: translateX(4px);
+}
+
+/* Hero image — full-bleed, anchored to the top-right corner of the page,
+   the way the reference composition bleeds off the edge. */
+.not-found__hero {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 0;
+  width: clamp(38rem, 65vw, 72rem);
+  height: clamp(40rem, 95vh, 68rem);
+  pointer-events: none;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The source PNG is portrait (1122x1402) with a cream backdrop baked in.
+   Height-constrain it so it never spills into the trust strip, and feather
+   the edges so the rectangle boundary dissolves into the page background. */
+.not-found__hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right top;
+  /* Feather only the two inner edges (left + bottom); the top and right sit
+     flush against the viewport corner, so nothing needs blending there. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 34%),
+    linear-gradient(to top, transparent 0%, #000 30%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 34%),
+    linear-gradient(to top, transparent 0%, #000 30%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+/* Trust elements strip */
+.not-found__trust {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 72rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(2rem, 4vh, 3rem) clamp(2rem, 5vw, 4rem);
+  background: transparent;
+  border-top: 1px solid rgba(20, 22, 15, 0.1);
+  border-bottom: 1px solid rgba(20, 22, 15, 0.1);
+}
+
+.not-found__trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.not-found__trust-icon {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(20, 22, 15, 0.15);
+  border-radius: 50%;
+  color: #405d32;
+}
+
+.not-found__trust-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.not-found__trust-label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #14160f;
+}
+
+.not-found__trust-detail {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #6f6a5f;
+  max-width: 16rem;
+}
+
+/* Help CTA section */
+.not-found__help {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  padding: clamp(2.5rem, 5vh, 4rem) clamp(2rem, 5vw, 4rem);
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.not-found__help-title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #14160f;
+}
+
+.not-found__help-subtitle {
+  margin: 0 0 1rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #6f6a5f;
+}
+
+.not-found__help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2rem;
+  background: transparent;
+  border: 1.5px solid rgba(20, 22, 15, 0.2);
+  color: #14160f;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.not-found__help-btn:hover {
+  border-color: #405d32;
+  color: #405d32;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(64, 93, 50, 0.15);
+}
+
+.not-found__help-btn svg {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.not-found__help-btn:hover svg {
+  transform: translateX(2px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .not-found__container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding-top: clamp(2rem, 5vh, 4rem);
+    padding-bottom: clamp(2rem, 5vh, 4rem);
+  }
+
+  /* Image stays corner-anchored, larger to fill the space */
+  .not-found__hero {
+    width: clamp(26rem, 72vw, 48rem);
+    height: clamp(32rem, 68vh, 52rem);
+  }
+
+  .not-found__hero-image {
+    /* Stronger left fade so text remains legible */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%),
+      linear-gradient(to top, transparent 0%, #000 32%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 38%),
+      linear-gradient(to top, transparent 0%, #000 32%);
+  }
+}
+
+@media (max-width: 768px) {
+  .not-found__hero {
+    width: min(100%, 42rem);
+    height: clamp(28rem, 58vh, 46rem);
+  }
+
+  .not-found__hero-image {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 32%),
+      linear-gradient(to top, transparent 0%, #000 40%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 32%),
+      linear-gradient(to top, transparent 0%, #000 40%);
+  }
+
+  .not-found__trust {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .not-found__actions {
+    max-width: 24rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .not-found__hero {
+    width: 100%;
+    height: clamp(24rem, 50vh, 36rem);
+  }
+
+  .not-found__code {
+    font-size: 5rem;
+  }
+
+  .not-found__title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
