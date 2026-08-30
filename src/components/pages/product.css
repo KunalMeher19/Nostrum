@@ -376,9 +376,9 @@
   z-index: -1;
   background: linear-gradient(
     100deg,
-    var(--nostrum-gold-metal),
-    #f2c94c 55%,
-    var(--nostrum-gold-metal)
+    var(--nostrum-lime, #a6ce3a),
+    #b8dc4c 55%,
+    var(--nostrum-lime, #a6ce3a)
   );
   transform: scaleX(0);
   transform-origin: left center;
