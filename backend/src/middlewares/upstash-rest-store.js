@@ -32,9 +32,12 @@ class UpstashRestStore {
         resetTime,
       };
     } catch (err) {
-      console.error('[redis] increment failed:', err.message);
-      // Return undefined to trigger in-memory fallback
-      return undefined;
+      console.error('[rate-limit-store] Upstash increment error:', err);
+      // express-rate-limit does NOT have an automatic in-memory fallback
+      // Returning undefined causes TypeError when it tries to destructure
+      // Instead, fail closed: throw so express-rate-limit returns 500
+      // This is safer than allowing unlimited requests
+      throw new Error('Rate limit store unavailable');
     }
   }
 
@@ -47,8 +50,8 @@ class UpstashRestStore {
         totalHits: Math.max(0, hits),
       };
     } catch (err) {
-      console.error('[redis] decrement failed:', err.message);
-      return undefined;
+      console.error('[rate-limit-store] Upstash decrement error:', err);
+      throw new Error('Rate limit store unavailable');
     }
   }
 

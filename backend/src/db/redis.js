@@ -33,9 +33,12 @@ function getRedis() {
       });
 
       client.on('error', (err) => {
+        // Log errors but DON'T null the client — ioredis has built-in reconnection
+        // Nulling it here doesn't help because rate limiters already captured the
+        // reference at module load, and it prevents ioredis from auto-reconnecting
         if (err.code === 'ENOTFOUND' || err.message.includes('getaddrinfo')) {
-          console.error('[redis] DNS resolution failed; falling back to REST API if available');
-          client = null; // Mark as failed so we try REST next
+          console.error('[redis] DNS resolution failed; will retry automatically');
+          console.error('[redis] If this persists, set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN for REST fallback');
         } else {
           console.error('[redis]', err.message);
         }
