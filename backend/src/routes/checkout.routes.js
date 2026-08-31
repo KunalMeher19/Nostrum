@@ -50,15 +50,17 @@ setInterval(() => {
 }, 60 * 60 * 1000);
 
 // Get cached session ID for an idempotency key (Redis or in-memory).
-async function getCachedSession(idempotencyKey) {
+// Binds to userId or IP to prevent cross-user session disclosure.
+async function getCachedSession(idempotencyKey, userId, ip) {
+  const cacheKey = `checkout:${userId || `guest:${ip}`}:${idempotencyKey}`;
   const redis = getRedis();
   if (redis) {
     // Redis mode: read from Redis
-    const sessionId = await redis.get(`checkout:${idempotencyKey}`);
+    const sessionId = await redis.get(cacheKey);
     return sessionId; // null if not found or expired
   } else {
     // In-memory mode: read from Map
-    const cached = memoryCache.get(idempotencyKey);
+    const cached = memoryCache.get(cacheKey);
     if (cached && Date.now() - cached.createdAt < CACHE_TTL_MS) {
       return cached.sessionId;
     }
@@ -67,14 +69,16 @@ async function getCachedSession(idempotencyKey) {
 }
 
 // Cache a session ID for an idempotency key (Redis or in-memory).
-async function setCachedSession(idempotencyKey, sessionId) {
+// Binds to userId or IP to prevent cross-user session disclosure.
+async function setCachedSession(idempotencyKey, sessionId, userId, ip) {
+  const cacheKey = `checkout:${userId || `guest:${ip}`}:${idempotencyKey}`;
   const redis = getRedis();
   if (redis) {
     // Redis mode: store with TTL
-    await redis.setex(`checkout:${idempotencyKey}`, CACHE_TTL_SECONDS, sessionId);
+    await redis.setex(cacheKey, CACHE_TTL_SECONDS, sessionId);
   } else {
     // In-memory mode: store with timestamp
-    memoryCache.set(idempotencyKey, {
+    memoryCache.set(cacheKey, {
       sessionId,
       createdAt: Date.now(),
     });
@@ -125,8 +129,12 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       return res.status(400).json({ error: 'invalid_idempotency_key' });
     }
 
+    // Bind cache to user ID or IP to prevent cross-user session disclosure
+    const userId = req.user?.id || null;
+    const userIp = req.ip;
+
     // Check if we already created a session for this idempotency key
-    const cachedSessionId = await getCachedSession(idempotencyKey);
+    const cachedSessionId = await getCachedSession(idempotencyKey, userId, userIp);
     if (cachedSessionId) {
       try {
         // Verify the session still exists in Stripe
@@ -334,7 +342,7 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     );
 
     // Cache the session for fast repeated requests (Redis or in-memory)
-    await setCachedSession(idempotencyKey, stripeSession.id);
+    await setCachedSession(idempotencyKey, stripeSession.id, userId, userIp);
 
     console.log(`[checkout] created session ${stripeSession.id} for idempotency key: ${idempotencyKey}`);
 

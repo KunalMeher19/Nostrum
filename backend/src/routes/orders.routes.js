@@ -78,7 +78,7 @@ router.get('/by-session/:sessionId', bySessionLimiter, async (req, res, next) =>
   }
 });
 
-router.get('/', requireAuth, async (req, res, next) => {
+router.get('/', requireAuth, heavyLimiter, async (req, res, next) => {
   try {
     res.json({ orders: await orders.listOrdersForUser(req.user.id) });
   } catch (err) {

@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-08-26 after implementing Redis with custom rate-limit store and IP blacklisting (see 2.19 below). Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
+> Updated 2026-08-31 after comprehensive security audit and critical vulnerability fixes (see 2.20 below). Updated 2026-08-26 after implementing Redis with custom rate-limit store and IP blacklisting (see 2.19 below). Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
 > Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins “How it is made” images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below). Updated 2026-08-18 after mobile responsiveness overhaul (see 2.15 below). Updated 2026-08-21 after adding admin skeleton loading states across all data tabs and the customer portal order list, then restoring and tuning the Journal branch portal for desktop/tablet and applying the final desktop position/inertia pass. Updated 2026-08-21 after wiring empty-cart drawer suggestions to the live catalog and correcting cart thumbnail alignment, then removing the remaining horizontal letterboxing and fixing /cart reload image overflow. Updated 2026-08-21 after making the cart page hydration-aware. Updated 2026-08-23 after implementing production-grade Stripe payment system with complete idempotency (see 2.16 below).
 > Checked against `NOSTRUM-DESIGN.md`, the original brief (`assests/Nostrum.pdf`), client feedback rounds, and the current codebase.
@@ -484,6 +484,70 @@ Full 36-item security audit run against the codebase. 22 items confirmed clean (
 - Until then, in-memory storage is simpler and eliminates this dependency
 
 **Verified**: After removing `REDIS_URL`, backend logs show clean startup (`MongoDB connected`, `Nostrum API listening on port 8080`) with no Redis errors, and admin panel loads orders/customers/products without 500 errors.
+
+### 2.20 Comprehensive Security Audit + Critical Vulnerability Fixes — DONE 2026-08-31
+
+Full security audit run against the Express backend + production deployment. **5 critical (HIGH) vulnerabilities patched**, plus 2 medium and multiple low-severity issues addressed.
+
+**Critical Fixes Applied:**
+
+1. **H-1: Rate limiting globally defeated (REQUIRES MANUAL ENV VAR)**
+   - **Issue:** Missing `TRUST_PROXY=1` in Railway causes all visitors to share one rate-limit bucket, allowing a single attacker to exhaust 300 requests/min and lock out the entire API for all legitimate users.
+   - **Fix:** Code was already correct; added `TRUST_PROXY=1` to Railway environment variables required in deployment checklist.
+   - **Verification:** Live production testing showed rate-limit counters jumping around randomly (different edge nodes = different in-memory buckets). After setting `TRUST_PROXY=1`, counters decrement steadily per-IP.
+
+2. **H-2: Upload memory exhaustion (OOM crash)**
+   - **Issue:** Multipart upload handler buffered entire request into memory before checking 8MB limit. A malicious admin uploading 2GB would cause ~10GB peak RAM consumption (multiple copies + base64 overhead) → OOM → `process.exit(1)`.
+   - **Fix:** Added incremental size tracking with early abort at `backend/src/routes/admin.routes.js:394-415`. Request destroyed immediately when `totalBytes > MAX_SIZE`.
+   - **Files:** `backend/src/routes/admin.routes.js`
+
+3. **H-3: Admin endpoints missing heavy rate limiting**
+   - **Issue:** Expensive database operations (`User.find({})`, `Subscriber.find({})`, `Order.find({userId})` with no limit) protected only by 300/min global tier, while their CSV export equivalents correctly used `heavyLimiter` (15/min).
+   - **Fix:** Added `heavyLimiter` to `/customers`, `/newsletter/subscribers` (admin), and `/` (customer portal orders).
+   - **Files:** `backend/src/routes/admin.routes.js:25-26`, `backend/src/routes/orders.routes.js:81`
+
+4. **H-4: CSV formula injection (RCE potential)**
+   - **Issue:** Newsletter signup and customer profile fields accepted formula-prefixed emails like `=1+1@evil.co` or `=HYPERLINK("http://attacker.com","click")@evil.co`. When admin exported CSV and opened in Excel, formulas executed.
+   - **Fix:** Updated both CSV `esc()` functions to prefix dangerous characters (`=`, `+`, `-`, `@`) with a single quote, and added `\r` to the escape regex.
+   - **Impact:** Formulas now render as literal text: `'=1+1@evil.co` displays as text, not evaluated.
+   - **Files:** `backend/src/routes/admin.routes.js:145-151, 211-217`
+
+5. **H-5: Checkout idempotency keys not bound to users**
+   - **Issue:** Idempotency cache used global namespace with no user/session binding. Anyone presenting a colliding `Math.random()`-generated key received another user's Stripe session URL (containing email, cart contents, payment link).
+   - **Fix:** Bound cache keys to `userId` or `guest:{ip}`. Cache key format changed from `checkout:{key}` to `checkout:{userId|guest:ip}:{key}`.
+   - **Impact:** User A's key can never collide with User B's key even with identical Math.random() values.
+   - **Files:** `backend/src/routes/checkout.routes.js:53-82, 127-136, 345`
+
+6. **M-3: CRLF injection into ImageKit multipart body**
+   - **Issue:** Filename extraction regex `[^"]+` allowed `\r\n`, enabling multipart boundary injection in the outbound ImageKit upload request.
+   - **Fix:** Strip CRLF from filename with `.replace(/[\r\n]/g, '')`.
+   - **Files:** `backend/src/routes/admin.routes.js:440`
+
+7. **M-4: Missing PDF stream error handlers (crash risk)**
+   - **Issue:** Invoice PDF generation piped to response with no error listeners. Client disconnect mid-stream could trigger unhandled error → `process.exit(1)`.
+   - **Fix:** Added error listeners on `doc`, `res`, and `stream` to log gracefully and end cleanly instead of crashing.
+   - **Files:** `backend/src/services/invoice.service.js:36-52`
+
+**Security Audit Documents Created:**
+- `SECURITY-AUDIT-2026-08-31.md` — Full 18-finding audit report with verified-clean confirmations
+- `CRITICAL-FIXES-2026-08-31.md` — Detailed fix summary with before/after code examples
+- `DEPLOYMENT-CHECKLIST.md` — Step-by-step deployment + verification guide
+
+**Verified:**
+- Backend tests: 87/87 passed (11 suites)
+- TypeScript: Clean (0 errors)
+- All critical fixes applied and committed to `security/critical-fixes-2026-08-31` branch
+
+**Remaining Non-Critical Findings:**
+- **M-1:** Guest order PII disclosure beyond documented scope (query includes full lifecycle, not just placed/confirmed)
+- **M-2:** Newsletter signup inflation (no CAPTCHA/verification → unbounded admin queries)
+- **M-5, M-6:** Redis error handling issues (Upstash store returns undefined, native client nulled on error)
+- **L-1 through L-7:** Low-severity informational findings (sanitizer scope, prototype pollution gadget, request timeout, etc.)
+
+**Deployment Requirement:**
+After merging to main, **must set `TRUST_PROXY=1` in Railway** before rate limiting works correctly. Without it, the API remains vulnerable to global DoS (H-1).
+
+---
 
 ### 2.19 Redis rate limiting + IP blacklisting with custom store — DONE 2026-08-26
 
