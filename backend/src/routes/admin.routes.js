@@ -22,7 +22,9 @@ const router = express.Router();
 // Tier limiters mount BEFORE the auth gate so unauthenticated probing
 // burns the prober's budget instead of free 401s forever.
 router.use('/customers.csv', heavyLimiter);
+router.use('/customers', heavyLimiter);  // Same query as CSV, needs same tier
 router.use('/newsletter/subscribers.csv', heavyLimiter);
+router.use('/newsletter/subscribers', heavyLimiter);  // Same query as CSV
 router.use('/orders/:id/invoice', heavyLimiter);
 router.use('/orders/:id/status', writeLimiter);
 router.use('/products/:id', writeLimiter);
@@ -144,7 +146,10 @@ router.get('/customers.csv', async (req, res, next) => {
     const rows = await customerRows();
     const esc = (v) => {
       const s = v == null ? '' : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      // Prefix formula characters to prevent CSV injection
+      const safe = /^[=+\-@]/.test(s) ? "'" + s : s;
+      // Escape quotes and wrap if contains special chars (including \r)
+      return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
     };
     const header =
       'name,email,phone,address_line1,address_line2,city,region,postal_code,country,' +
@@ -210,7 +215,10 @@ router.get('/newsletter/subscribers.csv', async (req, res, next) => {
     const subs = await Subscriber.find({}).sort({ createdAt: -1 }).lean();
     const esc = (v) => {
       const s = v == null ? '' : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      // Prefix formula characters to prevent CSV injection
+      const safe = /^[=+\-@]/.test(s) ? "'" + s : s;
+      // Escape quotes and wrap if contains special chars (including \r)
+      return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
     };
     const day = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '');
     const header = 'email,locale,consent_date,unsubscribed_date,signup_date';
@@ -386,12 +394,31 @@ router.post('/upload', async (req, res, next) => {
     }
 
     // Collect the raw multipart body manually (no disk writes — stream into memory)
+    // Check size incrementally to prevent OOM attacks
+    const MAX_SIZE = 8 * 1024 * 1024; // 8 MB
+    let totalBytes = 0;
     const chunks = [];
     await new Promise((resolve, reject) => {
-      req.on('data', (c) => chunks.push(c));
+      req.on('data', (chunk) => {
+        totalBytes += chunk.length;
+        if (totalBytes > MAX_SIZE) {
+          req.destroy();
+          return reject(new Error('file_too_large'));
+        }
+        chunks.push(chunk);
+      });
       req.on('end', resolve);
       req.on('error', reject);
+    }).catch((err) => {
+      if (err.message === 'file_too_large') {
+        return res.status(413).json({ error: 'file_too_large' });
+      }
+      throw err;
     });
+
+    // Early return if we already sent 413
+    if (res.headersSent) return;
+
     const rawBody = Buffer.concat(chunks);
 
     // Parse boundary from Content-Type header
@@ -412,7 +439,8 @@ router.post('/upload', async (req, res, next) => {
       if (!headerSection.includes('filename=')) continue;
       const nameMatch = headerSection.match(/filename="([^"]+)"/);
       const ctMatch = headerSection.match(/Content-Type:\s*([^\r\n]+)/);
-      if (nameMatch) fileName = nameMatch[1];
+      // Strip CRLF from filename to prevent multipart boundary injection
+      if (nameMatch) fileName = nameMatch[1].replace(/[\r\n]/g, '');
       if (ctMatch) mimeType = ctMatch[1].trim();
       // body is everything after the double CRLF, minus the trailing \r\n
       const bodyStr = bodyParts.join('\r\n\r\n').replace(/\r\n$/, '');
@@ -421,7 +449,7 @@ router.post('/upload', async (req, res, next) => {
     }
 
     if (!fileBuffer) return res.status(400).json({ error: 'no_file' });
-    if (fileBuffer.length > 8 * 1024 * 1024) return res.status(413).json({ error: 'file_too_large' });
+    // Size already checked incrementally during streaming
 
     // Validate by magic bytes — never trust the Content-Type header inside
     // a multipart body, which the uploader controls. Each format has a known

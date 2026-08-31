@@ -33,7 +33,26 @@ function streamInvoice(order, res) {
     'Content-Disposition',
     `attachment; filename="nostrum-invoice-${order.number}.pdf"`
   );
-  doc.pipe(res);
+
+  const stream = doc.pipe(res);
+
+  // Error handlers to prevent unhandled stream errors from crashing the process
+  doc.on('error', (err) => {
+    console.error('[invoice] PDF generation error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'invoice_generation_failed' });
+    }
+    doc.end();
+  });
+
+  res.on('error', (err) => {
+    console.error('[invoice] Response stream error (likely client disconnect):', err);
+    doc.end();
+  });
+
+  stream.on('error', (err) => {
+    console.error('[invoice] Pipe stream error:', err);
+  });
 
   const W = doc.page.width; // 595
   const M = 56; // margin
