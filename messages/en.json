@@ -182,7 +182,9 @@
     "sent_line": "Thank you for writing. We read everything ourselves, and usually reply in less than 48h.",
     "gdpr": "By sending you agree to our privacy policy.",
     "whatsapp_label": "Chat with Nostrum on WhatsApp",
-    "send_error": "Something slipped. Please try sending again."
+    "send_error": "Something slipped. Please try sending again.",
+    "address_line1": "El Perelló, Catalonia",
+    "address_line2": "Spain, EU"
   },
   "story": {
     "title": "Our Story",
@@ -595,8 +597,8 @@
     "help_title": "Need help finding something?",
     "help_subtitle": "We're here to help you find the perfect olive oil.",
     "contact_us": "Contact us"
-  }
-  ,"a11y": {
+  },
+  "a11y": {
     "home": "Nostrum home",
     "open_menu": "open menu",
     "cart": "Shopping cart",

@@ -173,9 +173,9 @@ export default function SiteFooter() {
         <div className="nf__col">
           <h4 className="nf__col-title">Nostrum</h4>
           <address className="nf__address">
-            El Perelló, {locale === "es" ? "Cataluña" : locale === "ca" ? "Catalunya" : locale === "it" ? "Catalogna" : locale === "el" ? "Καταλονία" : "Catalonia"}
+            {t("contact.address_line1")}
             <br />
-            {locale === "es" ? "España, UE" : locale === "ca" ? "Espanya, UE" : locale === "it" ? "Spagna, UE" : locale === "el" ? "Ισπανία, ΕΕ" : "Spain, EU"}
+            {t("contact.address_line2")}
           </address>
           <ul className="nf__contact">
             <li>

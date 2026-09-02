@@ -182,7 +182,9 @@
     "sent_line": "Gracias por escribir. Lo leemos todo nosotros mismos y normalmente respondemos en menos de 48 h.",
     "gdpr": "Al enviar aceptas nuestra política de privacidad.",
     "whatsapp_label": "Habla con Nostrum por WhatsApp",
-    "send_error": "Algo ha fallado. Prueba a enviarlo de nuevo."
+    "send_error": "Algo ha fallado. Prueba a enviarlo de nuevo.",
+    "address_line1": "El Perelló, Cataluña",
+    "address_line2": "España, UE"
   },
   "story": {
     "title": "Nuestra Historia",
