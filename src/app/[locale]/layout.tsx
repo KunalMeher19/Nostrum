@@ -7,6 +7,7 @@ import RouteCurtain from "@/components/RouteCurtain/RouteCurtain";
 import NewsletterModal from "@/components/NewsletterModal/NewsletterModal";
 import CartDrawer from "@/components/Cart/CartDrawer";
 import LegalModal from "@/components/LegalModal/LegalModal";
+import LocaleSessionGuard from "@/components/LocaleSessionGuard/LocaleSessionGuard";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -24,6 +25,7 @@ export default async function LocaleLayout({
   const messages = await getMessages(locale as Locale);
   return (
     <LocaleProvider locale={locale as Locale} messages={messages}>
+      <LocaleSessionGuard />
       <HtmlLang lang={locale} />
       <UnderlayNav />
       <RouteCurtain />

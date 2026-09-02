@@ -120,10 +120,6 @@ export default function UnderlayNav() {
   // On any other route the active link simply matches the URL (locale-free).
   const [activeHref, setActiveHref] = useState<string>(pathnameWithoutLocale);
 
-  function setLocaleCookie(locale: Locale) {
-    document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
-  }
-
   useEffect(() => {
     if (pathnameWithoutLocale !== "/") {
       setActiveHref(pathnameWithoutLocale);
@@ -721,7 +717,6 @@ export default function UnderlayNav() {
                   className={`underlay-nav__lang-link${l === currentLocale ? ' is--active' : ''}`}
                   aria-current={l === currentLocale ? 'true' : undefined}
                   aria-label={LOCALE_META[l].nativeName}
-                  onClick={() => setLocaleCookie(l)}
                 >
                   {l.toUpperCase()}
                 </Link>
