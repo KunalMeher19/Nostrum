@@ -66,7 +66,7 @@ export default async function OriginsPage({ params }: Props) {
       <div data-origin-chapter="The place">
         <OriginMap />
       </div>
-      <section className="origins__outro" aria-label="Continue to the shop">
+      <section className="origins__outro" aria-label={t(messages, "a11y.shop_collection")}>
         <Link href={`/${locale}/products`} className="origins__cta">
           <span>{t(messages, "origins.cta")}</span>
           <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">

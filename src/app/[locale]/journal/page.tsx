@@ -34,7 +34,7 @@ export default async function JournalPage({ params }: Props) {
   if (!isValidLocale(locale)) notFound();
 
   const [{ posts }, { exhibits }] = await Promise.all([
-    fetchJson<{ posts: JournalPost[] }>("/api/journal/posts", { posts: [] }),
+    fetchJson<{ posts: JournalPost[] }>(`/api/journal/posts?locale=${encodeURIComponent(locale)}`, { posts: [] }),
     fetchJson<{ exhibits: MuseumExhibit[] }>("/api/journal/museum", {
       exhibits: [],
     }),

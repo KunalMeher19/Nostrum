@@ -146,7 +146,7 @@ export default function SiteFooter() {
   };
 
   return (
-    <footer ref={sectionRef} className="nf" aria-label="Site footer">
+    <footer ref={sectionRef} className="nf" aria-label={t("a11y.site_footer")}>
       {/* ── Head row: tagline + back-to-top ── */}
       <div className="nf__head">
         <p className="nf__tagline">{t("footer.tagline")}</p>
@@ -173,9 +173,9 @@ export default function SiteFooter() {
         <div className="nf__col">
           <h4 className="nf__col-title">Nostrum</h4>
           <address className="nf__address">
-            El Perelló, Catalonia
+            El Perelló, {locale === "es" ? "Cataluña" : locale === "ca" ? "Catalunya" : locale === "it" ? "Catalogna" : locale === "el" ? "Καταλονία" : "Catalonia"}
             <br />
-            Spain, EU
+            {locale === "es" ? "España, UE" : locale === "ca" ? "Espanya, UE" : locale === "it" ? "Spagna, UE" : locale === "el" ? "Ισπανία, ΕΕ" : "Spain, EU"}
           </address>
           <ul className="nf__contact">
             <li>
@@ -208,7 +208,7 @@ export default function SiteFooter() {
           </ul>
         </div>
 
-        <nav className="nf__col" aria-label="Footer navigation">
+        <nav className="nf__col" aria-label={t("a11y.footer_navigation")}>
           <h4 className="nf__col-title">{t("footer.navigation")}</h4>
           <ul className="nf__nav">
             {NAV_LINKS.map(({ href, labelKey }) => (

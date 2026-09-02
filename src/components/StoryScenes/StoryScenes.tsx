@@ -66,7 +66,7 @@ const SCENES: Scene[] = [
     title: "scenes.s0_title",
     copy: "scenes.s0_copy",
     img: "/images/origin_1.png",
-    alt: "Ancient olive tree above the Mediterranean coast at golden hour",
+    alt: "a11y.scene_alt_1",
     callouts: [
       {
         label: "scenes.s0_c1",
@@ -94,7 +94,7 @@ const SCENES: Scene[] = [
     title: "scenes.s1_title",
     copy: "scenes.s1_copy",
     img: "/images/origin_2.png",
-    alt: "Weathered hands passing fresh olives to a younger hand",
+    alt: "a11y.scene_alt_2",
     callouts: [
       {
         label: "scenes.s1_c1",
@@ -121,7 +121,7 @@ const SCENES: Scene[] = [
     title: "scenes.s2_title",
     copy: "scenes.s2_copy",
     img: "/images/origin_3.png",
-    alt: "Olives pouring from a wooden harvest crate at sunrise",
+    alt: "a11y.scene_alt_3",
     callouts: [
       {
         label: "scenes.s2_c1",
@@ -832,10 +832,10 @@ export default function StoryScenes() {
             style={{ zIndex: i === 0 ? 2 : 1 }}
           >
             <div className="story-scenes__media">
-              <Image
+                <Image
                 className="story-scenes__image"
                 src={s.img}
-                alt={s.alt}
+                  alt={t(s.alt)}
                 fill
                 priority={i === 0}
                 sizes="100vw"

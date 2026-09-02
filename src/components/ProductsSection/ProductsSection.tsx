@@ -360,7 +360,7 @@ export default function ProductsSection() {
       id="products"
       ref={sectionRef}
       className="shop"
-      aria-label="Shop the collection"
+      aria-label={t("a11y.shop_collection")}
     >
       {/* Fixed grain veil — full-viewport, inert; always-on subtle noise that
           pulses at the dark→light crossover (opacity scrubbed above). */}

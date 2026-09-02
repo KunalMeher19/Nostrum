@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
-async function fetchPost(slug: string): Promise<JournalPost | null> {
+async function fetchPost(slug: string, locale: string): Promise<JournalPost | null> {
   try {
     const res = await fetch(
-      `${API_URL}/api/journal/posts/${encodeURIComponent(slug)}`,
+      `${API_URL}/api/journal/posts/${encodeURIComponent(slug)}?locale=${encodeURIComponent(locale)}`,
       { cache: "no-store" }
     );
     if (!res.ok) return null;
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props) {
     "journal",
     `/journal/${slug}`
   );
-  const post = await fetchPost(slug);
+  const post = await fetchPost(slug, locale);
   if (!post) return base;
   return {
     ...base,
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function PostRoute({ params }: Props) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
-  const post = await fetchPost(slug);
+  const post = await fetchPost(slug, locale);
   if (!post) notFound();
 
   return (

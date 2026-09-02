@@ -585,6 +585,23 @@ function postFields(body) {
   }
   if (typeof b.coverImage === 'string')
     updates.coverImage = b.coverImage.slice(0, 300) || null;
+  if (b.translations && typeof b.translations === 'object' && !Array.isArray(b.translations)) {
+    const translations = {};
+    for (const locale of ['es', 'ca', 'it', 'el']) {
+      const value = b.translations[locale];
+      if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+      const title = typeof value.title === 'string' ? value.title.trim().slice(0, 160) : '';
+      const excerpt = typeof value.excerpt === 'string' ? value.excerpt.trim().slice(0, 300) : '';
+      const bodyText = typeof value.body === 'string'
+        ? sanitizeHtml(value.body.slice(0, 20000), POST_BODY_ALLOWED)
+        : '';
+      const slug = typeof value.slug === 'string'
+        ? slugify(value.slug).slice(0, 80)
+        : '';
+      translations[locale] = { title, excerpt, body: bodyText, slug };
+    }
+    updates.translations = translations;
+  }
   return updates;
 }
 

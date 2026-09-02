@@ -353,7 +353,7 @@ export default function StorySection() {
       id="story"
       ref={rootRef}
       className="story-section story-spotlight"
-      aria-label="Our story"
+      aria-label={t("a11y.our_story")}
     >
       {/* DOM order media→text (like the reference): mobile stacks the visual
           on top; ≥900px row-reverse puts the text left, media right. */}
@@ -364,7 +364,7 @@ export default function StorySection() {
               <Image
                 className="story-spotlight__image"
                 src="/images/1.png"
-                alt="Ripe olives on the branch in the Nostrum grove"
+                alt={t("a11y.hero_alt_4")}
                 fill
                 sizes="(max-width: 899px) 92vw, 46vw"
               />

@@ -128,35 +128,35 @@ const STEPS: Step[] = [
     title: "process.step1_title",
     copy: "process.step1_copy",
     img: "/images/1.png",
-    alt: "Ripe olives on the branch",
+    alt: "a11y.process_alt_1",
   },
   {
     num: "02",
     title: "process.step2_title",
     copy: "process.step2_copy",
     img: "/images/5.png",
-    alt: "Olive leaves and fruit",
+    alt: "a11y.process_alt_2",
   },
   {
     num: "03",
     title: "process.step3_title",
     copy: "process.step3_copy",
     img: "/images/4.png",
-    alt: "Olive oil surface",
+    alt: "a11y.process_alt_3",
   },
   {
     num: "04",
     title: "process.step4_title",
     copy: "process.step4_copy",
     img: "/images/2.png",
-    alt: "Oil drawn from the press",
+    alt: "a11y.process_alt_4",
   },
   {
     num: "05",
     title: "process.step5_title",
     copy: "process.step5_copy",
     img: "/images/3.png",
-    alt: "Bottle shoulder reflection",
+    alt: "a11y.process_alt_5",
   },
 ];
 
@@ -579,7 +579,7 @@ export default function StoryProcess({
                 <Image
                   className="story-process__image"
                   src={imgSrc}
-                  alt={imgAlt}
+                  alt={t(imgAlt)}
                   fill
                   sizes="(max-width: 780px) 90vw, 40vw"
                 />

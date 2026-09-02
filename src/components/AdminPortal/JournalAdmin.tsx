@@ -100,7 +100,15 @@ const EMPTY_POST = {
   excerpt: "",
   body: "",
   coverImage: null as string | null,
+  translations: {
+    es: { title: "", excerpt: "", body: "", slug: "" },
+    ca: { title: "", excerpt: "", body: "", slug: "" },
+    it: { title: "", excerpt: "", body: "", slug: "" },
+    el: { title: "", excerpt: "", body: "", slug: "" },
+  },
 };
+
+const TRANSLATION_LOCALES = ["es", "ca", "it", "el"] as const;
 
 function PostsAdmin() {
   const { t, locale } = useLocale();
@@ -206,6 +214,15 @@ function PostEditor({
           excerpt: post.excerpt,
           body: post.body,
           coverImage: post.coverImage,
+          translations: {
+            ...EMPTY_POST.translations,
+            ...Object.fromEntries(
+              TRANSLATION_LOCALES.map((language) => [
+                language,
+                { ...EMPTY_POST.translations[language], ...(post.translations?.[language] ?? {}) },
+              ])
+            ),
+          },
         }
       : EMPTY_POST
   );
@@ -286,6 +303,93 @@ function PostEditor({
           onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
         />
         <p className="ad__hint">{t("admin.post_body_hint")}</p>
+      </div>
+
+      <div className="ad__translation-grid">
+        {TRANSLATION_LOCALES.map((language) => (
+          <fieldset key={language} className="ad__translation">
+            <legend>{language.toUpperCase()}</legend>
+            <div className="ad__field is--grow">
+              <label htmlFor={`ad-post-${language}-title-${post?.id ?? "new"}`}>
+                {t("admin.post_title")}
+              </label>
+              <input
+                id={`ad-post-${language}-title-${post?.id ?? "new"}`}
+                type="text"
+                maxLength={160}
+                value={draft.translations[language].title}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    translations: {
+                      ...d.translations,
+                      [language]: { ...d.translations[language], title: e.target.value },
+                    },
+                  }))
+                }
+              />
+            </div>
+            <div className="ad__field is--grow">
+              <label htmlFor={`ad-post-${language}-slug-${post?.id ?? "new"}`}>
+                {t("admin.post_slug")}
+              </label>
+              <input
+                id={`ad-post-${language}-slug-${post?.id ?? "new"}`}
+                type="text"
+                maxLength={80}
+                value={draft.translations[language].slug}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    translations: {
+                      ...d.translations,
+                      [language]: { ...d.translations[language], slug: e.target.value },
+                    },
+                  }))
+                }
+              />
+            </div>
+            <div className="ad__field is--grow">
+              <label htmlFor={`ad-post-${language}-excerpt-${post?.id ?? "new"}`}>
+                {t("admin.post_excerpt")}
+              </label>
+              <input
+                id={`ad-post-${language}-excerpt-${post?.id ?? "new"}`}
+                type="text"
+                maxLength={300}
+                value={draft.translations[language].excerpt}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    translations: {
+                      ...d.translations,
+                      [language]: { ...d.translations[language], excerpt: e.target.value },
+                    },
+                  }))
+                }
+              />
+            </div>
+            <div className="ad__field is--grow">
+              <label htmlFor={`ad-post-${language}-body-${post?.id ?? "new"}`}>
+                {t("admin.post_body")}
+              </label>
+              <textarea
+                id={`ad-post-${language}-body-${post?.id ?? "new"}`}
+                rows={8}
+                value={draft.translations[language].body}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    translations: {
+                      ...d.translations,
+                      [language]: { ...d.translations[language], body: e.target.value },
+                    },
+                  }))
+                }
+              />
+            </div>
+          </fieldset>
+        ))}
       </div>
 
       <ImagePicker

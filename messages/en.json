@@ -477,6 +477,7 @@
     "posts_none": "No stories yet. Write the first one.",
     "new_post": "New story",
     "post_title": "Title",
+    "post_slug": "Web address",
     "post_excerpt": "Excerpt",
     "post_body": "Text",
     "post_body_hint": "Blank line between paragraphs.",
@@ -594,5 +595,32 @@
     "help_title": "Need help finding something?",
     "help_subtitle": "We're here to help you find the perfect olive oil.",
     "contact_us": "Contact us"
+  }
+  ,"a11y": {
+    "home": "Nostrum home",
+    "open_menu": "open menu",
+    "cart": "Shopping cart",
+    "account": "Account",
+    "main_navigation": "Main navigation",
+    "site_footer": "Site footer",
+    "footer_navigation": "Footer navigation",
+    "our_story": "Our story",
+    "shop_collection": "Shop the collection",
+    "breadcrumb": "Breadcrumb",
+    "product_image": "Product image",
+    "product_details": "Product details",
+    "more_information": "More information",
+    "hero_alt_1": "Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light.",
+    "hero_alt_2": "Close-up of the glossy surface of extra virgin olive oil, its golden-green ripples catching soft amber light.",
+    "hero_alt_3": "A dark amber glass Nostrum bottle catching a single streak of warm gold light against black.",
+    "hero_alt_4": "Ripe olives on the branch in the Nostrum grove",
+    "process_alt_1": "Ripe olives on the branch",
+    "process_alt_2": "Olive leaves and fruit",
+    "process_alt_3": "Olive oil surface",
+    "process_alt_4": "Oil drawn from the press",
+    "process_alt_5": "Bottle shoulder reflection",
+    "scene_alt_1": "Ancient olive tree above the Mediterranean coast at golden hour",
+    "scene_alt_2": "Weathered hands passing fresh olives to a younger hand",
+    "scene_alt_3": "Olives pouring from a wooden harvest crate at sunrise"
   }
 }

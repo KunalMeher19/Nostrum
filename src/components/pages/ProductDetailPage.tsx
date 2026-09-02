@@ -358,7 +358,7 @@ export default function ProductPage() {
     <main data-main className="pdp" ref={rootRef}>
       <div className="pdp__inner">
         {/* ---- Breadcrumb ------------------------------------------- */}
-        <nav className="pdp__crumb" aria-label="Breadcrumb" data-rise>
+        <nav className="pdp__crumb" aria-label={t("a11y.breadcrumb")} data-rise>
           <LocaleLink href="/#products">{t("product.breadcrumb_shop")}</LocaleLink>
           <span aria-hidden="true">/</span>
           <span>{t("product.category")}</span>
@@ -368,7 +368,7 @@ export default function ProductPage() {
 
         <div className="pdp__grid" ref={gridRef}>
           {/* Gallery — real product photos */}
-          <section className="pdp__gallery" aria-label="Product image">
+          <section className="pdp__gallery" aria-label={t("a11y.product_image")}>
             <div className="pdp__media" data-unveil>
               {(() => {
                 const currentSize = activeProduct.sizes.find(s => s.id === sizeId) ?? activeProduct.sizes[0];
@@ -415,7 +415,7 @@ export default function ProductPage() {
           </section>
 
           {/* ---- Details column -------------------------------------- */}
-          <section className="pdp__panel" aria-label="Product details" ref={panelRef}>
+          <section className="pdp__panel" aria-label={t("a11y.product_details")} ref={panelRef}>
             <header className="pdp__head" data-rise>
               <h1 className="pdp__name">{activeProduct.name}</h1>
               <p className="pdp__subtitle">{t("product.subtitle")}</p>
@@ -613,7 +613,7 @@ export default function ProductPage() {
 
         {/* ---- Tabs + highlights ------------------------------------- */}
         <div className="pdp__below" data-fade>
-          <section className="pdp__tabs-block" aria-label="More information">
+          <section className="pdp__tabs-block" aria-label={t("a11y.more_information")}>
             <div className="pdp__tabs" role="tablist">
               {TAB_KEYS.map((k) => (
                 <button

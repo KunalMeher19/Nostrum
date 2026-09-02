@@ -1537,7 +1537,7 @@ export default function CrispHeader() {
             <img
               className="crisp-header__slider-slide-inner"
               src="/images/2.png"
-              alt="Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light."
+              alt={t("a11y.hero_alt_1")}
               data-slideshow="parallax"
               draggable="false"
             />
@@ -1546,7 +1546,7 @@ export default function CrispHeader() {
             <img
               className="crisp-header__slider-slide-inner"
               src="/images/4.png"
-              alt="Close-up of the glossy surface of extra virgin olive oil, its golden-green ripples catching soft amber light."
+              alt={t("a11y.hero_alt_2")}
               data-slideshow="parallax"
               draggable="false"
             />
@@ -1555,7 +1555,7 @@ export default function CrispHeader() {
             <img
               className="crisp-header__slider-slide-inner is--frame"
               src="/frames/ezgif-frame-001.jpg"
-              alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black, the opening frame of the scroll-through reveal."
+              alt={t("a11y.hero_alt_3")}
               data-slideshow="parallax"
               draggable="false"
             />
@@ -1637,7 +1637,7 @@ export default function CrispHeader() {
               <img
                 loading="eager"
                 src="/images/2.png"
-                alt="Close-up of glistening drop of olive oil on the rounded edge of a matte black pouring spout, lit with warm amber light."
+                alt={t("a11y.hero_alt_1")}
                 className="crisp-loader__cover-img"
               />
             </div>
@@ -1645,7 +1645,7 @@ export default function CrispHeader() {
               <img
                 loading="eager"
                 src="/images/4.png"
-                alt="Close-up of the glossy surface of extra virgin olive oil, its golden-green ripples catching soft amber light."
+                alt={t("a11y.hero_alt_2")}
                 className="crisp-loader__cover-img"
               />
             </div>
@@ -1653,7 +1653,7 @@ export default function CrispHeader() {
               <img
                 loading="eager"
                 src="/frames/ezgif-frame-001.jpg"
-                alt="A dark amber glass Nostrum bottle catching a single streak of warm gold light against black, the opening frame of the scroll-through reveal."
+                alt={t("a11y.hero_alt_3")}
                 className="crisp-loader__cover-img is--frame"
               />
             </div>

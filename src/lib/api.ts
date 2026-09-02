@@ -181,10 +181,10 @@ export type JournalPost = {
   body?: string;
   // Translations for other locales (2026-08-20)
   translations?: {
-    es?: { title: string; excerpt: string; body: string } | null;
-    ca?: { title: string; excerpt: string; body: string } | null;
-    it?: { title: string; excerpt: string; body: string } | null;
-    el?: { title: string; excerpt: string; body: string } | null;
+    es?: { title: string; excerpt: string; body: string; slug: string } | null;
+    ca?: { title: string; excerpt: string; body: string; slug: string } | null;
+    it?: { title: string; excerpt: string; body: string; slug: string } | null;
+    el?: { title: string; excerpt: string; body: string; slug: string } | null;
   };
 };
 

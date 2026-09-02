@@ -524,7 +524,7 @@ export default function UnderlayNav() {
             <Link
               href={localize("/")}
               className="underlay-nav__logo"
-              aria-label="Nostrum home"
+              aria-label={t("a11y.home")}
               data-home-link=""
             >
               Nostrum
@@ -533,7 +533,7 @@ export default function UnderlayNav() {
             <button
               data-underlay-nav-toggle
               aria-expanded="false"
-              aria-label="open menu"
+              aria-label={t("a11y.open_menu")}
               className="underlay-nav__toggle"
             >
               {/* Text flips between "Menu" and "Close" via yPercent animation */}
@@ -567,8 +567,8 @@ export default function UnderlayNav() {
                 className="underlay-nav__action"
                 aria-label={
                   cartCount > 0
-                    ? `Shopping cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
-                    : "Shopping cart"
+                    ? `${t("a11y.cart")}, ${cartCount} item${cartCount === 1 ? "" : "s"}`
+                    : t("a11y.cart")
                 }
                 aria-haspopup="dialog"
                 onClick={openDrawer}
@@ -599,7 +599,7 @@ export default function UnderlayNav() {
               <Link
                 href={localize("/account")}
                 className="underlay-nav__action"
-                aria-label="Account"
+                aria-label={t("a11y.account")}
               >
                 <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
                   <defs>
@@ -651,7 +651,7 @@ export default function UnderlayNav() {
         <nav
           data-underlay-nav-menu
           className="underlay-nav__menu"
-          aria-label="Main navigation"
+          aria-label={t("a11y.main_navigation")}
         >
           <ul className="underlay-nav__list">
             {NAV_LINKS.map(({ href, labelKey, section, top, children }) => {
