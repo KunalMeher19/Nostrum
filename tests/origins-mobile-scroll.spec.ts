@@ -69,6 +69,6 @@ test.describe("Origins mobile slide handoff", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(before);
 
     const handoff = await dispatchSwipe(page, 620, 520);
-    expect(handoff.firstMoveDefaultPrevented).toBe(false);
+    expect(handoff.firstMoveDefaultPrevented).toBe(true);
   });
 });

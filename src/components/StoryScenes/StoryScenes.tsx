@@ -504,14 +504,24 @@ export default function StoryScenes() {
           // Touch handling (same as CrispHeader)
           let touchStartY = 0;
           let consumeEntryGesture = false;
+          let isHandoffGesture = false;
 
           const handleTouchStart = (e: TouchEvent) => {
-            // A new touch is the only gesture allowed to leave the final slide.
             consumeEntryGesture = false;
+            isHandoffGesture = false;
             touchStartY = e.touches[0].clientY;
           };
 
+          const handleTouchEnd = () => {
+            isHandoffGesture = false;
+          };
+
           const handleTouchMove = (e: TouchEvent) => {
+            if (isHandoffGesture) {
+              e.preventDefault();
+              return;
+            }
+
             const touchEndY = e.touches[0].clientY;
             const deltaY = touchStartY - touchEndY;
             const direction = deltaY > 0 ? 1 : -1;
@@ -545,6 +555,8 @@ export default function StoryScenes() {
                 e.preventDefault();
                 return;
               }
+              e.preventDefault();
+              isHandoffGesture = true;
               // On last scene and not animating - unlock and allow scroll
               if (scrollLocked) {
                 scrollLocked = false;
@@ -593,6 +605,8 @@ export default function StoryScenes() {
           root.addEventListener("wheel", handleWheel, { passive: false });
           root.addEventListener("touchstart", handleTouchStart, { passive: false });
           root.addEventListener("touchmove", handleTouchMove, { passive: false });
+          root.addEventListener("touchend", handleTouchEnd, { passive: false });
+          root.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 
           // CRITICAL: Add document-level scroll prevention (like CrispHeader)
           // This prevents ANY scroll while we're locked, not just events on the section
@@ -610,6 +624,8 @@ export default function StoryScenes() {
             root.removeEventListener("wheel", handleWheel);
             root.removeEventListener("touchstart", handleTouchStart);
             root.removeEventListener("touchmove", handleTouchMove);
+            root.removeEventListener("touchend", handleTouchEnd);
+            root.removeEventListener("touchcancel", handleTouchEnd);
             document.removeEventListener("wheel", preventDocumentScroll);
             document.removeEventListener("touchmove", preventDocumentScroll);
 
