@@ -133,6 +133,14 @@
     "return_to_cart": "Return to cart",
     "continue_shopping": "Continue shopping"
   },
+  "cookie": {
+    "aria": "Cookie notice",
+    "title": "Cookies",
+    "description": "We use cookies to improve your browsing experience and to better understand how visitors use Nostrum. Choose \"Accept\" for full analytics, or \"Reject\" for basic (non-sensitive) analytics only.",
+    "accept": "Accept",
+    "preferences": "Preferences",
+    "reject": "Reject"
+  },
   "footer": {
     "tagline": "From the land. For the table.",
     "navigation": "Navigation",
@@ -305,6 +313,7 @@
     "products_description": "The Nostrum collection. Premium extra virgin olive oil from Catalonia.",
     "cart_title": "Cart · Nostrum",
     "cart_description": "Your Nostrum selection.",
+    "checkout_title": "Checkout · Nostrum",
     "journal_title": "Journal · Nostrum",
     "journal_description": "Stories from the grove. The Nostrum journal.",
     "account_title": "Account · Nostrum",

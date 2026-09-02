@@ -12,6 +12,7 @@ const { mongoose } = require('../db/db');
 const translationSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, maxlength: 160 },
+    slug: { type: String, default: '', maxlength: 80 },
     excerpt: { type: String, default: '', maxlength: 300 },
     body: { type: String, default: '', maxlength: 20000 },
   },
@@ -32,7 +33,8 @@ const postSchema = new mongoose.Schema(
     publishedAt: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
-    // Translations for other locales (optional)
+    // Translations for other locales (optional). A translation is public only
+    // when its title, body, and locale-specific slug are complete.
     translations: {
       es: { type: translationSchema, default: null },
       ca: { type: translationSchema, default: null },

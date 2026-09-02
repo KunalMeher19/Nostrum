@@ -5,26 +5,43 @@ const Post = require('../models/post.model');
 const { Exhibit, MUSEUM_ROOMS } = require('../models/exhibit.model');
 
 const router = express.Router();
+const JOURNAL_LOCALES = new Set(['en', 'es', 'ca', 'it', 'el']);
 
-function serializePost(p, { withBody = false } = {}) {
+function requestedLocale(value) {
+  const locale = String(value || 'en').toLowerCase();
+  return JOURNAL_LOCALES.has(locale) ? locale : 'en';
+}
+
+function hasTranslation(post, locale) {
+  if (locale === 'en') return Boolean(post.title && post.slug);
+  const translation = post.translations?.[locale];
+  return Boolean(translation?.title && translation?.body && translation?.slug);
+}
+
+function serializePost(p, { locale = 'en', withBody = false } = {}) {
+  const translation = locale === 'en' ? null : p.translations?.[locale];
   const base = {
     id: String(p._id),
-    title: p.title,
-    slug: p.slug,
-    excerpt: p.excerpt,
+    title: translation?.title ?? p.title,
+    slug: translation?.slug ?? p.slug,
+    excerpt: translation?.excerpt ?? p.excerpt,
     coverImage: p.coverImage,
     publishedAt: p.publishedAt,
   };
-  return withBody ? { ...base, body: p.body } : base;
+  return withBody ? { ...base, body: translation?.body ?? p.body } : base;
 }
 
 router.get('/posts', async (req, res, next) => {
   try {
-    const posts = await Post.find({ status: 'published' })
+    const locale = requestedLocale(req.query.locale);
+    const localeFilter = locale === 'en'
+      ? { status: 'published' }
+      : { status: 'published', [`translations.${locale}.title`]: { $exists: true, $ne: '' }, [`translations.${locale}.body`]: { $exists: true, $ne: '' }, [`translations.${locale}.slug`]: { $exists: true, $ne: '' } };
+    const posts = await Post.find(localeFilter)
       .sort({ publishedAt: -1 })
       .limit(100)
       .lean();
-    res.json({ posts: posts.map((p) => serializePost(p)) });
+    res.json({ posts: posts.map((p) => serializePost(p, { locale })) });
   } catch (err) {
     next(err);
   }
@@ -32,10 +49,12 @@ router.get('/posts', async (req, res, next) => {
 
 router.get('/posts/:slug', async (req, res, next) => {
   try {
+    const locale = requestedLocale(req.query.locale);
     const slug = String(req.params.slug).toLowerCase().slice(0, 200);
-    const post = await Post.findOne({ slug, status: 'published' }).lean();
-    if (!post) return res.status(404).json({ error: 'Post not found' });
-    res.json({ post: serializePost(post, { withBody: true }) });
+    const slugField = locale === 'en' ? 'slug' : `translations.${locale}.slug`;
+    const post = await Post.findOne({ [slugField]: slug, status: 'published' }).lean();
+    if (!post || !hasTranslation(post, locale)) return res.status(404).json({ error: 'Post not found' });
+    res.json({ post: serializePost(post, { locale, withBody: true }) });
   } catch (err) {
     next(err);
   }

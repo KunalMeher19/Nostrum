@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocale } from "../LocaleContext/LocaleContext";
 import "./cookie-banner.css";
 
 /**
@@ -35,6 +36,7 @@ const POLL_MS = 400; // loader / idle check cadence
 const EXIT_MS = 500; // keep in sync with --ck-out in the CSS
 
 export default function CookieBanner() {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const lastActivity = useRef(0);
@@ -122,14 +124,12 @@ export default function CookieBanner() {
     <aside
       className={`ck-banner ${closing ? "is--closing" : ""}`}
       role="region"
-      aria-label="Cookie notice"
+      aria-label={t("cookie.aria")}
     >
-      <p className="ck-banner__eyebrow">Cookies</p>
+      <p className="ck-banner__eyebrow">{t("cookie.title")}</p>
 
       <p className="ck-banner__text">
-        We use cookies to improve your browsing experience and to better
-        understand how visitors use Nostrum. Choose "Accept" for full analytics,
-        or "Reject" for basic (non-sensitive) analytics only.
+        {t("cookie.description")}
       </p>
 
       <div className="ck-banner__actions">
@@ -140,21 +140,21 @@ export default function CookieBanner() {
           className="ck-banner__btn ck-banner__btn--accept"
           onClick={() => dismiss("accept")}
         >
-          Accept
+          {t("cookie.accept")}
         </button>
         <button
           type="button"
           className="ck-banner__btn ck-banner__btn--ghost"
           onClick={() => dismiss("preferences")}
         >
-          Preferences
+          {t("cookie.preferences")}
         </button>
         <button
           type="button"
           className="ck-banner__btn ck-banner__btn--ghost"
           onClick={() => dismiss("reject")}
         >
-          Reject
+          {t("cookie.reject")}
         </button>
       </div>
     </aside>

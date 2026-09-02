@@ -4,7 +4,6 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll/SmoothScroll";
 import { CartProvider } from "@/components/Cart/CartContext";
 import RingCursor from "@/components/RingCursor/RingCursor";
-import CookieBanner from "@/components/CookieBanner/CookieBanner";
 import Analytics from "@/components/Analytics/Analytics";
 
 // Clean, quiet sans for UI/body (§4 — client-approved type direction)
@@ -106,7 +105,6 @@ export default function RootLayout({
           {/* Cookie consent — waits for loader + Journal to finish, then
               enters on the first quiet (idle) moment. (The Journal modal
               itself lives in the [locale] layout for i18n.) */}
-          <CookieBanner />
           {/* GA4, consent-gated. Renders nothing until NEXT_PUBLIC_GA_ID
               is set AND the visitor accepts the cookie banner (§16). */}
           <Analytics />
