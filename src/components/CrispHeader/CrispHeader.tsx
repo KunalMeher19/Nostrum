@@ -118,6 +118,13 @@ export default function CrispHeader() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let staTrigger: any = null;
     let staCleanup: (() => void) | null = null;
+    let introFallback = false;
+    const introFallbackTimer = window.setTimeout(() => {
+      if (cancelled || !container.classList.contains("is--loading")) return;
+      introFallback = true;
+      container.classList.remove("is--hidden", "is--loading", "is--sweeping");
+      document.body.classList.remove("is--intro-active");
+    }, 6000);
 
     (async () => {
       const gsapMod = await import("gsap");
@@ -1474,7 +1481,7 @@ export default function CrispHeader() {
         };
 
         waitForDisplayFont().then(() => {
-          if (cancelled) return;
+          if (cancelled || introFallback) return;
           // IMPORTANT: Because this runs asynchronously after gsap.context() has
           // already finished its synchronous execution, we MUST explicitly wrap
           // this in ctx.add() so the new timeline and tweens are tracked.
@@ -1492,6 +1499,7 @@ export default function CrispHeader() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(introFallbackTimer);
       // Stop advertising the story-scroll action once this hero unmounts.
       registerStoryScroll(null);
       scrollToStoryRef.current = null;

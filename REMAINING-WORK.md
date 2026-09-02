@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-09-02 after fixing the mobile browser viewport clipping and Origins final-slide touch handoff (see 2.21 and 2.22 below).
+> Updated 2026-09-02 after fixing the mobile browser viewport clipping, Origins final-slide touch handoff, cookie consent visibility, and the blank hero fallback (see 2.21 and 2.22 below).
 
 > Updated 2026-08-31 after comprehensive security audit and critical vulnerability fixes (see 2.20 below). Updated 2026-08-26 after implementing Redis with custom rate-limit store and IP blacklisting (see 2.19 below). Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
@@ -222,9 +222,10 @@ Client reported two issues: (1) Journal page had duplicate olive branch SVGs (he
 - **Verified:** focused Playwright journey test passes at all five scroll positions; parent is `BODY`, computed position is `fixed`, tablet browser inspection at `820px` shows the SVG, and viewport drift stays under the intentional inertia bound. The journey test now checks the sticky contract rather than the obsolete progressive-y contract.
 
 **Cookie banner persistence improvements:**
-- **Shows until explicit choice:** `CookieBanner.tsx` logic unchanged (already only showed when `CHOICE_KEY` was absent), but reduced `IDLE_MS` from 3500ms to 2500ms so it appears more reliably and sooner after page activity stops. Client reported "doesn't always appear" — faster appearance window addresses this.
+- **Shows until explicit choice:** the intended loader-complete plus quiet-period behavior is restored. It waits for `.crisp-header.is--loading` to clear, then requires 2.5 seconds without pointer, scroll, touch, or key activity before opening. It remains open until Accept, Preferences, or Reject is explicitly selected. The separate 6-second hero watchdog prevents a stalled intro from keeping the loader gate stuck forever.
 - **Basic analytics even when rejected:** `Analytics.tsx` completely rewritten with three consent levels: "none" (no choice yet, wait), "basic" (reject/preferences — loads GA4 with `client_storage: 'none'`, `allow_google_signals: false`, `allow_ad_personalization_signals: false`, anonymized IP only, no user tracking), "full" (accept — loads GA4 with all features including Google Signals and remarketing). Previously reject/preferences loaded nothing; now they load privacy-respecting basic analytics (page views, device types, referrers, but no user identifiers or cookies).
 - **Copy updated:** `CookieBanner.tsx` text now explains "Choose 'Accept' for full analytics, or 'Reject' for basic (non-sensitive) analytics only" so users understand reject doesn't block all measurement, just the sensitive tracking.
+- **Blank hero fallback:** was able to leave `.crisp-header` in `is--loading is--hidden` with an invisible loader after reload/hot refresh; `CrispHeader.tsx` now reveals the normal hero and removes the intro lock after 6 seconds if animation bootstrap has not completed. Verified by reload: hero content is visible, the banner remains stable, and browser console reports no errors.
 - **Consent state unchanged:** localStorage key, event dispatch, and dismiss flow all unchanged — only the Analytics component's behavior on "reject" changed from nothing to basic-mode GA4.
 
 **Build fixes:**
