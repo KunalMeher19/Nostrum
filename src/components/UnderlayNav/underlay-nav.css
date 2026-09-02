@@ -169,6 +169,10 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
   text-transform: uppercase;
 }
 
+.underlay-nav__toggle-label--mobile {
+  display: none;
+}
+
 .underlay-nav__toggle-icon {
   display: flex;
   flex-direction: column;
@@ -572,8 +576,24 @@ body:not([data-menu-status="open"]) .underlay-nav__toggle-bar {
     font-size: 1em;
   }
 
+  .underlay-nav__toggle-text {
+/*     width: 1.1em; */
+    align-items: center;
+    justify-content: center;
+  }
+
   .underlay-nav__toggle-label {
+    display: none;
     font-size: 0.875em;
+  }
+
+  .underlay-nav__toggle-label--mobile {
+    display: inline-flex;
+    font-size: 1.3em;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
+    transform: translateY(-0.06em);
   }
 
   .underlay-nav__actions {

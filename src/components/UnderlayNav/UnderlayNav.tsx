@@ -228,7 +228,7 @@ export default function UnderlayNav() {
           "[data-underlay-nav-toggle]"
         )!;
         const toggleLabels = root.querySelectorAll<HTMLElement>(
-          ".underlay-nav__toggle-label"
+          ".underlay-nav__toggle-label:not(.underlay-nav__toggle-label--mobile)"
         );
         const toggleBars = root.querySelectorAll<HTMLElement>(
           ".underlay-nav__toggle-bar"
@@ -544,6 +544,10 @@ export default function UnderlayNav() {
               <span className="underlay-nav__toggle-text">
                 <span className="underlay-nav__toggle-label">{t("nav.menu")}</span>
                 <span className="underlay-nav__toggle-label">{t("nav.close")}</span>
+                <span
+                  className="underlay-nav__toggle-label underlay-nav__toggle-label--mobile"
+                  aria-hidden="true"
+                ></span>
               </span>
               {/* Two bars that cross into an ✕ */}
               <span className="underlay-nav__toggle-icon">
