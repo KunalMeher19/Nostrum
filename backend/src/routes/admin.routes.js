@@ -398,25 +398,29 @@ router.post('/upload', async (req, res, next) => {
     const MAX_SIZE = 8 * 1024 * 1024; // 8 MB
     let totalBytes = 0;
     const chunks = [];
+    let tooLarge = false;
     await new Promise((resolve, reject) => {
       req.on('data', (chunk) => {
+        if (tooLarge) return; // still draining — discard
         totalBytes += chunk.length;
         if (totalBytes > MAX_SIZE) {
-          req.destroy();
-          return reject(new Error('file_too_large'));
+          tooLarge = true;
+          // Do NOT destroy — drain the remaining data so the socket stays
+          // open and the 413 response can be fully delivered to the client.
+          req.resume();
+          return;
         }
         chunks.push(chunk);
       });
       req.on('end', resolve);
       req.on('error', reject);
-    }).catch((err) => {
-      if (err.message === 'file_too_large') {
-        return res.status(413).json({ error: 'file_too_large' });
-      }
-      throw err;
     });
 
-    // Early return if we already sent 413
+    if (tooLarge) {
+      return res.status(413).json({ error: 'file_too_large' });
+    }
+
+    // Early-return guard (should not be reachable, but keeps lint happy)
     if (res.headersSent) return;
 
     const rawBody = Buffer.concat(chunks);

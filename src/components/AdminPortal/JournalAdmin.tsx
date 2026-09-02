@@ -95,6 +95,18 @@ export function ImagePicker({
 
 /* ── Posts (blog authoring) ────────────────────────────────────────── */
 
+// Mirrors the backend slugify() in admin.routes.js so the auto-generated
+// slug matches exactly what the server would produce from the same string.
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // strip combining accents (ES/CA/IT/EL)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/, "")
+    .slice(0, 80);
+}
+
 const EMPTY_POST = {
   title: "",
   excerpt: "",
@@ -227,6 +239,11 @@ function PostEditor({
       : EMPTY_POST
   );
   const [state, setState] = useState<"idle" | "saving" | "error">("idle");
+  // Track which locale slugs the user has manually edited — once touched,
+  // auto-fill from the title stops so manual values are never overwritten.
+  const [slugTouched, setSlugTouched] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(TRANSLATION_LOCALES.map((l) => [l, Boolean(post?.translations?.[l]?.slug)]))
+  );
 
   const save = async (status?: "draft" | "published") => {
     if (state === "saving" || !draft.title.trim()) return;
@@ -306,9 +323,20 @@ function PostEditor({
       </div>
 
       <div className="ad__translation-grid">
-        {TRANSLATION_LOCALES.map((language) => (
-          <fieldset key={language} className="ad__translation">
-            <legend>{language.toUpperCase()}</legend>
+        {TRANSLATION_LOCALES.map((language) => {
+          const tr = draft.translations[language];
+          const isLive = Boolean(tr.title.trim() && tr.slug.trim() && tr.body.trim());
+          return (
+          <fieldset key={language} className={`ad__translation${isLive ? " is--live" : ""}`}>
+            <legend>
+              {language.toUpperCase()}
+              <span
+                className={`ad__tr-badge${isLive ? " is--live" : ""}`}
+                title={isLive ? "Will appear on the " + language.toUpperCase() + " Journal" : "Title, slug and body required to appear on the " + language.toUpperCase() + " Journal"}
+              >
+                {isLive ? "✓ Live" : "⚑ Incomplete"}
+              </span>
+            </legend>
             <div className="ad__field is--grow">
               <label htmlFor={`ad-post-${language}-title-${post?.id ?? "new"}`}>
                 {t("admin.post_title")}
@@ -318,15 +346,23 @@ function PostEditor({
                 type="text"
                 maxLength={160}
                 value={draft.translations[language].title}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newTitle = e.target.value;
                   setDraft((d) => ({
                     ...d,
                     translations: {
                       ...d.translations,
-                      [language]: { ...d.translations[language], title: e.target.value },
+                      [language]: {
+                        ...d.translations[language],
+                        title: newTitle,
+                        // Auto-fill slug from title only if not manually touched
+                        ...(!slugTouched[language] && {
+                          slug: slugify(newTitle),
+                        }),
+                      },
                     },
-                  }))
-                }
+                  }));
+                }}
               />
             </div>
             <div className="ad__field is--grow">
@@ -338,15 +374,18 @@ function PostEditor({
                 type="text"
                 maxLength={80}
                 value={draft.translations[language].slug}
-                onChange={(e) =>
+                placeholder={slugify(draft.translations[language].title) || "auto"}
+                onChange={(e) => {
+                  // Mark as manually touched so auto-fill stops for this locale
+                  setSlugTouched((s) => ({ ...s, [language]: true }));
                   setDraft((d) => ({
                     ...d,
                     translations: {
                       ...d.translations,
                       [language]: { ...d.translations[language], slug: e.target.value },
                     },
-                  }))
-                }
+                  }));
+                }}
               />
             </div>
             <div className="ad__field is--grow">
@@ -389,7 +428,8 @@ function PostEditor({
               />
             </div>
           </fieldset>
-        ))}
+          );
+        })}
       </div>
 
       <ImagePicker

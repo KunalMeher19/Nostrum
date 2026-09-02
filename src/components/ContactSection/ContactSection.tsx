@@ -219,7 +219,13 @@ export default function ContactSection() {
                 name="name"
                 type="text"
                 autoComplete="name"
-                placeholder="María Serra"
+                placeholder={
+                  locale === "el"
+                    ? "Μαρία Παπαδοπούλου"
+                    : locale === "it"
+                    ? "Maria Rossi"
+                    : "María Serra"
+                }
                 required
               />
               <span className="ct__field-line" aria-hidden="true" />
