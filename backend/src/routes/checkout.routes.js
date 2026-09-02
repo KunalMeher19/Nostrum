@@ -49,10 +49,14 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
+function getCacheScope(userId, ip) {
+  return userId ? `user:${userId}` : `guest:${ip || 'unknown'}`;
+}
+
 // Get cached session ID for an idempotency key (Redis or in-memory).
 // Binds to userId or IP to prevent cross-user session disclosure.
 async function getCachedSession(idempotencyKey, userId, ip) {
-  const cacheKey = `checkout:${userId || `guest:${ip}`}:${idempotencyKey}`;
+  const cacheKey = `checkout:${getCacheScope(userId, ip)}:${idempotencyKey}`;
   const redis = getRedis();
   if (redis) {
     // Redis mode: read from Redis
@@ -71,7 +75,7 @@ async function getCachedSession(idempotencyKey, userId, ip) {
 // Cache a session ID for an idempotency key (Redis or in-memory).
 // Binds to userId or IP to prevent cross-user session disclosure.
 async function setCachedSession(idempotencyKey, sessionId, userId, ip) {
-  const cacheKey = `checkout:${userId || `guest:${ip}`}:${idempotencyKey}`;
+  const cacheKey = `checkout:${getCacheScope(userId, ip)}:${idempotencyKey}`;
   const redis = getRedis();
   if (redis) {
     // Redis mode: store with TTL
@@ -130,7 +134,8 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     }
 
     // Bind cache to user ID or IP to prevent cross-user session disclosure
-    const userId = req.user?.id || null;
+    const session = await readSession(req);
+    const userId = session?.uid ?? null;
     const userIp = req.ip;
 
     // Check if we already created a session for this idempotency key
@@ -253,7 +258,6 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     // 3. Optional: pre-fill the email for logged-in users.
     //    AND: Pre-fill shipping address from the checkout page.
     // ------------------------------------------------------------------
-    const session = await readSession(req);
     const customerEmail = session?.email ?? shippingAddress?.email ?? undefined;
 
     // ------------------------------------------------------------------
@@ -334,15 +338,20 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     // This ensures that if the exact same request is sent twice (network retry,
     // user double-click), Stripe returns the same session instead of creating
     // a duplicate charge.
+    const stripeIdempotencyKey = `checkout:${getCacheScope(userId, userIp)}:${idempotencyKey}`;
     const stripeSession = await stripe.checkout.sessions.create(
       sessionParams,
       {
-        idempotencyKey: `checkout_${idempotencyKey}`,
+        idempotencyKey: stripeIdempotencyKey,
       }
     );
 
     // Cache the session for fast repeated requests (Redis or in-memory)
-    await setCachedSession(idempotencyKey, stripeSession.id, userId, userIp);
+    try {
+      await setCachedSession(idempotencyKey, stripeSession.id, userId, userIp);
+    } catch (cacheErr) {
+      console.warn(`[checkout] cache write failed for ${idempotencyKey}:`, cacheErr.message);
+    }
 
     console.log(`[checkout] created session ${stripeSession.id} for idempotency key: ${idempotencyKey}`);
 
