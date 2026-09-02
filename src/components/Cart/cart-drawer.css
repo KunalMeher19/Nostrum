@@ -158,11 +158,19 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* smooth momentum scroll on iOS */
   overscroll-behavior: contain;
   padding: 0.4rem clamp(1.5rem, 4vw, 2.2rem) 1.5rem;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--nostrum-gold-metal) 35%, transparent)
     transparent;
+}
+
+/* Ensure the list variant of the body also scrolls correctly */
+ul.cart-drawer__body {
+  margin: 0;
+  padding-left: clamp(1.5rem, 4vw, 2.2rem);
+  padding-right: clamp(1.5rem, 4vw, 2.2rem);
 }
 
 /* ---- Line items --------------------------------------------------------- */
@@ -643,5 +651,29 @@
   .cart-drawer__suggest-skeleton-line::after,
   .cart-drawer__suggest-skeleton-price::after {
     animation: none;
+  }
+}
+
+/* ---- Mobile: make the body list scrollable --------------------------------- */
+@media (max-width: 600px) {
+  .cart-drawer__panel {
+    /* Use dvh so the panel never exceeds the actual visible viewport on mobile
+       (avoids the browser chrome collapsing/expanding fighting the height) */
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  .cart-drawer__head {
+    padding-top: 1.4rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Compress the footer a little so list items get more room */
+  .cart-drawer__foot {
+    padding-bottom: 1.2rem;
+  }
+
+  .cart-drawer__note {
+    margin-bottom: 0.8rem;
   }
 }
