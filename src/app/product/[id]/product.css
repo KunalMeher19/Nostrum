@@ -7,7 +7,7 @@
 /* ------------------------------------------------------------------ */
 
 .pdp {
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
   background-color: var(--nostrum-warm-white);
   color: var(--nostrum-shop-ink);
   font-family: var(--font-sans), system-ui, sans-serif;

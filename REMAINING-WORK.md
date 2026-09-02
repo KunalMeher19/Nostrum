@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-09-02 after fixing the Origins mobile final-slide touch handoff (see 2.21 below).
+> Updated 2026-09-02 after fixing the mobile browser viewport clipping and Origins final-slide touch handoff (see 2.21 and 2.22 below).
 
 > Updated 2026-08-31 after comprehensive security audit and critical vulnerability fixes (see 2.20 below). Updated 2026-08-26 after implementing Redis with custom rate-limit store and IP blacklisting (see 2.19 below). Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
@@ -636,6 +636,12 @@ Client reported that real mobile phones could carry the swipe used to reach the 
 
 **Verified:** focused Origins mobile Playwright regression passes in Chromium with the iPhone 13 viewport. It confirms the residual move and handoff move remain canceled and the document scroll position does not jump. Editor diagnostics are clean for both touched files. `npx tsc --noEmit` still reports the two pre-existing `fps`-is-`unknown` errors in `tests/mobile-browser-audit.spec.ts`. Physical iOS Safari and Android Chrome verification remains recommended because Playwright emulation cannot fully reproduce mobile browser address-bar behavior.
 
+### 2.22 Mobile browser visible-height compatibility — DONE 2026-09-02
+
+Client reported that Chrome's changing top/bottom browser UI could cover content on mobile pages and sections. Added a shared viewport token that preserves `100svh` as the desktop/default value and switches to `100dvh` only below the mobile breakpoint. Existing full-height route shells and section stages now use that token, including the Origins stage, hero, cart, checkout, account, contact, product, tracking, unsubscribe, and not-found surfaces. Mobile bottom padding also respects `safe-area-inset-bottom` where applicable. No desktop rules or visual styles were changed.
+
+**Verified:** `npm run build` passes and generates all 79 routes. CSS/editor diagnostics are clean for the changed surfaces; `npx tsc --noEmit` still reports only the two pre-existing `fps`-is-`unknown` errors in `tests/mobile-browser-audit.spec.ts`. Physical Android Chrome and iOS Safari checks remain recommended for browser-specific toolbar behavior.
+
 ## 4. Domain swap checklist — when the real domain arrives
 
 Every place the temp URLs (`nostrum-rho.vercel.app` / `nostrum-production.up.railway.app`) appear and must be replaced with the real domain (e.g. `nostrumoils.com` / `api.nostrumoils.com`). Treat this as a single coordinated switch — do all of them in one go.
@@ -705,6 +711,7 @@ The following are already using env vars or the real brand email — no code edi
 ## Decision log (client + project decisions, newest first)
 
 - **2026-09-02** · Origins mobile slide handoff fixed: the swipe that enters the final Origins image now stays inside the slideshow, including residual touch movement after the transition begins. The handoff gesture is consumed as well, preventing the mobile browser address bar from collapsing; the following section is reached on the next downward gesture after the final slide settles. Added a focused Playwright regression test; it passes in Chromium with the iPhone 13 viewport. Real-device Safari/Chrome testing remains the final recommended check.
+- **2026-09-02** · Mobile visible-height compatibility fixed: full-height page and section shells now use a shared token that remains `100svh` on desktop and becomes `100dvh` only on mobile, with safe-area bottom padding where needed. This keeps content inside the current visible Chrome/Safari viewport without changing laptop geometry. Production build passes; real-device Android Chrome/iOS Safari testing remains the final recommended check.
 
 - **2026-08-27 follow-up 2** · Guest order claiming on account creation: when a user creates an account (credentials signup or Google OAuth), the system now automatically claims all guest orders (userId=null) placed with that email address and assigns them to the new account. Orders appear in the customer portal immediately without manual linking. Implementation: `claimGuestOrders()` function added to `backend/src/services/orders.service.js` (finds orders with matching email + null userId, updates to new userId); hooked into both `src/auth.ts` `createUser` event (OAuth flow) and `src/lib/auth/users.ts` `createCredentialsUser()` (email+password flow). Non-blocking operation (logs on success/failure, doesn't block account creation). **Verified:** TypeScript clean, backend tests passing.
 

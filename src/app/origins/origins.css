@@ -12,7 +12,7 @@
 .origins {
   background-color: #14160f;
   color: #edebe3;
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
 }
 
 /* The pinned StoryScenes opener + the StoryProcess timeline carry the top

@@ -17,7 +17,7 @@
   /* Tall section = the scroll travel of the story. The stage stays stuck
      for (height − 100svh) of scrolling — one viewport of travel per scene
      (--scene-count is set inline from the scene data). */
-  height: calc((var(--scene-count, 3) + 1) * 100svh);
+  height: calc((var(--scene-count, 3) + 1) * var(--nostrum-mobile-viewport-height));
 }
 
 /* The viewport-sized stage — pinned by NATIVE position:sticky, not by
@@ -26,7 +26,7 @@
 .story-scenes__stage {
   position: sticky;
   top: 0;
-  height: 100svh;
+  height: var(--nostrum-mobile-viewport-height);
   width: 100%;
   overflow: hidden;
 }
@@ -323,14 +323,14 @@
 /* ---- Mobile slideshow mode (horizontal wipe, like CrispHeader) -------- */
 /* On mobile (≤1024px), use slideshow-style navigation with scroll locking */
 .story-scenes.is--mobile-slideshow {
-  height: 100svh;
+  height: var(--nostrum-mobile-viewport-height);
   overflow: hidden;
   position: relative;
 }
 
 .story-scenes.is--mobile-slideshow .story-scenes__stage {
   position: relative;
-  height: 100svh;
+  height: var(--nostrum-mobile-viewport-height);
   overflow: hidden;
 }
 

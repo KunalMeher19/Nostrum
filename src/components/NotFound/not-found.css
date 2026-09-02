@@ -4,7 +4,7 @@
 /* ------------------------------------------------------------------ */
 
 .not-found {
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
   background: #E8E3D5;
   color: #2d3827;
   display: flex;

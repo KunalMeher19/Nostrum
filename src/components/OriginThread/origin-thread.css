@@ -28,7 +28,7 @@
    left edge. Sticks for the entire height of the shell (= all of main). */
 .origin-thread__pin {
   position: sticky;
-  top: calc((100svh - min(52vh, 30rem)) / 2);
+  top: calc((var(--nostrum-mobile-viewport-height) - min(52vh, 30rem)) / 2);
   margin-left: clamp(0.9rem, 2vw, 1.75rem);
   height: min(52vh, 30rem);
   width: 1px;

@@ -6,6 +6,8 @@
 /* Nostrum design tokens — see NOSTRUM-DESIGN.md §3                     */
 /* ------------------------------------------------------------------ */
 :root {
+  --nostrum-mobile-viewport-height: 100svh;
+  --nostrum-mobile-bottom-inset: env(safe-area-inset-bottom, 0px);
   --nostrum-black: #050505;
   --nostrum-near-black: #090909;
   --nostrum-charcoal: #111111;
@@ -65,7 +67,7 @@
 
 html,
 body {
-  height: 100svh;
+  height: var(--nostrum-mobile-viewport-height);
   margin: 0;
   padding: 0;
   background-color: var(--nostrum-black);
@@ -145,7 +147,69 @@ html:has(.crisp-header.is--loading) {
   position: relative;
   z-index: 2;
   background-color: var(--nostrum-black);
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
   /* Will-change helps smooth the GSAP translation */
   will-change: transform;
+}
+
+/* Mobile browsers can resize or overlay their browser chrome while a page is
+   being scrolled. Use the current visible viewport for full-height surfaces so
+   their controls do not finish beneath Chrome's bottom UI or the device safe
+   area. Desktop keeps the original 100svh geometry. */
+@media screen and (max-width: 767px) {
+  :root {
+    --nostrum-mobile-viewport-height: 100dvh;
+  }
+
+  html,
+  body {
+    height: auto;
+    min-height: var(--nostrum-mobile-viewport-height);
+  }
+
+  [data-main] {
+    min-height: var(--nostrum-mobile-viewport-height);
+  }
+
+  .crisp-header,
+  .crisp-header__content,
+  .story-scenes,
+  .story-scenes__stage,
+  .ct,
+  .account-portal,
+  .account-section,
+  .admin-portal,
+  .cart,
+  .products,
+  .pdp,
+  .contact-section,
+  .track-order,
+  .unsubscribe,
+  .checkout-result {
+    min-height: var(--nostrum-mobile-viewport-height);
+  }
+
+  .story-scenes.is--mobile-slideshow,
+  .story-scenes.is--mobile-slideshow .story-scenes__stage {
+    height: var(--nostrum-mobile-viewport-height);
+  }
+
+  .story-scenes.is--mobile-slideshow {
+    min-height: var(--nostrum-mobile-viewport-height);
+  }
+
+  .ct__panel {
+    min-height: calc(
+      var(--nostrum-mobile-viewport-height) - clamp(4.75rem, 9vh, 6.25rem) - clamp(1.5rem, 4vh, 2.75rem)
+    );
+  }
+
+  .cart__inner,
+  .checkout-review,
+  .checkout-result,
+  .contact-section,
+  .track-order,
+  .unsubscribe {
+    padding-bottom: max(3rem, var(--nostrum-mobile-bottom-inset));
+  }
 }

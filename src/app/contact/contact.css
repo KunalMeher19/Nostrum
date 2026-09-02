@@ -5,5 +5,5 @@
 .contact-page {
   background-color: #14160f;
   color: #edebe3;
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
 }

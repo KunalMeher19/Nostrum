@@ -22,7 +22,7 @@
   gap: clamp(2rem, 5vw, 6rem);
   max-width: 96rem;
   margin: 0 auto;
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
   padding: clamp(4.75rem, 9vh, 6.25rem) clamp(1rem, 3vw, 3rem)
     clamp(1.5rem, 4vh, 2.75rem);
   background-color: var(--ct-ink);
@@ -44,7 +44,7 @@
   justify-content: space-between;
   gap: clamp(1.5rem, 3.5vh, 2.75rem);
   min-height: calc(
-    100svh - clamp(4.75rem, 9vh, 6.25rem) - clamp(1.5rem, 4vh, 2.75rem)
+    var(--nostrum-mobile-viewport-height) - clamp(4.75rem, 9vh, 6.25rem) - clamp(1.5rem, 4vh, 2.75rem)
   );
   padding: clamp(1.75rem, 3.5vw, 3rem);
   border-radius: 18px;
@@ -252,7 +252,7 @@ a.ct__channel-value:hover {
   position: sticky;
   top: 0;
   align-self: start;
-  height: 100svh;
+  height: var(--nostrum-mobile-viewport-height);
   /* Pull the sticky box back up over the section's top padding so its
      100svh spans the true viewport, then repad inside (clears the nav). */
   margin-top: calc(clamp(4.75rem, 9vh, 6.25rem) * -1);

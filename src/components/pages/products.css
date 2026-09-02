@@ -11,7 +11,7 @@
   --p-tile: #f1ede2; /* warm tile fill */
   --p-gold: var(--nostrum-gold-metal, #b98a2e);
 
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
   background-color: var(--p-bg);
   color: var(--p-fg);
   display: flex;

@@ -4,7 +4,7 @@
    ============================================================ */
 
 .checkout-review {
-  min-height: 100vh;
+  min-height: var(--nostrum-mobile-viewport-height);
   background: linear-gradient(to bottom, #FAF8F2 0%, #F5F3ED 100%);
   color: #14160F;
   padding: clamp(4rem, 10vw, 6rem) 0 clamp(5rem, 12vw, 8rem);

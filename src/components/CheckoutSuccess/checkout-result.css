@@ -3,7 +3,7 @@
 /* ------------------------------------------------------------------ */
 
 .checkout-result {
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
   display: grid;
   place-items: center;
   background-color: var(--nostrum-warm-white);
@@ -297,7 +297,7 @@
 
 /* ---- Paid confirmation: editorial order receipt ----------------- */
 .checkout-result--rich {
-  min-height: 100svh;
+  min-height: var(--nostrum-mobile-viewport-height);
   align-items: start;
   padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem) 4rem;
   background:

@@ -17,7 +17,7 @@
   color: #edebe3;
   display: grid;
   place-items: center;
-  min-height: 88svh;
+  min-height: calc(var(--nostrum-mobile-viewport-height) * 0.88);
   padding: clamp(5rem, 14vh, 10rem) clamp(1.5rem, 6vw, 6rem);
 }
 
