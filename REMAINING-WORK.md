@@ -1,5 +1,7 @@
 # Nostrum · Remaining Work
 
+> Updated 2026-09-02 after fixing the Origins mobile final-slide touch handoff (see 2.21 below).
+
 > Updated 2026-08-31 after comprehensive security audit and critical vulnerability fixes (see 2.20 below). Updated 2026-08-26 after implementing Redis with custom rate-limit store and IP blacklisting (see 2.19 below). Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
 > Audit date: 2026-08-04. Updated 2026-08-06 after building the unblocked order-fulfilment plumbing (2.5), the backend hardening round (2.6), and the frontend gap round against the client's brief PDF (2.7: guest track page, admin audit tab, portal premium pass). Updated 2026-08-11 after completing the initial production deployment (MongoDB Atlas + Railway backend live). Updated 2026-08-13 after client feedback round 3 (see 2.8 below). Updated 2026-08-14 after fixing the production connectivity chain and building full shop product management (see 2.9 below), and after the client-brief re-issue audit round: admin download auth fix, in-account marketing-consent toggle, Track Order removed from public navigation, demo seed data (see 2.10 below), and after building the admin Content tab so the client can manage the /origins “How it is made” images without code (see 2.11 below). Updated 2026-08-17 after client feedback round 4: customer detail panel + enriched CSV, invoice design fixes (see 2.12 below), after implementing the full Stripe checkout integration (see 2.13 below), and after Journal SVG scroll fix + cookie banner persistence improvements (see 2.14 below). Updated 2026-08-18 after mobile responsiveness overhaul (see 2.15 below). Updated 2026-08-21 after adding admin skeleton loading states across all data tabs and the customer portal order list, then restoring and tuning the Journal branch portal for desktop/tablet and applying the final desktop position/inertia pass. Updated 2026-08-21 after wiring empty-cart drawer suggestions to the live catalog and correcting cart thumbnail alignment, then removing the remaining horizontal letterboxing and fixing /cart reload image overflow. Updated 2026-08-21 after making the cart page hydration-aware. Updated 2026-08-23 after implementing production-grade Stripe payment system with complete idempotency (see 2.16 below).
@@ -626,6 +628,14 @@ After merging to main, **must set `TRUST_PROXY=1` in Railway** before rate limit
 
 ---
 
+### 2.21 Origins mobile final-slide scroll handoff — DONE 2026-09-02
+
+Client reported that real mobile phones could carry the swipe used to reach the last `/origins` slide into the following page section. The mobile StoryScenes controller now tracks the transition into the final slide and consumes residual touch movement from that same gesture. The slider remains locked after the final slide settles; a new downward touch is required before Lenis is released and the page can continue. Wheel behavior now also avoids queueing a handoff from inertia while entering the final slide. Desktop ScrollTrigger behavior, upward slide navigation, and the first-slide exit remain unchanged.
+
+**Files:** `src/components/StoryScenes/StoryScenes.tsx` and `tests/origins-mobile-scroll.spec.ts`.
+
+**Verified:** focused Origins mobile Playwright regression passes in Chromium with the iPhone 13 viewport. It confirms the residual move remains canceled, the document scroll position does not jump, and a separate downward gesture is allowed through. Editor diagnostics are clean for both touched files. `npx tsc --noEmit` still reports the two pre-existing `fps`-is-`unknown` errors in `tests/mobile-browser-audit.spec.ts`. Physical iOS Safari and Android Chrome verification remains recommended because Playwright emulation cannot fully reproduce mobile browser address-bar behavior.
+
 ## 4. Domain swap checklist — when the real domain arrives
 
 Every place the temp URLs (`nostrum-rho.vercel.app` / `nostrum-production.up.railway.app`) appear and must be replaced with the real domain (e.g. `nostrumoils.com` / `api.nostrumoils.com`). Treat this as a single coordinated switch — do all of them in one go.
@@ -693,6 +703,8 @@ The following are already using env vars or the real brand email — no code edi
 ---
 
 ## Decision log (client + project decisions, newest first)
+
+- **2026-09-02** · Origins mobile slide handoff fixed: the swipe that enters the final Origins image now stays inside the slideshow, including residual touch movement after the transition begins. The following section can only be reached with a new downward gesture after the final slide settles. Added a focused Playwright regression test; it passes in Chromium with the iPhone 13 viewport. Real-device Safari/Chrome testing remains the final recommended check.
 
 - **2026-08-27 follow-up 2** · Guest order claiming on account creation: when a user creates an account (credentials signup or Google OAuth), the system now automatically claims all guest orders (userId=null) placed with that email address and assigns them to the new account. Orders appear in the customer portal immediately without manual linking. Implementation: `claimGuestOrders()` function added to `backend/src/services/orders.service.js` (finds orders with matching email + null userId, updates to new userId); hooked into both `src/auth.ts` `createUser` event (OAuth flow) and `src/lib/auth/users.ts` `createCredentialsUser()` (email+password flow). Non-blocking operation (logs on success/failure, doesn't block account creation). **Verified:** TypeScript clean, backend tests passing.
 

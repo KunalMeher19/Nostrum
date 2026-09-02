@@ -233,6 +233,7 @@ export default function StoryScenes() {
           let current = 0;
           const length = scenes.length;
           let animating = false;
+          let navigatingToLast = false;
           const animationDuration = 1.2; // Same as CrispHeader
           let scrollLocked = true; // Start locked (same as CrispHeader line 316)
 
@@ -370,7 +371,8 @@ export default function StoryScenes() {
             const upcomingInner = scenesInner[current];
 
             // Track if we're navigating TO the last slide
-            const navigatingToLast = previous !== length - 1 && current === length - 1;
+            navigatingToLast = previous !== length - 1 && current === length - 1;
+            if (navigatingToLast) consumeEntryGesture = true;
 
             gsap
               .timeline({
@@ -384,6 +386,7 @@ export default function StoryScenes() {
                 onComplete() {
                   currentScene.classList.remove("is--current", "is--live");
                   animating = false;
+                  navigatingToLast = false;
 
                   // ONLY unlock if we reached the last scene going down
                   // AND user has pending scroll intent
@@ -453,7 +456,7 @@ export default function StoryScenes() {
                 // Still animating TO the last scene - block ALL scroll
                 e.preventDefault();
                 e.stopPropagation();
-                pendingScroll = true;
+                if (!navigatingToLast) pendingScroll = true;
                 return;
               }
               // On last scene, animation done, and not animating - unlock and allow scroll
@@ -500,8 +503,11 @@ export default function StoryScenes() {
 
           // Touch handling (same as CrispHeader)
           let touchStartY = 0;
+          let consumeEntryGesture = false;
 
           const handleTouchStart = (e: TouchEvent) => {
+            // A new touch is the only gesture allowed to leave the final slide.
+            consumeEntryGesture = false;
             touchStartY = e.touches[0].clientY;
           };
 
@@ -528,9 +534,15 @@ export default function StoryScenes() {
 
             // At last scene swiping down: handle carefully (same as CrispHeader)
             if (current === length - 1 && direction === 1) {
-              e.preventDefault(); // Always prevent default at last scene
               if (animating) {
-                pendingScroll = true;
+                e.preventDefault();
+                // Consume the rest of the swipe that entered the last slide.
+                // It must not become a handoff until a fresh touch starts.
+                if (!navigatingToLast) pendingScroll = true;
+                return;
+              }
+              if (consumeEntryGesture) {
+                e.preventDefault();
                 return;
               }
               // On last scene and not animating - unlock and allow scroll
