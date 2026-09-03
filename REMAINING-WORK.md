@@ -1,6 +1,6 @@
 # Nostrum · Remaining Work
 
-> Updated 2026-09-02 after fixing the mobile browser viewport clipping, Origins final-slide touch handoff, cookie consent visibility, and the blank hero fallback (see 2.21 and 2.22 below).
+> Updated 2026-09-03 after completing the full production domain migration: `www.nostrumoils.com` (Vercel) + `api.nostrumoils.com` (Railway) live with SSL, Google OAuth updated for `www` origins, Stripe webhook endpoint configured, Resend domain DNS records added, `NEXT_PUBLIC_GA_ID` switched to production stream `G-CRXBY86BFJ`, `RESEND_FROM` set in Vercel + Railway. See §4 domain swap checklist (now marked DONE) and decision log entry 2026-09-03.
 
 > Updated 2026-08-31 after comprehensive security audit and critical vulnerability fixes (see 2.20 below). Updated 2026-08-26 after implementing Redis with custom rate-limit store and IP blacklisting (see 2.19 below). Updated 2026-08-25 after fixing critical Redis connection issue causing admin panel 500 errors (see 2.18 below). Updated 2026-08-25 after security audit and hardening round (see 2.17 below). Updated 2026-08-23 after implementing complete Stripe payment integration with bulletproof idempotency, comprehensive error handling, and atomic stock management. Client confirmed Stripe as the payment gateway; full end-to-end checkout flow is built and ready for production — only Stripe API keys are needed to activate.
 
@@ -22,10 +22,10 @@
   - **Error handling:** Specific error messages (out of stock, service unavailable, card declined), Stripe API error categorization, network failure retry logic, database error recovery
   - **Security:** Webhook signature verification, server-side price validation, rate limiting, CORS + CSRF protection
   - **User experience:** Loading states, error recovery, locale-aware checkout, email pre-fill for logged-in users, cart + idempotency clear on success
-- **What remains:** client must provide `STRIPE_SECRET_KEY` (sk_live_... or sk_test_...) + `STRIPE_WEBHOOK_SECRET` (whsec_...) for Railway, and confirm the shipping cost in EUR cents (`SHIPPING_COST_EUR` env var, default 0 = free shipping placeholder).
+- **Stripe keys + webhook — CONFIGURED 2026-09-03:** `STRIPE_SECRET_KEY` (test mode) and `STRIPE_WEBHOOK_SECRET` set in Railway. Webhook endpoint created in Stripe dashboard at `https://api.nostrumoils.com/api/stripe/webhook` listening for `checkout.session.completed`. Test purchases confirmed working end-to-end (cart → Stripe hosted checkout → webhook → order creation → success page). **What remains for LIVE payments:** swap from Stripe test-mode keys (`sk_test_`/`whsec_test_`) to live-mode keys (`sk_live_`/`whsec_live_`) in Railway, create a new webhook endpoint in Stripe live mode, and confirm shipping cost in EUR cents (`SHIPPING_COST_EUR` env var, default 0 = free shipping placeholder).
 - **Complete setup guide:** See `STRIPE_SETUP.md` in repo root for step-by-step instructions with screenshots, test cards, monitoring guide, and troubleshooting.
-- **Once keys are set:** checkout button goes live immediately (already wired in CartPage); orders will be created via the webhook on successful payments. No code changes needed.
-- **Webhook endpoint for Stripe dashboard:** `https://nostrum-production.up.railway.app/api/stripe/webhook` (Railway backend URL). Add this in Stripe dashboard → Webhooks → Add endpoint → listen for `checkout.session.completed`.
+- **Once live keys are set:** checkout button goes live immediately with real payments. No code changes needed.
+- **Webhook endpoint for Stripe dashboard:** `https://api.nostrumoils.com/api/stripe/webhook` (custom backend domain). Already configured in Stripe test mode 2026-09-03.
 - Stripe Tax (Spanish IVA): currently disabled in the checkout session params (`automatic_tax` commented out). Enable once the client adds their Spanish tax registration to Stripe.
 - **Database schema updated:** Added `stripePaymentIntentId` (for refunds), `idempotencyKey` (client-provided, unique sparse index), indexed `stripeSessionId` for fast webhook lookups.
 
@@ -35,18 +35,18 @@
 - **Public Shop pages API migration + loading states DONE 2026-08-21:** `ProductsListingPage.tsx` and `ProductDetailPage.tsx` now render only products returned by MongoDB. The home Collection, Shop listing, and single-product page show warm branded skeletons while loading, when the API is unavailable, or when no featured products exist; an unknown product slug still gets the missing-product state after a successful API response. The static `src/lib/products.ts` catalogue is no longer used as a display fallback on these surfaces. Rich per-size marketing copy remains the next schema/content decision if the client wants it editable from admin.
 - Stock now matters: `createOrder` consumes per-size stock (see 2.5), so real counts must be set in the admin before checkout goes live.
 
-### 1.3 Email provider (Resend) — WIRED + BRANDED 2026-08-11
+### 1.3 Email provider (Resend) — FULLY CONFIGURED 2026-09-03
 - Both mailers now use Resend when `RESEND_API_KEY` is set; gracefully fall back to console-log when unset (dev/CI safe). Was: pure console stubs.
 - `RESEND_API_KEY` set in Vercel + Railway 2026-08-11. Resend account registered with `office@nostrumoils.com`.
 - **Branded HTML templates built 2026-08-11:** dark luxury design (ink-black `#14160F` bg, deep-olive card, gold `#E6B422` CTA button + accents, off-white text). All 6 email types have dedicated templates: verify-email, reset-password (`src/lib/auth/email-templates.ts`); newsletter-welcome, contact-relay, order-confirmation, shipping-update (`backend/src/services/email-templates.js`). Shared design system: eyebrow labels, heading, body copy, gold CTA button, divider, fallback plain-text link. All inline styles (email client safe).
-- **Current From address:** `onboarding@resend.dev` (Resend shared domain). To send from `no-reply@nostrumoils.com`, verify `nostrumoils.com` in Resend dashboard → add the 3 DNS records → set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in both Vercel and Railway — no code change needed.
+- **Custom domain verified 2026-09-03:** `nostrumoils.com` domain verified in Resend dashboard. 3 DNS records (DKIM TXT + 2 SPF CNAMEs) added at Squarespace registrar. `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` set in both Vercel and Railway. Emails now send from the branded `no-reply@nostrumoils.com` address to any recipient worldwide. Previous `onboarding@resend.dev` sandbox limitation (could only send to account owner email) is resolved.
 - Verified: 80/80 backend tests green, `tsc --noEmit` clean.
 
-### 1.4 Google OAuth credentials — DONE 2026-08-12
+### 1.4 Google OAuth credentials — DONE 2026-08-12, UPDATED FOR CUSTOM DOMAIN 2026-09-03
 - Google Cloud project `Nostrum` (ID: `nostrum-505312`) created 2026-08-12 using personal account; `office@nostrumoils.com` added as test user.
-- OAuth client created via new Google Auth Platform UI (Clients → Create client); authorised origins: `https://nostrum-rho.vercel.app` + `http://localhost:3000`; redirect URIs: `https://nostrum-rho.vercel.app/api/auth/callback/google` + `http://localhost:3000/api/auth/callback/google`.
-- `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` set in Vercel (Production). Redeployed. Google Sign-In confirmed working end-to-end 2026-08-12.
-- This is the "must never break again" item (broken on the client's previous site). Verified working — do not change the redirect URIs without updating the Google Cloud console entry.
+- OAuth client updated 2026-09-03 for custom domain. Authorised origins: `https://www.nostrumoils.com` + `https://nostrumoils.com` + `https://nostrum-rho.vercel.app` + `http://localhost:3000`; redirect URIs: `https://www.nostrumoils.com/api/auth/callback/google` + `https://nostrumoils.com/api/auth/callback/google` + `https://nostrum-rho.vercel.app/api/auth/callback/google` + `http://localhost:3000/api/auth/callback/google`.
+- `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` set in Vercel (Production). `AUTH_URL` updated to `https://www.nostrumoils.com` in Vercel 2026-09-03. Google Sign-In confirmed working on `www.nostrumoils.com` 2026-09-03.
+- This is the "must never break again" item (broken on the client's previous site). **Critical:** the `www` prefix matters — since `nostrumoils.com` 308-redirects to `www.nostrumoils.com`, both origins must be registered in Google Cloud. Do not change the redirect URIs without updating the Google Cloud console entry.
 
 ### 1.5 Legal + contact content (client open items, §20)
 - Privacy policy, legal notice, cookies text (LSSI-CE), real contact details.
@@ -433,19 +433,18 @@ Client confirmed Stripe as the payment gateway. The initial implementation from 
 - **Shared validator layer — RESOLVED:** deleted the empty `validator.middleware.js` stub; inline validation is the project convention across all routes.
 - **`broker/broker.js` — RESOLVED:** deleted (unused).
 - **Deployment config — DOCUMENTED:** see `DEPLOY.md` (env reference for both apps + launch checklist). Actual values set at deploy time.
-- **Backend deployed to Railway — DONE 2026-08-11:** Express backend live at `https://nostrum-production.up.railway.app`; MongoDB Atlas cluster on eu-west-1; health endpoint confirmed (`{"status":"ok"}`). Root directory set to `backend/`, watch path `backend/.`, NODE_ENV=production. Required env vars set: MONGODB_URI, AUTH_SECRET, CORS_ORIGIN, TRUST_PROXY=1, FRONTEND_URL, ADMIN_EMAILS, CONTACT_INBOX.
-- **Frontend deployed to Vercel — DONE 2026-08-11:** Next.js app live at `https://nostrum-rho.vercel.app`; site loads, all pages render, 0 console errors confirmed. `NEXT_PUBLIC_API_URL` points to Railway URL. `ADMIN_EMAILS` set in Vercel (confirmed 2026-08-11). `AUTH_URL=https://nostrum-rho.vercel.app` set in Vercel (confirmed 2026-08-11).
+- **Backend deployed to Railway — DONE 2026-08-11, CUSTOM DOMAIN 2026-09-03:** Express backend live at `https://api.nostrumoils.com` (custom domain) and `https://nostrum-production.up.railway.app` (Railway default). MongoDB Atlas cluster on eu-west-1; health endpoint confirmed. Root directory set to `backend/`, watch path `backend/.`, NODE_ENV=production. Region: eu-west-1 (Ireland). Required env vars set: MONGODB_URI, AUTH_SECRET, CORS_ORIGIN=`https://www.nostrumoils.com`, TRUST_PROXY=1, FRONTEND_URL=`https://www.nostrumoils.com`, ADMIN_EMAILS, CONTACT_INBOX, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_FROM.
+- **Frontend deployed to Vercel — DONE 2026-08-11, CUSTOM DOMAIN 2026-09-03:** Next.js app live at `https://www.nostrumoils.com` (primary, custom domain) + `https://nostrumoils.com` (308 → www) + `https://nostrum-rho.vercel.app` (fallback). All three domains show Valid Configuration. `NEXT_PUBLIC_API_URL` points to `https://api.nostrumoils.com`. `AUTH_URL=https://www.nostrumoils.com` set in Vercel. `NEXT_PUBLIC_GA_ID=G-CRXBY86BFJ` (production stream) set. `RESEND_FROM` set. Region: eu-west-1 (Ireland).
 - **Email access obtained 2026-08-11:** Access to `nostromoils` email address confirmed. Unblocks: wiring Resend (1.3), real CONTACT_INBOX, and Google OAuth credential creation (1.4) using this address as the Google Cloud project owner.
 - **Origins scroll-line broken in Brave — FIXED (2026-08-07):** the /origins "how it's made" SVG stroke lagged behind scroll in Brave and never reached step 05 (fine in the client's Chrome). Two real causes found by live bisection with Playwright, both fixed in `StoryProcess.tsx` + `story-process.css`: (1) `vector-effect: non-scaling-stroke` combined with the huge `stroke-dasharray` makes Chromium misrender the dash on a path this long (line cut off partway down the track + stray dots; GPU-config dependent, which is why Chrome hid it and Brave showed it) — removed, it was vestigial since the viewBox is 1:1 px; the gradient also moved to `gradientUnits="userSpaceOnUse"` with y2 synced in `paintPath`. (2) The draw progress was scrubbed across a pre-measured scroll range (start "top 55%" → last step "center 80%"; an earlier Brave-chasing fix had already tried retuning `endTrigger`, superseded now) — replaced with a calibration-free mapping: each scroll frame reads the track's live `getBoundingClientRect` and draws the stroke so its tip sits at 75% of the viewport height (`quickTo` chase keeps the old scrub momentum feel). Verified with wheel-driven Playwright runs: tip lands exactly at the 75% line at every step, drawn fraction hits 1.0 at step 05, `next build` clean.
 - **Vercel build without env vars — FIXED (2026-08-06):** first Vercel deploy failed at "Collecting page data" because `src/lib/auth/mongodb.ts` threw on import when `MONGODB_URI` was unset (module-level check). Made the Mongo client lazy: `getClientPromise()` creates the client (and requires the URI) only on first real use; `src/auth.ts` passes the function to `MongoDBAdapter` (v3 accepts a lazy factory). Verified by building with `.env.local` removed: `next build` clean. Runtime still needs the env vars set in Vercel (all of frontend `.env.example`: `AUTH_SECRET`, `AUTH_URL`, `AUTH_GOOGLE_ID/SECRET`, `MONGODB_URI`, `ADMIN_EMAILS`, `NEXT_PUBLIC_API_URL`) — auth routes will 500 without them, by design. Also confirmed for the client that frontend `.env.local` secrets (Mongo, Google) are server-side only in Next.js (not shipped to the browser) and are genuinely required there because Auth.js runs inside Next.js.
 - **Analytics behind consent — DONE (awaiting GA ID):** `src/components/Analytics/Analytics.tsx` loads GA4 only when `NEXT_PUBLIC_GA_ID` is set AND the cookie banner was accepted (banner now stores real consent state and emits a consent event).
 - **Invoice legal identity:** `backend/src/services/invoice.service.js` uses placeholder company details; swap in the client's real legal identity (ties to 1.5). STILL BLOCKED ON CLIENT.
 - **Email verification — by design NOT enforced as login gate:** Registration sends a branded verify-email (now with Resend templates), but login works immediately without clicking it. The `emailVerified` timestamp is recorded when the link is clicked. Decision: enforcing it would lock out users whose mail hits spam — wrong trade-off for an olive oil shop. If checkout-gating on verified email is wanted later, add the check in `src/auth.ts` `authorize()` callback. **CHECK AT LAUNCH** that this decision still holds once real customers are registering.
-- **Sign-out redirect fix — DONE 2026-08-11:** `signOut` callbackUrl changed from `/${locale}` to `/${locale}/account` so the user lands on the sign-in page after logging out. `AUTH_URL=https://nostrum-rho.vercel.app` confirmed set in Vercel 2026-08-11.
-- **Analytics — two GA4 streams created 2026-08-12, dev ID set in Vercel:**
-  - Dev stream: `G-NFTWPSVJCF` (stream URL: `https://nostrum-rho.vercel.app`) — set as `NEXT_PUBLIC_GA_ID` in Vercel now. Redeploy Vercel to activate.
-  - Production stream: `G-CRXBY86BFJ` (stream URL: `https://nostrumoils.com`) — do NOT set yet; swap in at domain cutover (see §4 domain swap checklist).
-  - At domain cutover: change `NEXT_PUBLIC_GA_ID` in Vercel from `G-NFTWPSVJCF` → `G-CRXBY86BFJ` → redeploy. That's the only change needed; code is already correct.
+- **Sign-out redirect fix — DONE 2026-08-11:** `signOut` callbackUrl changed from `/${locale}` to `/${locale}/account` so the user lands on the sign-in page after logging out. `AUTH_URL=https://www.nostrumoils.com` confirmed set in Vercel 2026-09-03.
+- **Analytics — PRODUCTION STREAM ACTIVE 2026-09-03:**
+  - Dev stream: `G-NFTWPSVJCF` (stream URL: `https://nostrum-rho.vercel.app`) — was used during development.
+  - Production stream: `G-CRXBY86BFJ` (stream URL: `https://nostrumoils.com`) — **NOW ACTIVE** in Vercel as `NEXT_PUBLIC_GA_ID`. Switched during domain cutover 2026-09-03.
   - Code is complete and consent-gated (`src/components/Analytics/Analytics.tsx`). Fires only after cookie banner accepted.
 - **Google OAuth — DONE 2026-08-12:** `AUTH_GOOGLE_ID` + `AUTH_GOOGLE_SECRET` set in Vercel. Google Sign-In working end-to-end. See 1.4 for full details.
 - **WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED by client decision 2026-08-11:** not building until explicitly requested by client. Will resume when asked.
@@ -644,47 +643,52 @@ Client reported that Chrome's changing top/bottom browser UI could cover content
 
 **Verified:** `npm run build` passes and generates all 79 routes. CSS/editor diagnostics are clean for the changed surfaces; `npx tsc --noEmit` still reports only the two pre-existing `fps`-is-`unknown` errors in `tests/mobile-browser-audit.spec.ts`. Physical Android Chrome and iOS Safari checks remain recommended for browser-specific toolbar behavior.
 
-## 4. Domain swap checklist — when the real domain arrives
+## 4. Domain swap checklist — COMPLETED 2026-09-03
 
-Every place the temp URLs (`nostrum-rho.vercel.app` / `nostrum-production.up.railway.app`) appear and must be replaced with the real domain (e.g. `nostrumoils.com` / `api.nostrumoils.com`). Treat this as a single coordinated switch — do all of them in one go.
+All temp URLs (`nostrum-rho.vercel.app` / `nostrum-production.up.railway.app`) have been replaced with the real domains. Domain swap completed as a single coordinated switch on 2026-09-03.
 
-### 4A. Frontend domain (`nostrum-rho.vercel.app` → `nostrumoils.com`)
+### 4A. Frontend domain (`nostrum-rho.vercel.app` → `www.nostrumoils.com`) — ✅ DONE 2026-09-03
 
-| # | Where | What to change | How |
-|---|-------|---------------|-----|
-| 1 | **Vercel → Settings → Domains** | Add `nostrumoils.com` as a custom domain; Vercel gives you the DNS records to add at your registrar | Vercel dashboard |
-| 2 | **Vercel → Settings → Environment Variables** | `AUTH_URL` → `https://nostrumoils.com` | Vercel dashboard → redeploy |
-| 3 | **Vercel → Settings → Environment Variables** | `NEXT_PUBLIC_GA_ID` → swap from `G-NFTWPSVJCF` (dev stream) to `G-CRXBY86BFJ` (production stream) → redeploy | Vercel dashboard |
-| 4 | **Google Cloud Console** → Nostrum project → Clients → Nostrum Web | Add `https://nostrumoils.com` to Authorised JavaScript origins | Google Cloud Console |
-| 5 | **Google Cloud Console** → same client | Add `https://nostrumoils.com/api/auth/callback/google` to Authorised redirect URIs | Google Cloud Console |
-| 6 | **Railway → Nostrum backend → Variables** | `CORS_ORIGIN` → `https://nostrumoils.com` (replace the Vercel URL) | Railway dashboard → redeploy |
-| 7 | **Railway → Nostrum backend → Variables** | `FRONTEND_URL` → `https://nostrumoils.com` | Railway dashboard → redeploy |
-| 8 | **`.env.local`** (local dev file — not deployed) | `AUTH_URL` stays `http://localhost:3000` for local dev; no action needed | — |
+| # | Where | What to change | Status |
+|---|-------|---------------|--------|
+| 1 | **Vercel → Settings → Domains** | Added `nostrumoils.com` + `www.nostrumoils.com`; DNS records (A + CNAME) added at Squarespace registrar. Root domain 308-redirects to `www`. `nostrum-rho.vercel.app` kept as fallback. All three show Valid Configuration. | ✅ Done |
+| 2 | **Vercel → Settings → Environment Variables** | `AUTH_URL` → `https://www.nostrumoils.com` | ✅ Done |
+| 3 | **Vercel → Settings → Environment Variables** | `NEXT_PUBLIC_GA_ID` → `G-CRXBY86BFJ` (production stream) | ✅ Done |
+| 4 | **Google Cloud Console** → Nostrum project → Clients → Nostrum Web | Added `https://www.nostrumoils.com` + `https://nostrumoils.com` to Authorised JavaScript origins | ✅ Done |
+| 5 | **Google Cloud Console** → same client | Added `https://www.nostrumoils.com/api/auth/callback/google` + `https://nostrumoils.com/api/auth/callback/google` to Authorised redirect URIs | ✅ Done |
+| 6 | **Railway → Nostrum backend → Variables** | `CORS_ORIGIN` → `https://www.nostrumoils.com` (localhost removed — backend env validation rejects localhost in production) | ✅ Done |
+| 7 | **Railway → Nostrum backend → Variables** | `FRONTEND_URL` → `https://www.nostrumoils.com` | ✅ Done |
+| 8 | **`.env.local`** (local dev file — not deployed) | `AUTH_URL` stays `http://localhost:3000` for local dev; no action needed | ✅ N/A |
 
-### 4B. Backend domain (`nostrum-production.up.railway.app` → e.g. `api.nostrumoils.com`)
+### 4B. Backend domain (`nostrum-production.up.railway.app` → `api.nostrumoils.com`) — ✅ DONE 2026-09-03
 
-Only needed if the client wants a branded API subdomain (e.g. `api.nostrumoils.com`). Railway supports custom domains natively.
+Custom backend domain added in Railway. Region: eu-west-1 (Ireland).
 
-| # | Where | What to change | How |
-|---|-------|---------------|-----|
-| 1 | **Railway → Settings → Networking** | Add custom domain `api.nostrumoils.com`; Railway gives DNS record | Railway dashboard |
-| 2 | **Vercel → Settings → Environment Variables** | `NEXT_PUBLIC_API_URL` → `https://api.nostrumoils.com` | Vercel dashboard → redeploy |
-| 3 | **`.env.local`** (local dev) | `NEXT_PUBLIC_API_URL` stays `http://localhost:5000` for local dev; no action needed | — |
+| # | Where | What to change | Status |
+|---|-------|---------------|--------|
+| 1 | **Railway → Settings → Networking** | Added custom domain `api.nostrumoils.com`; CNAME DNS record added at Squarespace registrar. Port 8080. | ✅ Done |
+| 2 | **Vercel → Settings → Environment Variables** | `NEXT_PUBLIC_API_URL` → `https://api.nostrumoils.com` | ✅ Done |
+| 3 | **`.env.local`** (local dev) | `NEXT_PUBLIC_API_URL` stays `http://localhost:5000` for local dev; no action needed | ✅ N/A |
 
-### 4C. Email domain (`onboarding@resend.dev` → `no-reply@nostrumoils.com`)
+### 4C. Email domain (`onboarding@resend.dev` → `no-reply@nostrumoils.com`) — ✅ DONE 2026-09-03
 
-Already documented in §1.3 but repeated here for completeness:
+| # | Where | What to change | Status |
+|---|-------|---------------|--------|
+| 1 | **Resend dashboard** | `nostrumoils.com` domain verified; 3 DNS records (DKIM TXT `resend._domainkey` + CNAME `rsend` + CNAME `send`) added at Squarespace registrar | ✅ Done |
+| 2 | **Vercel env vars** | `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` | ✅ Done |
+| 3 | **Railway env vars** | `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` | ✅ Done |
+| 4 | **Code** | No change needed — both mailers already read `RESEND_FROM` from env | ✅ N/A |
 
-| # | Where | What to change | How |
-|---|-------|---------------|-----|
-| 1 | **Resend dashboard** | Verify `nostrumoils.com` domain → add 3 DNS records at registrar | Resend dashboard → Domains |
-| 2 | **Vercel env vars** | Add `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` | Vercel dashboard → redeploy |
-| 3 | **Railway env vars** | Add `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` | Railway dashboard → redeploy |
-| 4 | **Code** | No change needed — both mailers already read `RESEND_FROM` from env | — |
+### 4E. Stripe webhook endpoint — ✅ DONE 2026-09-03
 
-### 4D. Nothing to change in code
+| # | Where | What to change | Status |
+|---|-------|---------------|--------|
+| 1 | **Stripe Dashboard → Developers → Webhooks** | Created webhook endpoint `https://api.nostrumoils.com/api/stripe/webhook` listening for `checkout.session.completed` (test mode) | ✅ Done |
+| 2 | **Railway env vars** | `STRIPE_WEBHOOK_SECRET` set to signing secret from Stripe | ✅ Done |
 
-The following are already using env vars or the real brand email — no code edits needed at domain-swap time:
+### 4D. Nothing changed in code
+
+The following are already using env vars or the real brand email — no code edits were needed:
 - `src/lib/auth/email-templates.ts` — uses `office@nostrumoils.com` (correct already)
 - `backend/src/services/email-templates.js` — uses `office@nostrumoils.com` (correct already)
 - `src/lib/auth/mailer.ts` and `backend/src/services/mailer.service.js` — read `RESEND_FROM` from env
@@ -700,17 +704,28 @@ The following are already using env vars or the real brand email — no code edi
 ## Suggested order of attack
 
 1. DONE: sections 2.1 to 2.11, backend hardening, deployment (Railway + Vercel), Resend email wiring + branded templates, Google OAuth (1.4), Vercel env vars (`ADMIN_EMAILS`, `AUTH_URL`), production connectivity chain (https/CORS/preflight/cross-domain cookie proxy), full shop product management with ImageKit uploads + featured-on-home flag, the client-brief audit round (download auth fix, marketing-consent toggle, Track Order out of public nav, demo seed data), and the admin Content tab for the /origins process images (2.11).
-2. **Next: add ImageKit keys to Railway** — `IMAGEKIT_PRIVATE_KEY` + `IMAGEKIT_URL_ENDPOINT`. Until set, "Upload new photo" returns a clean 503; "Pick existing photo" works regardless.
-3. **Next: set `NEXT_PUBLIC_GA_ID` in Vercel** — create GA4 property (analytics.google.com), copy Measurement ID (`G-XXXXXXXXXX`), add to Vercel env vars, redeploy. Verify in GA4 Realtime.
-4. **Next: Resend custom domain** — client adds 3 DNS records in Resend dashboard, then set `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>` in Vercel + Railway. No code change needed.
-5. Chase client on the remaining blockers in section 1: commerce decision (Stripe — critical path), real catalog photos/prices (1.2 — the admin can now enter them directly), legal texts + WhatsApp + invoice identity (1.5).
-6. When commerce unblocks: follow the build recipe in 1.1 (checkout + webhook). The public products API and all public product loading surfaces are now wired; remaining catalog work is client data entry and any future decision to move rich marketing copy into admin.
-7. WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED until client asks for them.
-8. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
+2. DONE: Domain migration (§4) — `www.nostrumoils.com` + `api.nostrumoils.com` live, Google OAuth updated, Stripe webhook configured, Resend domain verified, GA4 production stream activated.
+3. DONE: Resend custom domain — `nostrumoils.com` verified in Resend, DNS records added, `RESEND_FROM` set in Vercel + Railway.
+4. DONE: GA4 production stream `G-CRXBY86BFJ` set as `NEXT_PUBLIC_GA_ID` in Vercel.
+5. **Next: add ImageKit keys to Railway** — `IMAGEKIT_PRIVATE_KEY` + `IMAGEKIT_URL_ENDPOINT`. Until set, "Upload new photo" returns a clean 503; "Pick existing photo" works regardless.
+6. **Next: switch Stripe to LIVE mode** — create live-mode webhook in Stripe dashboard (`https://api.nostrumoils.com/api/stripe/webhook`), swap `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` in Railway to live keys, confirm shipping cost.
+7. Chase client on the remaining blockers in section 1: real catalog photos/prices (1.2 — the admin can now enter them directly), legal texts + WhatsApp + invoice identity (1.5).
+8. WhatsApp bubble, B2B end-of-shop block, signature motion (brief §07) — PAUSED until client asks for them.
+9. At deploy time: walk the `DEPLOY.md` checklist (Redis only if scaling horizontally).
 
 ---
 
 ## Decision log (client + project decisions, newest first)
+
+- **2026-09-03** · Full production domain migration completed. Summary of all changes:
+  - **Frontend:** `www.nostrumoils.com` added as custom domain in Vercel (Squarespace DNS: A record + CNAME `www`). Root `nostrumoils.com` 308-redirects to `www`. `nostrum-rho.vercel.app` kept as fallback. Region: eu-west-1 (Ireland). All three domains show Valid Configuration with SSL.
+  - **Backend:** `api.nostrumoils.com` added as custom domain in Railway (Squarespace DNS: CNAME record). Port 8080. Region: eu-west-1 (Ireland).
+  - **Vercel env vars updated:** `AUTH_URL=https://www.nostrumoils.com`, `NEXT_PUBLIC_API_URL=https://api.nostrumoils.com`, `NEXT_PUBLIC_GA_ID=G-CRXBY86BFJ` (production stream), `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>`.
+  - **Railway env vars updated:** `CORS_ORIGIN=https://www.nostrumoils.com` (localhost removed — backend env validation rejects localhost in production), `FRONTEND_URL=https://www.nostrumoils.com`, `STRIPE_WEBHOOK_SECRET` set, `RESEND_FROM=Nostrum <no-reply@nostrumoils.com>`.
+  - **Google OAuth:** Added `https://www.nostrumoils.com` + `https://nostrumoils.com` to authorized JavaScript origins and redirect URIs in Google Cloud Console. Initial 400 `redirect_uri_mismatch` error was caused by missing `www` prefix — Google requires exact match and since root domain redirects to `www`, the `www` origin is required.
+  - **Stripe webhook:** Created endpoint `https://api.nostrumoils.com/api/stripe/webhook` in Stripe dashboard (test mode), listening for `checkout.session.completed`. Signing secret set as `STRIPE_WEBHOOK_SECRET` in Railway. Test purchase confirmed working end-to-end.
+  - **Resend email domain:** `nostrumoils.com` verified in Resend dashboard. 3 DNS records added at Squarespace (DKIM TXT `resend._domainkey`, CNAME `rsend`, CNAME `send`). TTL set to 1hr (Squarespace equivalent of Resend's "Auto"). Emails now send from `no-reply@nostrumoils.com` to any recipient.
+  - **No code changes were needed** — all configuration is via environment variables and external dashboards.
 
 - **2026-09-02** · Origins mobile slide handoff fixed: the swipe that enters the final Origins image now stays inside the slideshow, including residual touch movement after the transition begins. The handoff gesture is consumed as well, preventing the mobile browser address bar from collapsing; the following section is reached on the next downward gesture after the final slide settles. Added a focused Playwright regression test; it passes in Chromium with the iPhone 13 viewport. Real-device Safari/Chrome testing remains the final recommended check.
 - **2026-09-02** · Mobile visible-height compatibility fixed: full-height page and section shells now use a shared token that remains `100svh` on desktop and becomes `100dvh` only on mobile, with safe-area bottom padding where needed. This keeps content inside the current visible Chrome/Safari viewport without changing laptop geometry. Production build passes; real-device Android Chrome/iOS Safari testing remains the final recommended check.
