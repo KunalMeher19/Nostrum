@@ -140,7 +140,12 @@ router.post(
     }
 
     const sig = req.headers['stripe-signature'];
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+    
+    // Log the first few chars to help debug if the wrong key was pasted
+    if (webhookSecret) {
+      console.log(`[stripe webhook] using secret starting with: ${webhookSecret.substring(0, 11)}...`);
+    }
 
     if (!webhookSecret) {
       console.error('[stripe webhook] STRIPE_WEBHOOK_SECRET not set; rejecting all events');
