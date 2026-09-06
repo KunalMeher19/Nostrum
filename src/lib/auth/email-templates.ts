@@ -113,7 +113,7 @@ export function resetPasswordHtml(actionUrl: string): string {
   return shell(`
     ${eyebrow("Account")}
     ${heading("Reset your password")}
-    ${body("Use the button below to choose a new password. The link expires in one hour.")}
+    ${body("Use the button below to choose a new password. The link expires in 15 minutes and can only be used once.")}
     ${ctaButton("Choose new password", actionUrl)}
     ${divider()}
     <p style="margin:0;font-size:12px;color:${MUTED};line-height:1.6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">

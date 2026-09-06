@@ -117,11 +117,24 @@ export default function AccountSection() {
     setBusy("working");
     try {
       if (mode === "forgot") {
-        await fetch("/api/auth/forgot", {
+        const res = await fetch("/api/auth/forgot", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          const map: Record<string, string> = {
+            account_not_found: "account.error_account_not_found",
+            invalid_email: "account.error_invalid_email",
+            too_many_requests: "account.error_try_later",
+          };
+          setError(t(map[data.error ?? ""] ?? "account.error_generic"));
+          setBusy("idle");
+          return;
+        }
         setNotice(t("account.forgot_sent"));
         setBusy("done");
         return;
@@ -181,6 +194,7 @@ export default function AccountSection() {
   };
 
   const working = busy === "working";
+  const resetSent = mode === "forgot" && busy === "done";
 
   return (
     <section ref={rootRef} className="ac" aria-labelledby="ac-title">
@@ -259,6 +273,7 @@ export default function AccountSection() {
               type="email"
               autoComplete="email"
               placeholder="maria@example.com"
+              disabled={resetSent}
               required
             />
             <span className="ac__field-line" aria-hidden="true" />
@@ -326,14 +341,16 @@ export default function AccountSection() {
           )}
 
           <div className="ac__submit-row" data-ac-reveal>
-            <button type="submit" className="ac__submit" disabled={working}>
+            <button type="submit" className="ac__submit" disabled={working || resetSent}>
               <span>
                 {working
                   ? t("account.working")
                   : mode === "create"
                     ? t("account.submit_create")
-                    : mode === "forgot"
-                      ? t("account.submit_forgot")
+                  : mode === "forgot"
+                      ? resetSent
+                        ? t("account.reset_link_sent")
+                        : t("account.submit_forgot")
                       : t("account.submit_signin")}
               </span>
               <span className="ac__submit-arrow" aria-hidden="true">

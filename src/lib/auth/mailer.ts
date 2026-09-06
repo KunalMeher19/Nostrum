@@ -75,7 +75,7 @@ export async function sendResetPassword(to: string, actionUrl: string): Promise<
   return sendMail({
     to,
     subject: "Reset your Nostrum password",
-    text: "Use the link below to choose a new password. It expires in one hour.",
+    text: "Use the link below to choose a new password. It expires in 15 minutes and can only be used once.",
     actionUrl,
     html: resetPasswordHtml(actionUrl),
   });

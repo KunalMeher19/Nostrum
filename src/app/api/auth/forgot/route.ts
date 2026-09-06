@@ -18,14 +18,18 @@ export async function POST(req: Request) {
   }
 
   const email = normalizeEmail(body.email ?? "");
-  if (email) {
-    const user = await findUserByEmail(email);
-    if (user) {
-      const token = await issueToken(user._id, "reset-password");
-      const base = process.env.AUTH_URL ?? "http://localhost:3000";
-      await sendResetPassword(email, `${base}/en/account/reset?token=${token}`);
-    }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: "invalid_email" }, { status: 400 });
   }
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    return NextResponse.json({ error: "account_not_found" }, { status: 404 });
+  }
+
+  const token = await issueToken(user._id, "reset-password");
+  const base = process.env.AUTH_URL ?? "http://localhost:3000";
+  await sendResetPassword(email, `${base}/en/account/reset?token=${token}`);
 
   return NextResponse.json({ ok: true });
 }

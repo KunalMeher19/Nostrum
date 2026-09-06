@@ -9,7 +9,7 @@ export type TokenKind = "verify-email" | "reset-password";
 
 const TTL_MS: Record<TokenKind, number> = {
   "verify-email": 1000 * 60 * 60 * 24, // 24h
-  "reset-password": 1000 * 60 * 60, // 1h
+  "reset-password": 1000 * 60 * 15, // 15 minutes
 };
 
 function hashToken(token: string): string {

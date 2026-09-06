@@ -37,7 +37,7 @@ export default function ResetSection() {
           t(
             data.error === "weak_password"
               ? "account.error_weak_password"
-              : "account.verified_bad"
+              : "account.error_reset_link_invalid"
           )
         );
         setBusy(false);

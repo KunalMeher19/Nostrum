@@ -24,6 +24,7 @@ export interface DbUser {
 }
 
 const BCRYPT_ROUNDS = 12;
+let userEmailIndexPromise: Promise<string> | undefined;
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -39,7 +40,18 @@ export function isAdminEmail(email: string): boolean {
 
 export async function findUserByEmail(email: string): Promise<DbUser | null> {
   const db = await getDb();
-  return db.collection<DbUser>("users").findOne({ email: normalizeEmail(email) });
+  const users = db.collection<DbUser>("users");
+  // The backend schema also declares this unique index. Ensuring the plain
+  // lookup index here keeps Auth.js-only deployments fast as well.
+  userEmailIndexPromise ??= users.createIndex({ email: 1 }, { unique: true });
+  await userEmailIndexPromise;
+
+  // Project only what this check needs so reset requests remain a small,
+  // indexed lookup as the customer list grows.
+  return users.findOne(
+    { email: normalizeEmail(email) },
+    { projection: { _id: 1, email: 1, passwordHash: 1 } }
+  );
 }
 
 export async function createCredentialsUser(opts: {
