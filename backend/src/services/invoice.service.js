@@ -61,23 +61,44 @@ function streamInvoice(order, res) {
   doc.rect(0, 0, W, doc.page.height).fill(PAPER);
 
   // ── Header: real brand logo PNG + NOSTRUM wordmark ─────────────
-  const LOGO_SIZE = 44;
-  const LOGO_X = M;
-  const LOGO_Y = 56;
+  // The mark is sized and placed from the PNG's ink box (not its canvas) so
+  // it sits exactly on the wordmark's cap band: top of the mark level with
+  // the top of the "N", bottom level with the baseline.
+  const LOGO_Y = 56; // header block origin, drives the rest of the header
+  const WORDMARK_SIZE = 34;
 
-  // Embed the actual brand icon (512×512 PNG, scaled to LOGO_SIZE pt)
+  // Helvetica-Bold has capHeight == ascender (718/1000), so pdfkit's text y
+  // is the cap top and the baseline lands capHeight below it.
+  const capTop = LOGO_Y + 4;
+  const capH = WORDMARK_SIZE * 0.718;
+
+  // logo.png is a 512×512 canvas with the mark inked over x 130..380,
+  // y 41..472, i.e. transparent padding on every side.
+  const inkTopRatio = 41 / 512;
+  const inkHRatio = 432 / 512;
+  const inkLeftRatio = 130 / 512;
+  const inkWRatio = 251 / 512;
+
+  const logoBox = capH / inkHRatio; // square canvas size that yields capH of ink
+  const logoInkW = logoBox * inkWRatio;
+
+  // Embed the actual brand icon, offset so its ink (not its canvas) is flush
+  // to the left margin and aligned to the cap band.
   try {
-    doc.image(LOGO_PATH, LOGO_X, LOGO_Y, { width: LOGO_SIZE, height: LOGO_SIZE });
+    doc.image(LOGO_PATH, M - logoBox * inkLeftRatio, capTop - logoBox * inkTopRatio, {
+      width: logoBox,
+      height: logoBox,
+    });
   } catch (_) {
     // logo file missing in this environment — skip gracefully
   }
 
-  const wordmarkX = LOGO_X + LOGO_SIZE + 10;
+  const wordmarkX = M + logoInkW + 12;
   doc
     .fillColor(INK)
     .font('Helvetica-Bold')
-    .fontSize(34)
-    .text('NOSTRUM', wordmarkX, LOGO_Y + 4, { characterSpacing: 10 });
+    .fontSize(WORDMARK_SIZE)
+    .text('NOSTRUM', wordmarkX, capTop, { characterSpacing: 10 });
 
   // Invoice meta (right column)
   doc
@@ -97,7 +118,8 @@ function streamInvoice(order, res) {
     .text(fmtDate(order.placedAt), M, LOGO_Y + 36, { width: W - 2 * M, align: 'right' });
 
   // Green hairline (brand green, not gold)
-  const hairY = LOGO_Y + LOGO_SIZE + 24;
+  // Fixed header height (68pt) so the rule stays put regardless of mark size.
+  const hairY = LOGO_Y + 68;
   doc.rect(M, hairY, W - 2 * M, 1.2).fill(GREEN);
 
   // ── Addresses ───────────────────────────────────────────────────
