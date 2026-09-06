@@ -387,22 +387,27 @@ export default function ProductPage() {
     router.push(`/${locale}/cart`);
   };
 
-  /* Tab copy — admin-authored per locale when present, otherwise the static
-     locale-file defaults below (see resolveProductCopy). */
+  /* Tab copy — entirely admin-authored (see resolveProductCopy). There is no
+     static fallback: a tab the admin has left empty is not rendered at all,
+     so the editor is an exact mirror of what the customer sees. Shipping is
+     genuinely shared copy and is always present. */
   const copy = resolveProductCopy(copySource, locale);
-  const descriptions = copy.paragraphs.length
-    ? copy.paragraphs
-    : [t("product.desc_1"), t("product.desc_2")];
-  const details = copy.details.length
-    ? copy.details
-    : [
-        { label: t("product.detail_variety"), value: t("product.detail_variety_value") },
-        { label: t("product.detail_extraction"), value: t("product.detail_extraction_value") },
-        { label: t("product.detail_acidity"), value: t("product.detail_acidity_value") },
-        { label: t("product.detail_origin"), value: t("product.detail_origin_value") },
-        { label: t("product.detail_keep"), value: t("product.detail_keep_value") },
-      ];
+  const descriptions = copy.paragraphs;
+  const details = copy.details;
   const shippingLines = [t("product.shipping_1"), t("product.shipping_2"), t("product.shipping_3")];
+
+  /* Only the tabs that have something to say. `tab` holds the last clicked
+     key, which can point at a tab that has since gone away (locale switch,
+     admin edit), so the rendered tab is resolved against this list rather
+     than trusted, otherwise the panel would silently render empty. */
+  const visibleTabs = TAB_KEYS.filter((k) =>
+    k === "tab_description"
+      ? descriptions.length > 0
+      : k === "tab_details"
+        ? details.length > 0
+        : true
+  );
+  const activeTab = visibleTabs.includes(tab) ? tab : visibleTabs[0];
   const highlights = [
     t("product.highlight_1"),
     t("product.highlight_2"),
@@ -672,23 +677,23 @@ export default function ProductPage() {
         <div className="pdp__below" data-fade>
           <section className="pdp__tabs-block" aria-label={t("a11y.more_information")}>
             <div className="pdp__tabs" role="tablist">
-              {TAB_KEYS.map((k) => (
+              {visibleTabs.map((k) => (
                 <button
                   key={k}
                   type="button"
                   role="tab"
-                  aria-selected={tab === k}
-                  className={`pdp__tab${tab === k ? " is--active" : ""}`}
+                  aria-selected={activeTab === k}
+                  className={`pdp__tab${activeTab === k ? " is--active" : ""}`}
                   onClick={() => setTab(k)}
                 >
                   {t(`product.${k}`)}
                 </button>
               ))}
             </div>
-            <div className="pdp__tabpanel" role="tabpanel" key={tab}>
-              {tab === "tab_description" &&
+            <div className="pdp__tabpanel" role="tabpanel" key={activeTab}>
+              {activeTab === "tab_description" &&
                 descriptions.map((p, i) => <p key={i}>{p}</p>)}
-              {tab === "tab_details" && (
+              {activeTab === "tab_details" && (
                 <dl className="pdp__details">
                   {details.map((d, i) => (
                     <div key={i}>
@@ -698,7 +703,7 @@ export default function ProductPage() {
                   ))}
                 </dl>
               )}
-              {tab === "tab_shipping" &&
+              {activeTab === "tab_shipping" &&
                 shippingLines.map((p) => <p key={p}>{p}</p>)}
             </div>
           </section>
