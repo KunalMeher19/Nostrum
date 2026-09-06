@@ -13,25 +13,24 @@ import "./cookie-banner.css";
  *
  * Choreography (shows first, before the Journal modal):
  *  - Waits for `.crisp-header.is--loading` to clear (home loader).
- *  - Then waits for a quiet moment: no pointer / scroll / key activity
- *    for IDLE_MS before sliding up. Any interaction resets the clock, so
- *    it only ever appears while the visitor is at rest.
+ *  - Then waits briefly before sliding up. The notice must not be hidden
+ *    indefinitely just because a first-time visitor starts scrolling.
  *  - PERSISTS until user explicitly accepts/rejects — will reappear on
  *    every page load until a choice is made.
  *  - The Journal (newsletter) modal waits for the cookie banner to be
  *    dismissed before showing, so the two never stack.
  *
- * The legal pages aren't ready yet, so Preferences currently behaves as
- * a dismissal. The choice IS real consent state now: it is stored in
- * localStorage. "accept" loads full Analytics; "reject" loads basic
- * (non-sensitive) Analytics only; "preferences" is treated as reject.
+ * The choice is real consent state, stored in localStorage. Analytics is
+ * never loaded unless the visitor opts in. Preferences can also be reopened
+ * after a decision, so consent can be withdrawn as easily as it was given.
  */
 
 const CHOICE_KEY = "nostrum-cookie-choice";
 /** Fired on window whenever a consent choice is made (detail: the choice).
  *  Analytics listens so GA can load the moment "accept" is clicked. */
 export const CONSENT_EVENT = "nostrum-consent";
-const IDLE_MS = 2500; // quiet time required before entering
+export const CONSENT_PREFERENCES_EVENT = "nostrum-consent-preferences";
+const SHOW_DELAY_MS = 2500;
 const POLL_MS = 400; // loader / idle check cadence
 const EXIT_MS = 500; // keep in sync with --ck-out in the CSS
 
@@ -39,7 +38,9 @@ export default function CookieBanner() {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
-  const lastActivity = useRef(0);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+  const didOpen = useRef(false);
 
   /* ---- Arm: loader gone → idle → show ----------------------------------- */
   useEffect(() => {
@@ -53,45 +54,42 @@ export default function CookieBanner() {
       /* storage unavailable — still show, just not remembered */
     }
 
-    // Only show if NO choice has been made yet
-    if (hasChoice) return;
-
-    lastActivity.current = performance.now();
-    const touch = () => {
-      lastActivity.current = performance.now();
+    const openPreferences = () => {
+      let choice: string | null = null;
+      try {
+        choice = localStorage.getItem(CHOICE_KEY);
+      } catch {
+        // Storage being blocked should not prevent the visitor from choosing.
+      }
+      setAnalyticsEnabled(choice === "accept");
+      setPreferencesOpen(true);
+      setOpen(true);
     };
-    const activityEvents: (keyof WindowEventMap)[] = [
-      "pointermove",
-      "pointerdown",
-      "wheel",
-      "scroll",
-      "keydown",
-      "touchstart",
-    ];
-    activityEvents.forEach((ev) =>
-      window.addEventListener(ev, touch, { passive: true })
-    );
+    window.addEventListener(CONSENT_PREFERENCES_EVENT, openPreferences);
+
+    // Returning visitors only need the listener above, not a new prompt.
+    if (hasChoice) {
+      return () => window.removeEventListener(CONSENT_PREFERENCES_EVENT, openPreferences);
+    }
 
     const loaderActive = () =>
       !!document.querySelector(".crisp-header.is--loading");
-    const isIdle = () => performance.now() - lastActivity.current >= IDLE_MS;
+    const showAt = performance.now() + SHOW_DELAY_MS;
 
     const poll = setInterval(() => {
       if (loaderActive()) {
-        // While the loader has the stage, keep resetting the idle clock
-        // so we enter a beat AFTER it leaves, not the instant.
-        lastActivity.current = performance.now();
         return;
       }
-      if (isIdle()) {
+      if (performance.now() >= showAt && !didOpen.current) {
         clearInterval(poll);
+        didOpen.current = true;
         setOpen(true);
       }
     }, POLL_MS);
 
     return () => {
       clearInterval(poll);
-      activityEvents.forEach((ev) => window.removeEventListener(ev, touch));
+      window.removeEventListener(CONSENT_PREFERENCES_EVENT, openPreferences);
     };
   }, []);
 
@@ -102,8 +100,18 @@ export default function CookieBanner() {
     } catch {
       /* ignore */
     }
+    if (choice !== "accept") {
+      // Remove first-party GA cookies when consent is refused or withdrawn.
+      document.cookie.split(";").forEach((item) => {
+        const name = item.trim().split("=")[0];
+        if (name === "_ga" || name.startsWith("_ga_")) {
+          document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`;
+        }
+      });
+    }
     // Let consent-gated scripts (Analytics) react immediately.
     window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: choice }));
+    setPreferencesOpen(false);
     const reduced = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)"
     ).matches;
@@ -117,6 +125,10 @@ export default function CookieBanner() {
       setClosing(false);
     }, EXIT_MS);
   }, []);
+
+  const savePreferences = useCallback(() => {
+    dismiss(analyticsEnabled ? "accept" : "reject");
+  }, [analyticsEnabled, dismiss]);
 
   if (!open) return null;
 
@@ -132,9 +144,29 @@ export default function CookieBanner() {
         {t("cookie.description")}
       </p>
 
-      <div className="ck-banner__actions">
-        {/* "accept" unlocks full Analytics including user identifiers.
-            "reject" and "preferences" load basic Analytics only (no user tracking). */}
+      {preferencesOpen ? (
+        <div className="ck-banner__preferences">
+          <label className="ck-banner__toggle">
+            <input
+              type="checkbox"
+              checked={analyticsEnabled}
+              onChange={(event) => setAnalyticsEnabled(event.target.checked)}
+            />
+            <span>{t("cookie.analytics")}</span>
+          </label>
+          <p className="ck-banner__preference-note">
+            {t("cookie.essential")}
+          </p>
+          <div className="ck-banner__actions">
+            <button type="button" className="ck-banner__btn ck-banner__btn--accept" onClick={savePreferences}>
+              {t("cookie.accept")}
+            </button>
+            <button type="button" className="ck-banner__btn ck-banner__btn--ghost" onClick={() => dismiss("reject")}>
+              {t("cookie.reject")}
+            </button>
+          </div>
+        </div>
+      ) : <div className="ck-banner__actions">
         <button
           type="button"
           className="ck-banner__btn ck-banner__btn--accept"
@@ -145,7 +177,7 @@ export default function CookieBanner() {
         <button
           type="button"
           className="ck-banner__btn ck-banner__btn--ghost"
-          onClick={() => dismiss("preferences")}
+          onClick={() => setPreferencesOpen(true)}
         >
           {t("cookie.preferences")}
         </button>
@@ -156,7 +188,7 @@ export default function CookieBanner() {
         >
           {t("cookie.reject")}
         </button>
-      </div>
+      </div>}
     </aside>
   );
 }

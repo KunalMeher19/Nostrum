@@ -136,10 +136,12 @@
   "cookie": {
     "aria": "Avís de cookies",
     "title": "Cookies",
-    "description": "Utilitzem cookies per millorar la teva experiència de navegació i per entendre millor com s'utilitza Nostrum. Tria \"Acceptar\" per a l'analítica completa o \"Rebutjar\" per a l'analítica bàsica i no sensible.",
+    "description": "Utilitzem cookies essencials perquè Nostrum funcioni. Amb el teu permís, també utilitzem cookies analítiques per entendre com s'utilitza el lloc.",
     "accept": "Acceptar",
     "preferences": "Preferències",
-    "reject": "Rebutjar"
+    "reject": "Rebutjar",
+    "analytics": "Cookies analítiques",
+    "essential": "Les cookies essencials es mantenen activades perquè el lloc web funcioni."
   },
   "footer": {
     "tagline": "De la terra. Per a la taula.",

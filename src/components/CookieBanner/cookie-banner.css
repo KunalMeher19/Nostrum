@@ -91,6 +91,33 @@
   gap: clamp(14px, 1.6vw, 22px);
 }
 
+.ck-banner__preferences {
+  display: grid;
+  gap: 14px;
+}
+
+.ck-banner__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.78rem;
+  color: var(--ck-ink);
+  cursor: pointer;
+}
+
+.ck-banner__toggle input {
+  accent-color: var(--ck-olive);
+}
+
+.ck-banner__preference-note {
+  margin: -6px 0 0;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ck-muted);
+}
+
 .ck-banner__btn {
   border: 0;
   background: none;

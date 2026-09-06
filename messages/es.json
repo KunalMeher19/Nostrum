@@ -136,10 +136,12 @@
   "cookie": {
     "aria": "Aviso de cookies",
     "title": "Cookies",
-    "description": "Usamos cookies para mejorar tu experiencia de navegación y para entender mejor cómo se usa Nostrum. Elige \"Aceptar\" para la analítica completa o \"Rechazar\" para la analítica básica y no sensible.",
+    "description": "Utilizamos cookies esenciales para que Nostrum funcione. Con tu permiso, también utilizamos cookies analíticas para entender cómo se usa el sitio.",
     "accept": "Aceptar",
     "preferences": "Preferencias",
-    "reject": "Rechazar"
+    "reject": "Rechazar",
+    "analytics": "Cookies analíticas",
+    "essential": "Las cookies esenciales permanecen activadas para que el sitio web funcione."
   },
   "footer": {
     "tagline": "De la tierra. Para la mesa.",

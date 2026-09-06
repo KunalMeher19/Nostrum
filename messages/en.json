@@ -136,10 +136,12 @@
   "cookie": {
     "aria": "Cookie notice",
     "title": "Cookies",
-    "description": "We use cookies to improve your browsing experience and to better understand how visitors use Nostrum. Choose \"Accept\" for full analytics, or \"Reject\" for basic (non-sensitive) analytics only.",
+    "description": "We use essential cookies to make Nostrum work. With your permission, we also use analytics cookies to understand how visitors use the site.",
     "accept": "Accept",
     "preferences": "Preferences",
-    "reject": "Reject"
+    "reject": "Reject",
+    "analytics": "Analytics cookies",
+    "essential": "Essential cookies remain enabled to make the website work."
   },
   "footer": {
     "tagline": "From the land. For the table.",

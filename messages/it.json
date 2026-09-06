@@ -136,10 +136,12 @@
   "cookie": {
     "aria": "Avviso sui cookie",
     "title": "Cookie",
-    "description": "Usiamo i cookie per migliorare la tua esperienza di navigazione e per capire meglio come viene usato Nostrum. Scegli \"Accetta\" per le analisi complete o \"Rifiuta\" solo per le analisi di base non sensibili.",
+    "description": "Utilizziamo i cookie essenziali per far funzionare Nostrum. Con la tua autorizzazione, utilizziamo anche cookie analitici per capire come viene usato il sito.",
     "accept": "Accetta",
     "preferences": "Preferenze",
-    "reject": "Rifiuta"
+    "reject": "Rifiuta",
+    "analytics": "Cookie analitici",
+    "essential": "I cookie essenziali restano attivi per il funzionamento del sito web."
   },
   "footer": {
     "tagline": "Dalla terra. Per la tavola.",

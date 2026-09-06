@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./legal-modal.css";
 import { getLenis } from "../SmoothScroll/lenisStore";
 import { legalDocs, type LegalDoc, type LegalLocale } from "@/lib/legal-content";
+import { CONSENT_PREFERENCES_EVENT } from "../CookieBanner/CookieBanner";
 
 /**
  * LegalModal — Premium legal document viewer
@@ -32,6 +33,14 @@ let currentModalState: LegalModalState = {
   isOpen: false,
   docType: "legal",
   locale: "en",
+};
+
+const manageCookieCopy: Record<LegalLocale, string> = {
+  en: "Manage cookie preferences",
+  es: "Gestionar preferencias de cookies",
+  ca: "Gestionar preferències de cookies",
+  it: "Gestisci le preferenze dei cookie",
+  el: "Διαχείριση προτιμήσεων cookie",
 };
 
 export function showLegalModal(docType: string, locale: LegalLocale) {
@@ -112,6 +121,11 @@ export default function LegalModal() {
     }
   }, []);
 
+  const openCookiePreferences = useCallback(() => {
+    window.dispatchEvent(new Event(CONSENT_PREFERENCES_EVENT));
+    handleClose();
+  }, [handleClose]);
+
   if (!state.isOpen || !doc) return null;
 
   return (
@@ -144,6 +158,13 @@ export default function LegalModal() {
             </svg>
           </button>
         </div>
+        {state.docType === "cookies" && (
+          <div className="legal-modal__cookie-action">
+            <button type="button" onClick={openCookiePreferences}>
+              {manageCookieCopy[state.locale]}
+            </button>
+          </div>
+        )}
 
         {/* Navigation (Table of Contents) */}
         {doc.sections.length > 3 && (
