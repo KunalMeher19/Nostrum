@@ -7,17 +7,22 @@ import JournalAdmin from "./JournalAdmin";
 import ContentView from "./ContentView";
 import AdminSkeleton from "./AdminSkeletons";
 import { MediaGrid } from "./MediaLibrary";
+import ProductCopyEditor, { emptyTranslations } from "./ProductCopyEditor";
 import {
   api,
   downloadFile,
   downloadPath,
   euro,
+  PRODUCT_LOCALES,
   type AdminCustomer,
   type AdminProduct,
   type AuditEvent,
   type OrderDetail,
   type OrderStatus,
   type OrderSummary,
+  type ProductCopy,
+  type ProductDetailRow,
+  type ProductLocale,
 } from "@/lib/api";
 import "./admin-portal.css";
 
@@ -590,10 +595,17 @@ function AuditView() {
 
 /* ── Shop management (products / prices / stock / images / featured) ── */
 
+/* Product page copy (2026-09-06): the DESCRIPTION prose and the DETAILS rows
+   are admin-authored in every locale. English is the base — it owns the row
+   list and is what the public page falls back to — and es/ca/it/el translate
+   the wording of those same rows. In the draft every locale is a filled
+   object; the backend nulls out the ones left blank. */
 const EMPTY_PRODUCT = {
   name: "",
   subtitle: "",
   description: "",
+  details: [] as ProductDetailRow[],
+  translations: emptyTranslations(),
   category: "",
   images: [] as string[],
   sizes: [{ id: "default", label: "", price: 0, stock: 0 }],
@@ -714,6 +726,16 @@ function ProductEditor({
           name: product.name,
           subtitle: product.subtitle,
           description: product.description ?? "",
+          details: product.details ?? [],
+          translations: Object.fromEntries(
+            PRODUCT_LOCALES.map((l) => [
+              l,
+              {
+                description: product.translations?.[l]?.description ?? "",
+                details: product.translations?.[l]?.details ?? [],
+              },
+            ])
+          ) as Record<ProductLocale, ProductCopy>,
           category: product.category ?? "",
           images: product.images ?? [],
           sizes: product.sizes,
@@ -724,7 +746,9 @@ function ProductEditor({
           id: product.id,
           slug: product.slug,
         }
-      : { ...EMPTY_PRODUCT }
+      : // Fresh nested objects per draft — the module-level constant must not
+        // be shared between two editors open at once.
+        { ...EMPTY_PRODUCT, details: [], translations: emptyTranslations() }
   );
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
@@ -786,6 +810,8 @@ function ProductEditor({
         name: draft.name,
         subtitle: draft.subtitle,
         description: draft.description,
+        details: draft.details,
+        translations: draft.translations,
         category: draft.category,
         images: draft.images,
         active: draft.active,
@@ -867,16 +893,18 @@ function ProductEditor({
           onChange={(e) => setDraft((d) => ({ ...d, subtitle: e.target.value }))}
         />
       </div>
-      <div className="ad__field is--grow">
-        <label htmlFor={`ad-desc-${uid}`}>{t("admin.product_description")}</label>
-        <textarea
-          id={`ad-desc-${uid}`}
-          rows={3}
-          value={draft.description}
-          maxLength={2000}
-          onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
-        />
-      </div>
+      {/* Product page copy — description + details, in every language */}
+      <ProductCopyEditor
+        uid={uid}
+        base={{ description: draft.description, details: draft.details }}
+        translations={draft.translations}
+        onBaseChange={(copy) =>
+          setDraft((d) => ({ ...d, description: copy.description, details: copy.details }))
+        }
+        onTranslationChange={(loc, copy) =>
+          setDraft((d) => ({ ...d, translations: { ...d.translations, [loc]: copy } }))
+        }
+      />
 
       {/* Toggles: active + featured */}
       <div className="ad__track-fields">

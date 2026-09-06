@@ -1354,3 +1354,206 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Product page copy · per-language description + details ──────────
+   The admin's translation desk. One card, a language rail across the top,
+   one locale open at a time. Same dark ledger material as the rest of the
+   panel; gold marks the language you are editing, lime marks the ones that
+   are finished, so completeness reads at a glance without opening a tab. */
+
+.ad__copy {
+  margin-top: 1.8rem;
+  border: 1px solid var(--ad-hair);
+  border-radius: 3px;
+  padding: 1.1rem 1.2rem 1.4rem;
+}
+
+.ad__copy-head .ad__mini-title {
+  margin-top: 0;
+}
+
+.ad__copy-langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ad-hair);
+}
+
+.ad__copy-lang {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--ad-hair);
+  border-radius: 999px;
+  padding: 0.42rem 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  color: var(--ad-muted);
+  cursor: pointer;
+  transition: color 0.35s ease, border-color 0.35s ease, background-color 0.35s ease;
+}
+
+.ad__copy-lang:hover {
+  color: var(--ad-fg);
+  border-color: color-mix(in srgb, var(--ad-fg) 30%, transparent);
+}
+
+.ad__copy-lang.is--active {
+  color: var(--ad-fg);
+  border-color: color-mix(in srgb, var(--ad-gold) 55%, transparent);
+  background: color-mix(in srgb, var(--ad-gold) 8%, transparent);
+}
+
+.ad__copy-lang-code {
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ad__copy-lang-name {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--ad-muted);
+}
+
+.ad__copy-lang.is--active .ad__copy-lang-name {
+  color: color-mix(in srgb, var(--ad-fg) 70%, transparent);
+}
+
+/* Completeness dot: hollow = nothing, gold ring = part-way, lime = done. */
+.ad__copy-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  flex: none;
+  transition: background-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.ad__copy-dot.is--empty {
+  background: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ad-muted) 55%, transparent);
+}
+
+.ad__copy-dot.is--partial {
+  background: var(--ad-gold);
+}
+
+.ad__copy-dot.is--complete {
+  background: var(--ad-lime);
+}
+
+.ad__copy-panel {
+  padding-top: 1.2rem;
+  animation: ad-copy-in 0.45s ease both;
+}
+
+@keyframes ad-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.ad__copy-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.ad__copy-panel-title {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ad-fg);
+}
+
+.ad__copy-sub {
+  margin: 1.6rem 0 0.4rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ad-muted);
+}
+
+.ad__rows.is--copy {
+  margin-top: 0.7rem;
+}
+
+.ad__rows.is--copy .ad__row {
+  grid-template-columns: minmax(7rem, 1fr) minmax(10rem, 2fr) 5.4rem;
+  gap: 1.1rem;
+}
+
+.ad__copy-rowtools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.ad__copy-move {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.1rem 0.25rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--ad-muted);
+  cursor: pointer;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.ad__copy-move:hover:not(:disabled) {
+  color: var(--ad-fg);
+}
+
+.ad__copy-move:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.ad__copy-empty {
+  margin: 0.8rem 0 0;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--ad-hair);
+  border-radius: 3px;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ad-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad__copy-panel {
+    animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .ad__copy {
+    padding: 0.9rem 0.9rem 1.1rem;
+  }
+
+  .ad__copy-lang-name {
+    display: none;
+  }
+
+  .ad__rows.is--copy .ad__row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--ad-hair);
+  }
+
+  .ad__rows.is--copy .ad__row.is--head {
+    display: none;
+  }
+}

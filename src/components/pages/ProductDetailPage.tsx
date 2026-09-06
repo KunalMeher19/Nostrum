@@ -14,6 +14,7 @@ import {
   tierFor,
   type Product,
 } from "@/lib/products";
+import type { ProductDetailRow, ProductLocale, ProductTranslations } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
 /* Product page — LIGHT/white (§7), LV/Balmain-clean.                   */
@@ -41,7 +42,53 @@ type LiveProduct = {
   sizes: Array<{ id: string; label: string; price: number }>;
   defaultSizeId: string;
   packs?: Array<{ qty: number; discount: number }>;
+  description?: string;
+  details?: ProductDetailRow[];
+  translations?: ProductTranslations | null;
 };
+
+/* Admin-authored copy for the DESCRIPTION and DETAILS tabs (2026-09-06).
+   Resolution is a three-step fallback so a half-filled product never renders
+   blank: this locale's translation → the base (English) copy → the static
+   locale-file defaults below. Blank lines split the description into <p>. */
+type ResolvedCopy = { paragraphs: string[]; details: Array<{ label: string; value: string }> };
+
+function resolveProductCopy(
+  product: LiveProduct | null,
+  locale: string
+): ResolvedCopy {
+  if (!product) return { paragraphs: [], details: [] };
+
+  const tr =
+    locale === "en"
+      ? null
+      : product.translations?.[locale as ProductLocale] ?? null;
+
+  const description = (tr?.description || product.description || "").trim();
+  const paragraphs = description
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  // The base copy owns the row order and identity; the translation only
+  // supplies label/value overrides. When the base has no rows at all, the
+  // translation's own rows are used verbatim.
+  const baseRows = product.details ?? [];
+  const source = baseRows.length ? baseRows : tr?.details ?? [];
+  const details = source
+    .map((row) => {
+      const override = baseRows.length
+        ? tr?.details?.find((r) => r.id === row.id)
+        : undefined;
+      return {
+        label: (override?.label || row.label || "").trim(),
+        value: (override?.value || row.value || "").trim(),
+      };
+    })
+    .filter((row) => row.label || row.value);
+
+  return { paragraphs, details };
+}
 
 export default function ProductPage() {
   const params = useParams<{ id: string }>();
@@ -57,6 +104,9 @@ export default function ProductPage() {
   const [customQty, setCustomQty] = useState(false);
   const [added, setAdded] = useState(false);
   const [liveProduct, setLiveProduct] = useState<Product | null>(null);
+  // Raw API record, kept alongside the converted Product so the tab copy can
+  // be resolved per locale (the internal Product shape has no translations).
+  const [copySource, setCopySource] = useState<LiveProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchFailed, setFetchFailed] = useState(false);
 
@@ -80,6 +130,7 @@ export default function ProductPage() {
         setLoading(false);
         if (!p || !p.sizes?.length) return;
         const size = p.sizes.find((s: any) => s.id === p.defaultSizeId) ?? p.sizes[0];
+        setCopySource(p);
         // Convert API product to internal Product format
         setLiveProduct({
           slug: p.slug,
@@ -336,15 +387,21 @@ export default function ProductPage() {
     router.push(`/${locale}/cart`);
   };
 
-  /* Translated product data — pulled from the "product" translation section */
-  const descriptions = [t("product.desc_1"), t("product.desc_2")];
-  const details = [
-    { label: t("product.detail_variety"), value: t("product.detail_variety_value") },
-    { label: t("product.detail_extraction"), value: t("product.detail_extraction_value") },
-    { label: t("product.detail_acidity"), value: t("product.detail_acidity_value") },
-    { label: t("product.detail_origin"), value: t("product.detail_origin_value") },
-    { label: t("product.detail_keep"), value: t("product.detail_keep_value") },
-  ];
+  /* Tab copy — admin-authored per locale when present, otherwise the static
+     locale-file defaults below (see resolveProductCopy). */
+  const copy = resolveProductCopy(copySource, locale);
+  const descriptions = copy.paragraphs.length
+    ? copy.paragraphs
+    : [t("product.desc_1"), t("product.desc_2")];
+  const details = copy.details.length
+    ? copy.details
+    : [
+        { label: t("product.detail_variety"), value: t("product.detail_variety_value") },
+        { label: t("product.detail_extraction"), value: t("product.detail_extraction_value") },
+        { label: t("product.detail_acidity"), value: t("product.detail_acidity_value") },
+        { label: t("product.detail_origin"), value: t("product.detail_origin_value") },
+        { label: t("product.detail_keep"), value: t("product.detail_keep_value") },
+      ];
   const shippingLines = [t("product.shipping_1"), t("product.shipping_2"), t("product.shipping_3")];
   const highlights = [
     t("product.highlight_1"),
@@ -630,11 +687,11 @@ export default function ProductPage() {
             </div>
             <div className="pdp__tabpanel" role="tabpanel" key={tab}>
               {tab === "tab_description" &&
-                descriptions.map((p) => <p key={p}>{p}</p>)}
+                descriptions.map((p, i) => <p key={i}>{p}</p>)}
               {tab === "tab_details" && (
                 <dl className="pdp__details">
-                  {details.map((d) => (
-                    <div key={d.label}>
+                  {details.map((d, i) => (
+                    <div key={i}>
                       <dt>{d.label}</dt>
                       <dd>{d.value}</dd>
                     </div>

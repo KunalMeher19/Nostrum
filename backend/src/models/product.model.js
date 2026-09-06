@@ -23,12 +23,39 @@ const packSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// One row of the product page DETAILS tab ("Variety · Early harvest, single
+// estate"). `id` is the stable row identity: it is minted once on the base
+// (English) copy and reused by every translation, so a translator only ever
+// fills label + value into rows that already exist.
+const detailRowSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true },
+    label: { type: String, default: '', maxlength: 60 },
+    value: { type: String, default: '', maxlength: 200 },
+  },
+  { _id: false }
+);
+
+// Per-locale copy for the product page tabs. Blank fields fall back to the
+// base (English) copy, and a blank base falls back to the locale JSON
+// defaults in the frontend, so a half-translated product never renders empty.
+const productTranslationSchema = new mongoose.Schema(
+  {
+    description: { type: String, default: '', maxlength: 2000 },
+    details: { type: [detailRowSchema], default: [] },
+  },
+  { _id: false }
+);
+
 const productSchema = new mongoose.Schema(
   {
     slug: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     subtitle: { type: String, default: '' },
+    // Base (English) description. Blank lines separate paragraphs.
     description: { type: String, default: '' },
+    // Base (English) DETAILS rows, in display order.
+    details: { type: [detailRowSchema], default: [] },
     category: { type: String, default: '' },
     images: { type: [String], default: [] }, // ImageKit URLs or /public paths
     sizes: { type: [sizeSchema], default: [] },
@@ -36,6 +63,13 @@ const productSchema = new mongoose.Schema(
     packs: { type: [packSchema], default: [] },
     active: { type: Boolean, default: true },
     featured: { type: Boolean, default: false }, // shown in home page grid
+    // Product page copy in the remaining locales (same pattern as journal posts).
+    translations: {
+      es: { type: productTranslationSchema, default: null },
+      ca: { type: productTranslationSchema, default: null },
+      it: { type: productTranslationSchema, default: null },
+      el: { type: productTranslationSchema, default: null },
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

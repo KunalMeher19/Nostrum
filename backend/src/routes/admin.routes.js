@@ -266,6 +266,52 @@ router.get('/contact-messages', async (req, res, next) => {
 
 /* ── Products (shop management) ───────────────────────────────────── */
 
+// Locales the product page copy can be translated into. English is the base
+// copy stored on the document itself, so it is not in this list.
+const PRODUCT_LOCALES = ['es', 'ca', 'it', 'el'];
+const MAX_DETAIL_ROWS = 12;
+
+// DETAILS rows for one locale. Rows without an id are dropped (the id is the
+// cross-locale row identity); duplicates collapse to the first occurrence.
+function cleanDetails(input) {
+  if (!Array.isArray(input)) return null;
+  const seen = new Set();
+  const rows = [];
+  for (const row of input) {
+    if (!row || typeof row.id !== 'string' || !row.id.trim()) continue;
+    const id = row.id.trim().slice(0, 40);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    rows.push({
+      id,
+      label: String(row.label ?? '').trim().slice(0, 60),
+      value: String(row.value ?? '').trim().slice(0, 200),
+    });
+    if (rows.length >= MAX_DETAIL_ROWS) break;
+  }
+  return rows;
+}
+
+// `translations` for the product tabs. A locale whose description and rows are
+// all blank is stored as null so the frontend falls straight back to English.
+function cleanProductTranslations(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+  const out = {};
+  for (const loc of PRODUCT_LOCALES) {
+    const tr = input[loc];
+    if (!tr || typeof tr !== 'object' || Array.isArray(tr)) {
+      out[loc] = null;
+      continue;
+    }
+    const description = String(tr.description ?? '').trim().slice(0, 2000);
+    const details = cleanDetails(tr.details) ?? [];
+    const empty =
+      !description && !details.some((r) => r.label || r.value);
+    out[loc] = empty ? null : { description, details };
+  }
+  return out;
+}
+
 router.get('/products', async (req, res, next) => {
   try {
     const products = await Product.find({}).sort({ createdAt: 1 }).lean();
@@ -286,6 +332,10 @@ router.patch('/products/:id', requireObjectId('id'), async (req, res, next) => {
     if (typeof b.name === 'string' && b.name.trim()) updates.name = b.name.trim().slice(0, 120);
     if (typeof b.subtitle === 'string') updates.subtitle = b.subtitle.trim().slice(0, 160);
     if (typeof b.description === 'string') updates.description = b.description.trim().slice(0, 2000);
+    const details = cleanDetails(b.details);
+    if (details) updates.details = details;
+    const translations = cleanProductTranslations(b.translations);
+    if (translations) updates.translations = translations;
     if (typeof b.category === 'string') updates.category = b.category.trim().slice(0, 60);
     if (typeof b.active === 'boolean') updates.active = b.active;
     if (typeof b.featured === 'boolean') updates.featured = b.featured;
@@ -357,6 +407,8 @@ router.post('/products', async (req, res, next) => {
       name: String(b.name).trim().slice(0, 120),
       subtitle: typeof b.subtitle === 'string' ? b.subtitle.trim().slice(0, 160) : '',
       description: typeof b.description === 'string' ? b.description.trim().slice(0, 2000) : '',
+      details: cleanDetails(b.details) ?? [],
+      translations: cleanProductTranslations(b.translations) ?? undefined,
       category: typeof b.category === 'string' ? b.category.trim().slice(0, 60) : '',
       images: Array.isArray(b.images) ? b.images.filter((u) => typeof u === 'string').slice(0, 10) : [],
       sizes,

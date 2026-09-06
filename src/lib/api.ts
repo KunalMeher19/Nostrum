@@ -154,12 +154,26 @@ export type AdminCustomer = {
   };
 };
 
+/* Product page copy (2026-09-06). The DESCRIPTION tab is free prose (blank
+   lines separate paragraphs); the DETAILS tab is a list of label/value rows.
+   `id` is the row's cross-locale identity — minted once on the English copy
+   and reused by every translation, so translators only fill in values. */
+export type ProductDetailRow = { id: string; label: string; value: string };
+export type ProductCopy = { description: string; details: ProductDetailRow[] };
+/* Locales the product copy can be translated into. English is the base copy
+   stored on the product itself, so it is not listed here. */
+export const PRODUCT_LOCALES = ["es", "ca", "it", "el"] as const;
+export type ProductLocale = (typeof PRODUCT_LOCALES)[number];
+export type ProductTranslations = Partial<Record<ProductLocale, ProductCopy | null>>;
+
 export type AdminProduct = {
   id: string;
   slug: string;
   name: string;
   subtitle: string;
   description: string;
+  details?: ProductDetailRow[];
+  translations?: ProductTranslations | null;
   category: string;
   images: string[];
   sizes: { id: string; label: string; price: number; stock: number }[];
