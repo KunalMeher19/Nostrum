@@ -542,12 +542,66 @@
 /* ── Small screens ────────────────────────────────────────────────── */
 
 @media (max-width: 480px) {
-  .ac__card {
-    padding: 1.6rem 1.3rem 2rem;
+  .ac {
+    align-items: start;
+    padding: 5rem 1rem 2rem;
   }
+
+  .ac__card {
+    padding: 1.45rem 1.2rem 1.6rem;
+    border-radius: 14px;
+  }
+
+  .ac__eyebrow {
+    margin-bottom: 0.9rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.28em;
+  }
+
+  .ac__headline {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .ac__lede {
+    margin-bottom: 1.4rem;
+    font-size: 0.88rem;
+  }
+
+  .ac__tabs {
+    gap: 1.2rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .ac__tab {
+    min-height: 2.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+  }
+
+  .ac__form {
+    gap: 1.1rem;
+  }
+
+  .ac__field input {
+    min-height: 2.75rem;
+    padding-top: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .ac__google {
+    min-height: 2.8rem;
+    padding: 0.65rem 0.9rem;
+  }
+
   .ac__submit-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.8rem;
+  }
+
+  .ac__submit,
+  .ac__forgot {
+    min-height: 2.75rem;
   }
 }

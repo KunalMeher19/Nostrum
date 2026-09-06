@@ -133,3 +133,38 @@
     transition: none;
   }
 }
+
+@media (max-width: 560px) {
+  .un {
+    align-items: start;
+    padding: 5rem 1rem 2rem;
+  }
+
+  .un__card {
+    padding: 1.5rem 1.2rem;
+    border-radius: 14px;
+  }
+
+  .un__eyebrow {
+    margin-bottom: 0.9rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.28em;
+  }
+
+  .un__title {
+    font-size: 1.7rem;
+  }
+
+  .un__line {
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .un__cta {
+    min-height: 2.8rem;
+    margin-top: 1.5rem;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+  }
+}

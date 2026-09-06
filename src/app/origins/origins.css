@@ -67,7 +67,12 @@
   }
 
   .origins__outro {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 3rem 1.25rem 4rem;
+  }
+
+  .origins__cta {
+    min-height: 2.75rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
   }
 }

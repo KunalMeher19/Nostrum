@@ -395,6 +395,48 @@
 }
 
 @media (max-width: 560px) {
+  .tk {
+    align-items: start;
+    padding: 5rem 1rem 2rem;
+  }
+
+  .tk__card {
+    padding: 1.5rem 1.2rem;
+    border-radius: 14px;
+  }
+
+  .tk__eyebrow {
+    margin-bottom: 0.9rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.28em;
+  }
+
+  .tk__title {
+    font-size: 2rem;
+  }
+
+  .tk__lede {
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+  }
+
+  .tk__form {
+    gap: 1.1rem;
+  }
+
+  .tk__field input {
+    min-height: 2.75rem;
+    padding-top: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .tk__cta {
+    min-height: 2.8rem;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+  }
+
   .tk__timeline {
     flex-direction: column;
     gap: 0.9rem;

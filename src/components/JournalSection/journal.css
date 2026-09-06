@@ -742,9 +742,98 @@
 /* ── Responsive ─────────────────────────────────────────────────── */
 
 @media (max-width: 760px) {
+  /* The journal used the desktop display scale on phones, which made the
+     opening banner feel more like a billboard than an editorial cover.
+     Keep its hierarchy, but give the content a compact, phone-first rhythm. */
+  .jr__hero {
+    min-height: 70dvh;
+    padding: max(5.5rem, env(safe-area-inset-top, 0px)) 1.4rem 1.75rem;
+  }
+
+  .jr__hero-top {
+    gap: 0.75rem;
+  }
+
+  .jr__hero-rule {
+    width: 2.4rem;
+  }
+
+  .jr__eyebrow {
+    font-size: 0.64rem;
+    letter-spacing: 0.28em;
+  }
+
+  .jr__title {
+    font-size: clamp(2.25rem, 10.5vw, 2.8rem);
+    line-height: 0.98;
+    margin-top: 1rem;
+  }
+
+  .jr__title-line.is--accent {
+    margin-left: 1rem;
+  }
+
+  .jr__lede {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-top: 1.35rem;
+    max-width: 29rem;
+  }
+
+  .jr__hero-foot {
+    padding-top: 1.75rem;
+  }
+
+  .jr__hint {
+    font-size: 0.62rem;
+    letter-spacing: 0.24em;
+  }
+
   .jr__stories {
     /* Reset padding on mobile - no collision with branch */
-    padding-right: clamp(1.4rem, 6vw, 6rem);
+    padding: 3.75rem 1.4rem 4.5rem;
+  }
+
+  .jr__stories-head {
+    margin-bottom: 2rem;
+  }
+
+  .jr__stories-title {
+    font-size: clamp(1.9rem, 9vw, 2.35rem);
+  }
+
+  .jr__story {
+    gap: 1rem;
+    padding: 1.25rem 0;
+  }
+
+  .jr__story-title {
+    font-size: clamp(1.3rem, 6.5vw, 1.65rem);
+  }
+
+  .jr__story-excerpt {
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .jp__article {
+    padding: 5.5rem 1.4rem 3.75rem;
+  }
+
+  .jp__back {
+    font-size: 0.68rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .jp__title {
+    font-size: clamp(2rem, 9vw, 2.5rem);
+    margin-bottom: 1.75rem;
+  }
+
+  .jp__body p {
+    font-size: 0.96rem;
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
   }
 
   .jr__exhibit,

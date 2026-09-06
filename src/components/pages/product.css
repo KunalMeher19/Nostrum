@@ -684,6 +684,39 @@
 }
 
 @media (max-width: 560px) {
+  .pdp__inner {
+    padding: 5rem 1.25rem 3.25rem;
+  }
+
+  .pdp__crumb {
+    margin-bottom: 1.5rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.2em;
+  }
+
+  .pdp__grid,
+  .pdp-skeleton__grid,
+  .pdp__below {
+    gap: 1.75rem;
+  }
+
+  .pdp__media,
+  .pdp-skeleton__media {
+    aspect-ratio: 4 / 3.8;
+  }
+
+  .pdp__media-mark {
+    font-size: clamp(4.5rem, 22vw, 6rem);
+  }
+
+  .pdp__panel {
+    gap: 1.1rem;
+  }
+
+  .pdp__name {
+    font-size: clamp(2rem, 9vw, 2.45rem);
+  }
+
   .pdp__trust {
     grid-template-columns: 1fr;
     gap: 0.9rem;

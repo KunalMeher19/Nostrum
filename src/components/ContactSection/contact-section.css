@@ -732,6 +732,20 @@ a.ct__channel-value:hover {
 
 /* ── Mobile touch-friendly inputs ───────────────────────────────────── */
 @media (max-width: 768px) {
+  .ct {
+    gap: 2rem;
+    padding: 5rem 1.25rem 2.5rem;
+  }
+
+  .ct__headline {
+    font-size: clamp(2rem, 9vw, 2.45rem);
+  }
+
+  .ct__lede {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
   .ct__field input,
   .ct__field textarea {
     min-height: 44px;
@@ -741,5 +755,12 @@ a.ct__channel-value:hover {
 
   .ct__field textarea {
     min-height: 88px; /* 2x minimum for textarea */
+  }
+
+  .ct__submit {
+    min-height: 2.8rem;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
   }
 }

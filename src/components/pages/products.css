@@ -332,17 +332,60 @@
 }
 
 @media (max-width: 620px) {
+  .products {
+    align-items: flex-start;
+    padding: 4.75rem 1.25rem 3rem;
+  }
+
+  .products__inner {
+    gap: 2rem;
+  }
+
+  .products__head-row {
+    gap: 1.1rem;
+  }
+
+  .products__eyebrow {
+    margin-top: 0.4rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.28em;
+  }
+
+  .products__title {
+    font-size: clamp(2rem, 9vw, 2.45rem);
+  }
+
+  .products__b2b {
+    min-width: 0;
+    width: 100%;
+    height: 2.8rem;
+    padding: 0 2.8rem 0 1rem;
+    font-size: 0.67rem;
+    letter-spacing: 0.16em;
+  }
+
+  .products__b2b-arrow {
+    right: 1rem;
+  }
+
   .products__grid {
     grid-template-columns: 1fr;
-    gap: clamp(2rem, 8vw, 3rem);
+    gap: 2.25rem;
   }
   .pcard__media {
-    aspect-ratio: 3 / 3.6;
+    aspect-ratio: 3 / 3.2;
   }
   /* Touch: no hover, so keep the add button visible */
   .pcard__add {
     opacity: 1;
     transform: none;
+    min-height: 2.75rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+  }
+
+  .pcard__name {
+    font-size: 1.25rem;
   }
 }
 

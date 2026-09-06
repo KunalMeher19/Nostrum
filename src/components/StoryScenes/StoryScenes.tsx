@@ -51,7 +51,7 @@ type Callout = {
 type Scene = {
   eyebrow: string;
   title: string;
-  copy: string;
+  copy?: string;
   img: string;
   alt: string;
   callouts?: Callout[];
@@ -92,7 +92,6 @@ const SCENES: Scene[] = [
   {
     eyebrow: "scenes.s1_eyebrow",
     title: "scenes.s1_title",
-    copy: "scenes.s1_copy",
     img: "/images/origin_2.png",
     alt: "a11y.scene_alt_2",
     callouts: [
@@ -876,7 +875,7 @@ export default function StoryScenes() {
             <div className="story-scenes__caption">
               <p className="story-scenes__eyebrow">{t(s.eyebrow)}</p>
               <h2 className="story-scenes__title">{t(s.title)}</h2>
-              <p className="story-scenes__copy">{t(s.copy)}</p>
+              {s.copy && <p className="story-scenes__copy">{t(s.copy)}</p>}
             </div>
           </div>
         ))}
