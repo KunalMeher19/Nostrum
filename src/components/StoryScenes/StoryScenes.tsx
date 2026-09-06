@@ -845,10 +845,11 @@ export default function StoryScenes() {
 
             {/* Hand-drawn annotations — arrow + a few words pointing into the
                 photograph. Decorative; the copy below carries the meaning. */}
-            {s.callouts?.map((c) => (
+            {s.callouts?.map((c, calloutIndex) => (
               <div
                 className="story-scenes__callout"
                 key={c.label}
+                data-callout-index={calloutIndex}
                 aria-hidden="true"
                 style={
                   { "--callout-delay": `${c.delay ?? 0}s` } as React.CSSProperties

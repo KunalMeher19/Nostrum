@@ -189,6 +189,38 @@
     max-width: 9rem;
     white-space: normal;
   }
+
+  /* Phone crops put the editorial caption in the lower third. These two
+     image annotations used to enter that same zone, making their labels and
+     arrowheads collide with the eyebrow/title. Keep them inside clear image
+     space above the caption; desktop positioning remains art-directed. */
+  .story-scenes__scene[data-index="1"]
+    .story-scenes__callout[data-callout-index="1"]
+    .story-scenes__callout-label {
+    left: 34% !important;
+    top: 64% !important;
+  }
+
+  .story-scenes__scene[data-index="1"]
+    .story-scenes__callout[data-callout-index="1"]
+    .story-scenes__callout-arrow {
+    left: 47% !important;
+    top: 68% !important;
+  }
+
+  .story-scenes__scene[data-index="2"]
+    .story-scenes__callout[data-callout-index="1"]
+    .story-scenes__callout-label {
+    left: 43% !important;
+    top: 61% !important;
+  }
+
+  .story-scenes__scene[data-index="2"]
+    .story-scenes__callout[data-callout-index="1"]
+    .story-scenes__callout-arrow {
+    left: 56% !important;
+    top: 65% !important;
+  }
 }
 
 /* Legibility scrim — darker at the bottom where the caption sits. */
