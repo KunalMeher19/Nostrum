@@ -283,7 +283,8 @@
   color: var(--ac-muted);
 }
 
-.ac__gdpr-text a {
+.ac__gdpr-text a,
+.ac__gdpr-link {
   color: var(--ac-fg);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -291,8 +292,32 @@
   transition: text-decoration-color 0.4s ease;
 }
 
-.ac__gdpr-text a:hover {
+/* The privacy policy opener is a button (it raises the shared legal modal),
+   so it has to shed the UA button chrome and read as inline copy. */
+.ac__gdpr-link {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ac__gdpr-text a:hover,
+.ac__gdpr-link:hover {
   text-decoration-color: var(--ac-gold);
+}
+
+.ac__gdpr-link:focus-visible {
+  outline: 2px solid var(--ac-lime);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.ac__gdpr-req {
+  margin-left: 0.15rem;
+  color: var(--ac-gold);
 }
 
 /* ── Submit row ───────────────────────────────────────────────────── */
@@ -423,6 +448,42 @@
   transform: translateY(-1px);
 }
 
+/* Pending state: the redirect to Google can take a beat, so the button has
+   to say so. The Google mark gives way to a gold ring and the label swaps
+   to "Redirecting to Google". */
+.ac__google-spin {
+  display: none;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--ac-gold) 22%, transparent);
+  border-top-color: var(--ac-gold);
+  animation: ac-google-spin 0.75s linear infinite;
+}
+
+.ac__google.is--working {
+  cursor: progress;
+  border-color: color-mix(in srgb, var(--ac-gold) 40%, transparent);
+  background: color-mix(in srgb, var(--ac-gold) 8%, transparent);
+  color: color-mix(in srgb, var(--ac-fg) 72%, transparent);
+  transform: none;
+}
+
+.ac__google.is--working .ac__google-spin {
+  display: block;
+}
+
+.ac__google.is--working svg {
+  display: none;
+}
+
+@keyframes ac-google-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ── Signed-in landing links ──────────────────────────────────────── */
 
 .ac__signed-links {
@@ -471,6 +532,10 @@
 @media (prefers-reduced-motion: reduce) {
   .ac * {
     transition: none !important;
+  }
+  /* The label swap still carries the pending state without the spin. */
+  .ac__google-spin {
+    animation: none;
   }
 }
 

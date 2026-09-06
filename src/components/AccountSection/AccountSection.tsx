@@ -8,6 +8,8 @@ import {
   CURTAIN_REVEAL_EVENT,
 } from "../RouteCurtain/curtainNav";
 import { useLocale } from "../LocaleContext/LocaleContext";
+import { showLegalModal } from "../LegalModal/LegalModal";
+import type { LegalLocale } from "@/lib/legal-content";
 import "./account-section.css";
 
 /* ------------------------------------------------------------------ */
@@ -37,6 +39,8 @@ export default function AccountSection() {
   const [notice, setNotice] = useState<string | null>(null);
   const [gdpr, setGdpr] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  /* Google leaves the page, so its pending state is separate from `busy`. */
+  const [googleBusy, setGoogleBusy] = useState(false);
 
   /* Entry choreography (same beat as ContactSection). */
   useEffect(() => {
@@ -89,8 +93,15 @@ export default function AccountSection() {
   };
 
   const onGoogle = () => {
+    if (googleBusy) return;
     setError(null);
-    void signIn("google", { callbackUrl: `/${locale}/account` });
+    setGoogleBusy(true);
+    /* signIn resolves only if the redirect never happens (network/config
+       failure), so releasing the button on settle is safe: on the happy
+       path the browser has already left for Google. */
+    void signIn("google", { callbackUrl: `/${locale}/account` })
+      .catch(() => setError(t("account.error_generic")))
+      .finally(() => setGoogleBusy(false));
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -283,7 +294,20 @@ export default function AccountSection() {
                 <span className="ac__gdpr-box" aria-hidden="true" />
                 <span className="ac__gdpr-text">
                   {t("account.gdpr_label")}{" "}
-                  <a href={`/${locale}/privacy`}>{t("account.gdpr_link")}</a>
+                  <button
+                    type="button"
+                    className="ac__gdpr-link"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showLegalModal("privacy", locale as LegalLocale);
+                    }}
+                  >
+                    {t("account.gdpr_link")}
+                  </button>
+                  <span className="ac__gdpr-req" aria-hidden="true">
+                    *
+                  </span>
                 </span>
               </label>
               {/* Optional marketing consent (client feedback 3) */}
@@ -350,10 +374,13 @@ export default function AccountSection() {
             {/* Google — the fast lane. Must ALWAYS work (§8). */}
             <button
               type="button"
-              className="ac__google"
+              className={`ac__google${googleBusy ? " is--working" : ""}`}
               onClick={onGoogle}
+              disabled={googleBusy}
+              aria-busy={googleBusy}
               data-ac-reveal
             >
+              <span className="ac__google-spin" aria-hidden="true" />
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path
                   fill="#4285F4"
@@ -372,7 +399,11 @@ export default function AccountSection() {
                   d="M12 4.76c1.76 0 3.34.6 4.59 1.8l3.43-3.44A11.97 11.97 0 0 0 1.29 6.62l3.98 3.1C6.22 6.88 8.87 4.76 12 4.76z"
                 />
               </svg>
-              <span>{t("account.google")}</span>
+              <span>
+                {googleBusy
+                  ? t("account.google_redirecting")
+                  : t("account.google")}
+              </span>
             </button>
           </>
         )}
