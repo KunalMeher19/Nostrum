@@ -422,7 +422,13 @@
     "saved": "Guardado.",
     "stat_orders": "Pedidos",
     "stat_active": "En camino",
-    "stat_spent": "En total"
+    "stat_spent": "En total",
+    "verify_kicker": "Protección de pedidos",
+    "verify_title": "Verifica tu correo electrónico",
+    "verify_lede": "Confirma tu correo para proteger tu cuenta y añadir los pedidos anteriores realizados como invitado.",
+    "verify_send": "Enviar correo de verificación",
+    "verify_sending": "Enviando…",
+    "verify_sent": "Correo enviado"
   },
   "admin": {
     "eyebrow": "La trastienda",

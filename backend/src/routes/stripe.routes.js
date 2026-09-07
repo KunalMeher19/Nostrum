@@ -18,6 +18,7 @@ const Stripe = require('stripe');
 const orders = require('../services/orders.service');
 const Product = require('../models/product.model');
 const { Order } = require('../models/order.model');
+const User = require('../models/user.model');
 
 const router = express.Router();
 
@@ -104,9 +105,16 @@ async function buildOrderPayload(session) {
         }
       : null;
 
+  const email = (session.customer_details?.email ?? session.customer_email ?? '').trim().toLowerCase();
+  // A payment webhook can arrive after an account was created. Link it to
+  // that verified account so the order is not left orphaned as a guest one.
+  const matchingUser = !userId && email
+    ? await User.findOne({ email, emailVerified: { $ne: null } }).select('_id').lean()
+    : null;
+
   return {
-    userId: userId ?? null,
-    email: session.customer_details?.email ?? session.customer_email ?? '',
+    userId: userId ?? matchingUser?._id ?? null,
+    email,
     items,
     subtotal,
     shippingCost,

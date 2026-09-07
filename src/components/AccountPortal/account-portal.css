@@ -684,6 +684,74 @@
   margin-bottom: 1rem;
 }
 
+/* Email ownership is a quiet security ritual, not an interruption. */
+.pt__verify {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.1rem;
+  margin: 2rem 0 2.35rem;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--pt-gold) 38%, transparent);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--pt-gold) 10%, transparent), color-mix(in srgb, var(--pt-fg) 3%, transparent));
+  box-shadow: inset 3px 0 0 var(--pt-gold);
+}
+
+.pt__verify-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--pt-gold);
+}
+
+.pt__verify-copy { min-width: 0; }
+.pt__verify-kicker {
+  margin: 0 0 0.28rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.23em;
+  text-transform: uppercase;
+  color: var(--pt-gold);
+}
+
+.pt__verify h3 {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--pt-fg);
+}
+
+.pt__verify-copy > p:last-child {
+  margin: 0.25rem 0 0;
+  max-width: 33rem;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--pt-muted);
+}
+
+.pt__verify-action { text-align: right; }
+.pt__verify-action button {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--pt-gold) 62%, transparent);
+  background: transparent;
+  padding: 0.65rem 0.8rem;
+  color: var(--pt-fg);
+  cursor: pointer;
+  font: 600 0.64rem/1 var(--font-sans), system-ui, sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+
+.pt__verify-action button:hover:not(:disabled) {
+  border-color: var(--pt-gold);
+  background: var(--pt-gold);
+  color: var(--pt-ink);
+}
+
+.pt__verify-action button:focus-visible { outline: 2px solid var(--pt-lime); outline-offset: 3px; }
+.pt__verify-action button:disabled { opacity: 0.72; cursor: default; }
+.pt__verify-action p { margin: 0.45rem 0 0; font-size: 0.7rem; color: #e2a89c; }
+
 .pt__field {
   position: relative;
   display: flex;
@@ -991,6 +1059,15 @@
   .pt__fields {
     grid-template-columns: 1fr;
   }
+
+  .pt__verify {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .pt__verify-action { grid-column: 2; text-align: left; }
 
   .pt__stat {
     padding: 0.9rem 0.7rem 1rem;

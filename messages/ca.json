@@ -422,7 +422,13 @@
     "saved": "Desat.",
     "stat_orders": "Comandes",
     "stat_active": "En camí",
-    "stat_spent": "En total"
+    "stat_spent": "En total",
+    "verify_kicker": "Protecció de comandes",
+    "verify_title": "Verifica el teu correu electrònic",
+    "verify_lede": "Confirma el teu correu per protegir el compte i afegir les comandes anteriors fetes com a convidat.",
+    "verify_send": "Enviar correu de verificació",
+    "verify_sending": "Enviant…",
+    "verify_sent": "Correu enviat"
   },
   "admin": {
     "eyebrow": "La rebotiga",

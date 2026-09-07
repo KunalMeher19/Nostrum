@@ -59,11 +59,18 @@ export async function POST(req: Request) {
     marketingConsent: !!body.marketingConsent,
   });
 
-  // Email verification: token issued now, email is a console stub until
-  // a provider is wired (see src/lib/auth/mailer.ts TODO).
+  // Non-blocking verification: the customer is signed in immediately, while
+  // email ownership is required only for sensitive actions such as claiming
+  // historical guest orders.
   const token = await issueToken(user._id, "verify-email");
   const base = process.env.AUTH_URL ?? "http://localhost:3000";
-  await sendVerifyEmail(email, `${base}/api/auth/verify?token=${token}`);
+  try {
+    await sendVerifyEmail(email, `${base}/api/auth/verify?token=${token}`);
+  } catch (err) {
+    // Account creation and sign-in must not fail because email delivery is
+    // temporarily unavailable. The signed-in account panel offers resend.
+    console.error("[auth] failed to send verification email:", err);
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -422,7 +422,13 @@
     "saved": "Saved.",
     "stat_orders": "Orders",
     "stat_active": "In motion",
-    "stat_spent": "All time"
+    "stat_spent": "All time",
+    "verify_kicker": "Order protection",
+    "verify_title": "Verify your email",
+    "verify_lede": "Confirm your email to protect your account and add any past guest orders to your history.",
+    "verify_send": "Send verification email",
+    "verify_sending": "Sending…",
+    "verify_sent": "Email sent"
   },
   "admin": {
     "eyebrow": "The back room",

@@ -446,6 +446,7 @@ function DetailsForm() {
   const { t } = useLocale();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [marketing, setMarketing] = useState(false);
+  const [verificationState, setVerificationState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">(
     "idle"
   );
@@ -494,6 +495,17 @@ function DetailsForm() {
 
   const s = profile.shipping ?? {};
 
+  const resendVerification = async () => {
+    if (verificationState === "sending") return;
+    setVerificationState("sending");
+    try {
+      await api("/api/auth/verify/resend", { method: "POST" });
+      setVerificationState("sent");
+    } catch {
+      setVerificationState("error");
+    }
+  };
+
   return (
     <form className="pt__details" onSubmit={onSubmit}>
       <h2 className="pt__section-title">{t("portal.details_title")}</h2>
@@ -505,6 +517,26 @@ function DetailsForm() {
           <p>{profile.email}</p>
         </div>
       </div>
+
+      {!profile.emailVerified && (
+        <section className="pt__verify" aria-labelledby="pt-verify-title">
+          <svg className="pt__verify-mark" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M16 3.5 26 7v7.9c0 6.4-4.2 11.2-10 13.6-5.8-2.4-10-7.2-10-13.6V7l10-3.5Z" />
+            <path d="m11.5 15.7 3 3 6-6" />
+          </svg>
+          <div className="pt__verify-copy">
+            <p className="pt__verify-kicker">{t("portal.verify_kicker")}</p>
+            <h3 id="pt-verify-title">{t("portal.verify_title")}</h3>
+            <p>{t("portal.verify_lede")}</p>
+          </div>
+          <div className="pt__verify-action">
+            <button type="button" onClick={resendVerification} disabled={verificationState === "sending" || verificationState === "sent"}>
+              {verificationState === "sending" ? t("portal.verify_sending") : verificationState === "sent" ? t("portal.verify_sent") : t("portal.verify_send")}
+            </button>
+            {verificationState === "error" && <p role="alert">{t("account.error_generic")}</p>}
+          </div>
+        </section>
+      )}
 
       <h2 className="pt__section-title">{t("portal.shipping_title")}</h2>
       <div className="pt__fields">

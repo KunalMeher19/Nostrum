@@ -422,7 +422,13 @@
     "saved": "Salvato.",
     "stat_orders": "Ordini",
     "stat_active": "In viaggio",
-    "stat_spent": "In totale"
+    "stat_spent": "In totale",
+    "verify_kicker": "Protezione ordini",
+    "verify_title": "Verifica la tua email",
+    "verify_lede": "Conferma la tua email per proteggere il tuo account e aggiungere gli ordini passati effettuati come ospite.",
+    "verify_send": "Invia email di verifica",
+    "verify_sending": "Invio…",
+    "verify_sent": "Email inviata"
   },
   "admin": {
     "eyebrow": "Il retrobottega",

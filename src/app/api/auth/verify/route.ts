@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { consumeToken } from "@/lib/auth/tokens";
 import { getDb } from "@/lib/auth/mongodb";
+import { claimGuestOrdersForUser } from "@/lib/auth/users";
 import { guard } from "@/lib/auth/rate-limit";
 
 export async function GET(req: Request) {
@@ -17,9 +18,21 @@ export async function GET(req: Request) {
   }
 
   const db = await getDb();
-  await db
-    .collection("users")
-    .updateOne({ _id: userId }, { $set: { emailVerified: new Date() } });
+  const user = await db.collection("users").findOneAndUpdate(
+    { _id: userId },
+    { $set: { emailVerified: new Date() } },
+    { returnDocument: "after", projection: { email: 1 } }
+  );
+
+  if (user?.email) {
+    try {
+      await claimGuestOrdersForUser(userId, user.email);
+    } catch (err) {
+      // Verification must still succeed; a later purchase webhook also
+      // links verified users, so this can safely be retried there.
+      console.error("[auth] failed to claim guest orders after verification:", err);
+    }
+  }
 
   return NextResponse.redirect(`${base}/en/account?verified=1`);
 }

@@ -125,6 +125,7 @@ export type Profile = {
   email: string;
   role: "customer" | "admin";
   locale: string | null;
+  emailVerified: string | null;
   shipping: ShippingAddress | null;
   gdprConsentAt: string | null;
   marketingConsentAt: string | null;

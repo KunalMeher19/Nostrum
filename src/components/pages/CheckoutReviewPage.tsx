@@ -51,9 +51,10 @@ export default function CheckoutReviewPage() {
       try {
         const sessionRes = await fetch("/api/auth/session");
         if (sessionRes.ok) {
-          const sessionData = await sessionRes.json();
-          if (sessionData.user) {
-            setUser(sessionData.user);
+          const sessionData: { user?: { email?: string | null; name?: string | null } } | null = await sessionRes.json();
+          const sessionUser = sessionData?.user;
+          if (sessionUser) {
+            setUser({ email: sessionUser.email ?? "", name: sessionUser.name ?? undefined });
 
             // Fetch full profile to get saved shipping address
             try {
@@ -62,8 +63,8 @@ export default function CheckoutReviewPage() {
               // Pre-fill email, name, and saved shipping address
               setAddress((prev) => ({
                 ...prev,
-                email: sessionData.user.email || prev.email,
-                fullName: profile.shipping?.fullName || sessionData.user.name || prev.fullName,
+                email: sessionUser.email || prev.email,
+                fullName: profile.shipping?.fullName || sessionUser.name || prev.fullName,
                 phone: profile.shipping?.phone || prev.phone,
                 line1: profile.shipping?.line1 || prev.line1,
                 line2: profile.shipping?.line2 || prev.line2,
@@ -77,8 +78,8 @@ export default function CheckoutReviewPage() {
               // Still pre-fill email and name from session
               setAddress((prev) => ({
                 ...prev,
-                email: sessionData.user.email || prev.email,
-                fullName: sessionData.user.name || prev.fullName,
+                email: sessionUser.email || prev.email,
+                fullName: sessionUser.name || prev.fullName,
               }));
             }
           }

@@ -69,6 +69,8 @@ export async function createCredentialsUser(opts: {
     _id: new ObjectId(),
     name: opts.name.trim(),
     email,
+    // Sign-up is frictionless, but ownership of an email is only confirmed
+    // after the customer follows their verification link.
     emailVerified: null,
     image: null,
     role: (isAdminEmail(email) ? "admin" : "customer") as Role,
@@ -80,22 +82,20 @@ export async function createCredentialsUser(opts: {
   };
   await db.collection("users").insertOne(doc);
 
-  // Claim guest orders: find all orders with this email and userId=null,
-  // then assign them to the new user. Non-blocking; failure logs but
-  // doesn't block account creation.
-  try {
-    const result = await db.collection("orders").updateMany(
-      { email, userId: null },
-      { $set: { userId: doc._id } }
-    );
-    if (result.modifiedCount > 0) {
-      console.log(`[auth] claimed ${result.modifiedCount} guest order(s) for new user ${doc._id}`);
-    }
-  } catch (err) {
-    console.error("[auth] failed to claim guest orders:", err);
-  }
-
   return doc as DbUser;
+}
+
+/** Link past guest orders only after the email address has been verified. */
+export async function claimGuestOrdersForUser(userId: ObjectId, email: string) {
+  const db = await getDb();
+  const result = await db.collection("orders").updateMany(
+    { email: normalizeEmail(email), userId: null },
+    { $set: { userId } }
+  );
+  if (result.modifiedCount > 0) {
+    console.log(`[auth] claimed ${result.modifiedCount} guest order(s) for user ${userId}`);
+  }
+  return result.modifiedCount;
 }
 
 export async function verifyCredentials(
