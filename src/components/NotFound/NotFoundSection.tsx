@@ -28,7 +28,7 @@ export default function NotFoundSection() {
             <LocaleLink href="/" className="not-found__btn-primary">
               {t("notfound.return_home")}
             </LocaleLink>
-            <LocaleLink href="/shop" className="not-found__btn-secondary">
+            <LocaleLink href="/products" className="not-found__btn-secondary">
               {t("notfound.browse_collection")}
             </LocaleLink>
           </div>

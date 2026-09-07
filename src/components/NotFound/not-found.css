@@ -293,6 +293,74 @@
   transform: translateX(2px);
 }
 
+/* Page entrance — a restrained, editorial reveal that leaves the existing
+   composition completely unchanged once the sequence has finished. */
+@media (prefers-reduced-motion: no-preference) {
+  .not-found__container::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+    background: #E8E3D5;
+    transform-origin: right center;
+    animation: not-found-hero-unveil 1.25s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  .not-found__code,
+  .not-found__title,
+  .not-found__message,
+  .not-found__actions {
+    animation: not-found-copy-reveal 780ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .not-found__code { animation-delay: 90ms; }
+  .not-found__title { animation-delay: 180ms; }
+  .not-found__message { animation-delay: 270ms; }
+  .not-found__actions { animation-delay: 370ms; }
+
+  .not-found__code::after {
+    transform-origin: left center;
+    animation: not-found-line-reveal 750ms cubic-bezier(0.16, 1, 0.3, 1) 430ms both;
+  }
+
+  .not-found__trust-item,
+  .not-found__help-title,
+  .not-found__help-subtitle,
+  .not-found__help-btn {
+    animation: not-found-copy-reveal 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .not-found__trust-item:nth-child(1) { animation-delay: 500ms; }
+  .not-found__trust-item:nth-child(2) { animation-delay: 590ms; }
+  .not-found__trust-item:nth-child(3) { animation-delay: 680ms; }
+  .not-found__help-title { animation-delay: 760ms; }
+  .not-found__help-subtitle { animation-delay: 850ms; }
+  .not-found__help-btn { animation-delay: 940ms; }
+}
+
+@keyframes not-found-hero-unveil {
+  0% { clip-path: inset(0 0 0 0); opacity: 1; }
+  70% { clip-path: inset(0 0 0 100%); opacity: 1; }
+  100% { clip-path: inset(0 0 0 100%); opacity: 0; }
+}
+
+@keyframes not-found-copy-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.1rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes not-found-line-reveal {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 0.5; }
+}
+
 /* Responsive - Maintain premium feel at all sizes */
 @media (max-width: 1024px) {
   .not-found__container {

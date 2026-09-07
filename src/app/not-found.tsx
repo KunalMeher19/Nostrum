@@ -22,7 +22,7 @@ export default function RootNotFound() {
             <Link href="/en" className="not-found__btn-primary">
               Return to homepage
             </Link>
-            <Link href="/en/shop" className="not-found__btn-secondary">
+            <Link href="/en/products" className="not-found__btn-secondary">
               Browse our collection
             </Link>
           </div>
