@@ -1025,6 +1025,28 @@
     text-decoration-color 0.4s ease;
 }
 
+.pt__foot-link:disabled {
+  color: var(--pt-gold);
+  cursor: wait;
+  text-decoration: none;
+}
+
+.pt__signout-spinner {
+  display: inline-block;
+  width: 0.78rem;
+  height: 0.78rem;
+  margin-right: 0.45rem;
+  vertical-align: -0.12rem;
+  border: 1px solid color-mix(in srgb, var(--pt-gold) 28%, transparent);
+  border-top-color: var(--pt-gold);
+  border-radius: 50%;
+  animation: pt-signout-spin 0.75s linear infinite;
+}
+
+@keyframes pt-signout-spin {
+  to { transform: rotate(360deg); }
+}
+
 .pt__foot-link:hover {
   color: var(--pt-fg);
   text-decoration-color: var(--pt-gold);

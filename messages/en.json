@@ -376,6 +376,7 @@
     "go_admin": "Open the admin portal",
     "go_shop": "Continue to the Shop",
     "signout": "Sign out",
+    "signing_out": "Signing out…",
     "lede_reset": "Choose a new password. This link is valid for 15 minutes and can only be used once.",
     "field_new_password": "New password",
     "submit_reset": "Save password",

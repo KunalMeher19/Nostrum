@@ -376,6 +376,7 @@
     "go_admin": "Obrir el portal d'administració",
     "go_shop": "Continuar a la botiga",
     "signout": "Tancar sessió",
+    "signing_out": "Tancant sessió…",
     "lede_reset": "Tria una nova contrasenya. Aquest enllaç és vàlid durant 15 minuts i només es pot utilitzar una vegada.",
     "field_new_password": "Nova contrasenya",
     "submit_reset": "Desar contrasenya",

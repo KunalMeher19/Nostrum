@@ -55,6 +55,7 @@ export default function AccountPortal({
   const [detail, setDetail] = useState<Record<string, OrderDetail>>({});
   const [failed, setFailed] = useState(false);
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -89,6 +90,8 @@ export default function AccountPortal({
   );
 
   const handleLogout = useCallback(async () => {
+    if (signingOut) return;
+    setSigningOut(true);
     try {
       // Blacklist the current token in Redis before signing out
       await api("/api/auth/logout", { method: "POST" });
@@ -99,7 +102,7 @@ export default function AccountPortal({
       // Sign out via Auth.js (clears cookie)
       await signOut({ callbackUrl: `/${locale}/account` });
     }
-  }, [locale]);
+  }, [locale, signingOut]);
 
   const active = orders?.filter((o) => o.active) ?? [];
   const history = orders?.filter((o) => !o.active) ?? [];
@@ -260,8 +263,11 @@ export default function AccountPortal({
             type="button"
             className="pt__foot-link"
             onClick={handleLogout}
+            disabled={signingOut}
+            aria-busy={signingOut}
           >
-            {t("account.signout")}
+            {signingOut && <span className="pt__signout-spinner" aria-hidden="true" />}
+            {signingOut ? t("account.signing_out") : t("account.signout")}
           </button>
         </footer>
       </div>
