@@ -548,7 +548,17 @@ function DetailsForm() {
         <Field name="name" label={t("account.field_name")} def={profile.name ?? ""} />
         <div className="pt__field is--static">
           <label>{t("account.field_email")}</label>
-          <p>{profile.email}</p>
+          <p className="pt__email-value">
+            {profile.email}
+            {profile.emailVerified && (
+              <span className="pt__email-verified" title={t("portal.email_verified")}>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m3.4 8.1 2.8 2.8 6.4-6.3" />
+                </svg>
+                <span>{t("portal.email_verified")}</span>
+              </span>
+            )}
+          </p>
         </div>
       </div>
 

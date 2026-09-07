@@ -432,7 +432,8 @@
     "claim_kicker": "Compra como invitado",
     "claim_title": "¿Ya hiciste un pedido como invitado?",
     "claim_lede": "Abre Detalles para verificar tu correo y añadir de forma segura los pedidos anteriores realizados como invitado.",
-    "claim_action": "Verificar y reclamar pedidos"
+    "claim_action": "Verificar y reclamar pedidos",
+    "email_verified": "Verificado"
   },
   "admin": {
     "eyebrow": "La trastienda",

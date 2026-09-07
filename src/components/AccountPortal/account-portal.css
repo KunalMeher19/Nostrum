@@ -842,6 +842,33 @@
   border-bottom: 1px solid transparent;
 }
 
+.pt__email-value {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.pt__email-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--pt-lime);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pt__email-verified svg {
+  width: 1rem;
+  height: 1rem;
+  padding: 0.13rem;
+  border: 1px solid color-mix(in srgb, var(--pt-lime) 65%, transparent);
+  border-radius: 50%;
+}
+
 .pt__field-line {
   position: absolute;
   left: 0;

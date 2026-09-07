@@ -432,7 +432,8 @@
     "claim_kicker": "Guest purchase",
     "claim_title": "Already ordered as a guest?",
     "claim_lede": "Open Details to verify your email, then any past guest orders will be added to this account securely.",
-    "claim_action": "Verify & claim orders"
+    "claim_action": "Verify & claim orders",
+    "email_verified": "Verified"
   },
   "admin": {
     "eyebrow": "The back room",
