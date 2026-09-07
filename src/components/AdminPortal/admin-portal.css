@@ -587,6 +587,29 @@
   text-align: right;
 }
 
+.ad__verification-heading,
+.ad__verification-cell {
+  text-align: center !important;
+}
+
+.ad__verification {
+  display: inline-grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--ad-muted) 42%, transparent);
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--ad-muted) 64%, transparent);
+}
+
+.ad__verification.is--verified {
+  border-color: color-mix(in srgb, var(--ad-lime) 68%, transparent);
+  color: var(--ad-lime);
+  background: color-mix(in srgb, var(--ad-lime) 8%, transparent);
+}
+
+.ad__verification svg { width: 0.74rem; height: 0.74rem; }
+
 .ad__role-tag {
   margin-left: 0.6rem;
   font-size: 0.6rem;

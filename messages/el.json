@@ -455,6 +455,8 @@
     "col_orders": "Παραγγελίες",
     "col_total": "Σύνολο",
     "col_marketing": "Μάρκετινγκ",
+    "col_verified": "Επαληθευμένο",
+    "email_unverified": "Μη επαληθευμένο",
     "cust_detail_title": "Στοιχεία πελάτη",
     "cust_account": "Λογαριασμός",
     "cust_address": "Διεύθυνση παράδοσης",

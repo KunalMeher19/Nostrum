@@ -112,6 +112,7 @@ async function customerRows() {
       email: u.email,
       role: u.role ?? 'customer',
       locale: u.locale ?? '',
+      emailVerified: u.emailVerified ?? null,
       gdprConsentAt: u.gdprConsentAt ?? null,
       marketingConsentAt: u.marketingConsentAt ?? null,
       createdAt: u.createdAt ?? null,

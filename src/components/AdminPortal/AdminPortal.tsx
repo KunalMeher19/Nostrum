@@ -395,6 +395,7 @@ function CustomersView() {
               <tr>
                 <th>{t("account.field_name")}</th>
                 <th>{t("account.field_email")}</th>
+                <th className="ad__verification-heading">{t("admin.col_verified")}</th>
                 <th>{t("admin.col_consent")}</th>
                 <th>{t("admin.col_marketing")}</th>
                 <th>{t("admin.col_joined")}</th>
@@ -425,6 +426,17 @@ function CustomersView() {
                       ) : null}
                     </td>
                     <td>{c.email}</td>
+                    <td className="ad__verification-cell">
+                      <span
+                        className={`ad__verification${c.emailVerified ? " is--verified" : ""}`}
+                        title={c.emailVerified ? t("portal.email_verified") : t("admin.email_unverified")}
+                        aria-label={c.emailVerified ? t("portal.email_verified") : t("admin.email_unverified")}
+                      >
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="m3.4 8.1 2.8 2.8 6.4-6.3" />
+                        </svg>
+                      </span>
+                    </td>
                     <td>{dateFmt(c.gdprConsentAt)}</td>
                     <td>{c.marketingConsentAt ? "✓" : "·"}</td>
                     <td>{dateFmt(c.createdAt)}</td>
@@ -433,7 +445,7 @@ function CustomersView() {
                   </tr>
                   {open === c.id && (
                     <tr key={`${c.id}-detail`} className="ad__cust-detail-row">
-                      <td colSpan={7}>
+                      <td colSpan={8}>
                         <CustomerDetailPanel customer={c} dateFmt={dateFmt} />
                       </td>
                     </tr>

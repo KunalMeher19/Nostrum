@@ -455,6 +455,8 @@
     "col_orders": "Comandes",
     "col_total": "Total",
     "col_marketing": "Màrqueting",
+    "col_verified": "Verificat",
+    "email_unverified": "No verificat",
     "cust_detail_title": "Dades del client",
     "cust_account": "Compte",
     "cust_address": "Adreça de lliurament",

@@ -138,6 +138,7 @@ export type AdminCustomer = {
   email: string;
   role: string;
   locale: string;
+  emailVerified: string | null;
   gdprConsentAt: string | null;
   marketingConsentAt: string | null;
   createdAt: string | null;

@@ -455,6 +455,8 @@
     "col_orders": "Ordini",
     "col_total": "Totale",
     "col_marketing": "Marketing",
+    "col_verified": "Verificato",
+    "email_unverified": "Non verificato",
     "cust_detail_title": "Dati del cliente",
     "cust_account": "Account",
     "cust_address": "Indirizzo di consegna",
