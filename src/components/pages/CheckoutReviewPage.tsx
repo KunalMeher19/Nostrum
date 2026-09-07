@@ -219,7 +219,11 @@ export default function CheckoutReviewPage() {
                     <p>{address.country}</p>
                   </div>
                   <div className="checkout-review__delivery-note">
-                    <span className="checkout-review__delivery-icon" aria-hidden="true">&#9633;</span>
+                    <svg className="checkout-review__delivery-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M4 5h10v14H4zM14 9h3l3 3v7h-6z" />
+                      <circle cx="8" cy="19" r="1.5" />
+                      <circle cx="17" cy="19" r="1.5" />
+                    </svg>
                     <div>
                       <strong>{t("checkout.delivery_note_title") || "We'll deliver your order to the address above."}</strong>
                       <span>{t("checkout.delivery_note_body") || "If anything looks incorrect, please edit it before continuing."}</span>

@@ -313,6 +313,11 @@
   font-weight: 700;
 }
 
+.checkout-review__delivery-icon {
+  padding: 0.3rem;
+  stroke: #405d32;
+}
+
 .checkout-review__section {
   padding: clamp(1.4rem, 3vw, 1.9rem);
 }
