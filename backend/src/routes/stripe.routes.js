@@ -19,6 +19,7 @@ const orders = require('../services/orders.service');
 const Product = require('../models/product.model');
 const { Order } = require('../models/order.model');
 const User = require('../models/user.model');
+const Subscription = require('../models/subscription.model');
 
 const router = express.Router();
 
@@ -168,11 +169,51 @@ router.post(
       return res.status(400).json({ error: 'invalid_signature' });
     }
 
-    // Only handle the one event we care about; acknowledge everything else
-    // immediately so Stripe doesn't retry other event types forever.
-    if (event.type !== 'checkout.session.completed') {
+    if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+      const sub = event.data.object;
+      await Subscription.findOneAndUpdate(
+        { stripeSubscriptionId: sub.id },
+        { $set: {
+          status: sub.status,
+          currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000) : null,
+          updatedAt: new Date(),
+          ...(sub.status === 'canceled' ? { cancelledAt: new Date() } : {}),
+        } }
+      );
       return res.json({ received: true });
     }
+    // Every paid renewal becomes a new fulfilment order. The initial invoice
+    // is intentionally handled by checkout.session.completed below, so it
+    // cannot produce a duplicate first delivery.
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object;
+      if (invoice.billing_reason !== 'subscription_cycle' || !invoice.subscription) return res.json({ received: true });
+      const subscription = await Subscription.findOne({ stripeSubscriptionId: String(invoice.subscription) }).lean();
+      if (!subscription || !['active', 'trialing'].includes(subscription.status)) return res.json({ received: true });
+      const idempotencyKey = `subscription-invoice:${invoice.id}`;
+      const exists = await Order.findOne({ idempotencyKey }).lean();
+      if (exists) return res.json({ received: true, duplicate: true });
+      try {
+        const items = subscription.items.map((item) => ({
+          ...item,
+          discount: 0,
+          lineTotal: Math.round(item.unitPrice * item.qty * 100) / 100,
+        }));
+        const subtotal = items.reduce((total, item) => total + item.lineTotal, 0);
+        await orders.createOrder({
+          userId: subscription.userId, email: subscription.email, items, subtotal,
+          shippingCost: 0, total: subtotal, currency: 'EUR', status: 'placed',
+          statusHistory: [{ status: 'placed', at: new Date() }],
+          shippingAddress: subscription.shippingAddress, placedAt: new Date(),
+          idempotencyKey,
+        });
+      } catch (err) {
+        console.error(`[stripe webhook] recurring fulfilment failed for ${invoice.id}:`, err.message);
+        return res.status(500).json({ error: 'recurring_order_creation_failed' });
+      }
+      return res.json({ received: true });
+    }
+    if (event.type !== 'checkout.session.completed') return res.json({ received: true });
 
     const session = event.data.object;
 
@@ -216,6 +257,26 @@ router.post(
       }
 
       const order = await orders.createOrder(payload);
+      if (session.mode === 'subscription' && session.subscription) {
+        const intervalMonths = Number(session.metadata?.intervalMonths) || 1;
+        await Subscription.findOneAndUpdate(
+          { stripeSubscriptionId: String(session.subscription) },
+          { $setOnInsert: {
+            stripeSubscriptionId: String(session.subscription),
+            stripeCustomerId: session.customer ?? null,
+            userId: payload.userId,
+            email: payload.email,
+            items: payload.items.map((item) => ({
+              productSlug: item.productSlug, productName: item.productName,
+              sizeId: item.sizeId, sizeLabel: item.sizeLabel,
+              unitPrice: item.unitPrice, qty: item.qty,
+            })),
+            intervalMonths, status: 'active', shippingAddress: payload.shippingAddress,
+            createdAt: new Date(), updatedAt: new Date(),
+          } },
+          { upsert: true, new: true }
+        );
+      }
       console.log(`[stripe webhook] order created: ${order.number} (session ${session.id})`);
 
       return res.json({ received: true, orderId: order.number });

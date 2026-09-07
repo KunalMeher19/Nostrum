@@ -22,7 +22,7 @@ import { getProduct, lineTotal } from "@/lib/products";
 /* ------------------------------------------------------------------ */
 
 export type CartItem = {
-  key: string; // `${slug}:${sizeId}`
+  key: string; // `${slug}:${sizeId}:${intervalMonths ?? 'once'}`
   slug: string;
   name: string;
   subtitle: string;
@@ -30,6 +30,7 @@ export type CartItem = {
   sizeLabel: string;
   qty: number;
   image?: string;
+  intervalMonths?: number;
 };
 
 type CartContextValue = {
@@ -112,7 +113,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       opts?: { openDrawer?: boolean }
     ) => {
       if (qty < 1) return;
-      const key = `${item.slug}:${item.sizeId}`;
+      const key = `${item.slug}:${item.sizeId}:${item.intervalMonths ?? "once"}`;
       setItems((prev) => {
         const existing = prev.find((it) => it.key === key);
         if (existing) {

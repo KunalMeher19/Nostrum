@@ -126,7 +126,12 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     // ------------------------------------------------------------------
     // 1. Parse + coarse-validate the incoming cart lines + idempotency key + shipping address.
     // ------------------------------------------------------------------
-    const { items, locale, idempotencyKey, shippingAddress } = req.body ?? {};
+    const { items, locale, idempotencyKey, shippingAddress, intervalMonths } = req.body ?? {};
+    const isSubscription = intervalMonths !== undefined && intervalMonths !== null;
+    const recurringMonths = Number(intervalMonths);
+    if (isSubscription && (!Number.isInteger(recurringMonths) || recurringMonths < 1 || recurringMonths > 12)) {
+      return res.status(400).json({ error: 'invalid_subscription_interval' });
+    }
 
     // Idempotency key is required to prevent duplicate charges
     if (typeof idempotencyKey !== 'string' || idempotencyKey.length < 16 || idempotencyKey.length > 100) {
@@ -232,8 +237,7 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
         }
       }
 
-      lineItems.push({
-        price_data: {
+      const priceData = {
           currency: 'eur',
           product_data: {
             name: `${product.name} — ${size.label}`,
@@ -245,7 +249,10 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
             },
           },
           unit_amount: unitCents,
-        },
+      };
+      if (isSubscription) priceData.recurring = { interval: 'month', interval_count: recurringMonths };
+      lineItems.push({
+        price_data: priceData,
         quantity: item.qty,
       });
     }
@@ -277,24 +284,19 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
     const shippingCost = shippingCents();
 
     const sessionParams = {
-      mode: 'payment',
+      mode: isSubscription ? 'subscription' : 'payment',
       line_items: lineItems,
       // NO longer collect shipping address - it's already collected on our /checkout page
       // Instead, we'll pass the pre-filled address via customer_details and shipping_details
       success_url: successUrl,
       cancel_url: cancelUrl,
       locale: LOCALE_MAP[locale] ?? 'auto',
-      // Payment intent data for better tracking
-      payment_intent_data: {
-        metadata: {
-          idempotencyKey,
-        },
-      },
       // Pre-fill customer email and phone from the checkout form
       customer_email: customerEmail,
       // Automatic tax is disabled until the client adds their Spanish tax
       // registration to Stripe. Enable with: automatic_tax: { enabled: true }
     };
+    if (!isSubscription) sessionParams.payment_intent_data = { metadata: { idempotencyKey } };
 
     // Attach a flat shipping option only when a non-zero cost is configured.
     if (shippingCost > 0) {
@@ -318,6 +320,7 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
       ),
       locale: locale ?? 'en',
       idempotencyKey,
+      ...(isSubscription ? { intervalMonths: String(recurringMonths) } : {}),
       ...(session?.uid ? { userId: String(session.uid) } : {}),
       ...(shippingAddress
         ? {
@@ -333,6 +336,7 @@ router.post('/', publicWriteLimiter, async (req, res, next) => {
           }
         : {}),
     };
+    if (isSubscription) sessionParams.subscription_data = { metadata: sessionParams.metadata };
 
     // Use Stripe's native idempotency by passing the key as a request option.
     // This ensures that if the exact same request is sent twice (network retry,

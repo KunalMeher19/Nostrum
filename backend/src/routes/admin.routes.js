@@ -16,6 +16,8 @@ const { Exhibit, MUSEUM_ROOMS } = require('../models/exhibit.model');
 const SiteContent = require('../models/site-content.model');
 const Subscriber = require('../models/subscriber.model');
 const { ContactMessage } = require('../models/contact-message.model');
+const Subscription = require('../models/subscription.model');
+const Stripe = require('stripe');
 
 const router = express.Router();
 
@@ -25,6 +27,7 @@ router.use('/customers.csv', heavyLimiter);
 router.use('/customers', heavyLimiter);  // Same query as CSV, needs same tier
 router.use('/newsletter/subscribers.csv', heavyLimiter);
 router.use('/newsletter/subscribers', heavyLimiter);  // Same query as CSV
+router.use('/subscriptions', heavyLimiter);
 router.use('/orders/:id/invoice', heavyLimiter);
 router.use('/orders/:id/status', writeLimiter);
 router.use('/products/:id', writeLimiter);
@@ -237,6 +240,28 @@ router.get('/newsletter/subscribers.csv', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+router.get('/subscriptions', async (req, res, next) => {
+  try {
+    const subscriptions = await Subscription.find({ status: { $in: ['active', 'trialing', 'past_due'] } }).sort({ createdAt: -1 }).lean();
+    res.json({ subscriptions: subscriptions.map((s) => ({ ...s, id: String(s._id), _id: undefined })) });
+  } catch (err) { next(err); }
+});
+
+router.delete('/subscriptions/:id', requireObjectId('id'), writeLimiter, async (req, res, next) => {
+  try {
+    const subscription = await Subscription.findById(req.params.id);
+    if (!subscription) return res.status(404).json({ error: 'Subscription not found' });
+    if (!['active', 'trialing', 'past_due'].includes(subscription.status)) return res.status(400).json({ error: 'Subscription is not active' });
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) return res.status(503).json({ error: 'payments_not_configured' });
+    await new Stripe(key, { apiVersion: '2024-11-20.acacia' }).subscriptions.cancel(subscription.stripeSubscriptionId);
+    subscription.status = 'cancelled'; subscription.cancelledAt = new Date(); subscription.updatedAt = new Date();
+    await subscription.save();
+    recordAudit(req, 'subscription.cancel', subscription.stripeSubscriptionId, { email: subscription.email });
+    res.json({ ok: true });
+  } catch (err) { next(err); }
 });
 
 /* ── Audit trail (read-only) ──────────────────────────────────────── */

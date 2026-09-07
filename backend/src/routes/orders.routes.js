@@ -10,6 +10,8 @@ const {
 const { requireObjectId } = require('../middlewares/sanitize.middleware');
 const orders = require('../services/orders.service');
 const { Order } = require('../models/order.model');
+const Subscription = require('../models/subscription.model');
+const Stripe = require('stripe');
 const { streamInvoice } = require('../services/invoice.service');
 
 const router = express.Router();
@@ -84,6 +86,35 @@ router.get('/', requireAuth, heavyLimiter, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// A buyer sees only their own live subscriptions. Email fallback covers a
+// guest purchase which was later claimed by the same verified account.
+router.get('/subscriptions', requireAuth, heavyLimiter, async (req, res, next) => {
+  try {
+    const subscriptions = await Subscription.find({
+      status: { $in: ['active', 'trialing', 'past_due'] },
+      $or: [{ userId: req.user.id }, { email: String(req.user.email || '').toLowerCase() }],
+    }).sort({ createdAt: -1 }).lean();
+    res.json({ subscriptions: subscriptions.map((s) => ({ ...s, id: String(s._id), _id: undefined })) });
+  } catch (err) { next(err); }
+});
+
+router.delete('/subscriptions/:id', requireAuth, requireObjectId('id'), async (req, res, next) => {
+  try {
+    const subscription = await Subscription.findOne({
+      _id: req.params.id,
+      $or: [{ userId: req.user.id }, { email: String(req.user.email || '').toLowerCase() }],
+    });
+    if (!subscription) return res.status(404).json({ error: 'Subscription not found' });
+    if (!['active', 'trialing', 'past_due'].includes(subscription.status)) return res.status(400).json({ error: 'Subscription is not active' });
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) return res.status(503).json({ error: 'payments_not_configured' });
+    await new Stripe(key, { apiVersion: '2024-11-20.acacia' }).subscriptions.cancel(subscription.stripeSubscriptionId);
+    subscription.status = 'cancelled'; subscription.cancelledAt = new Date(); subscription.updatedAt = new Date();
+    await subscription.save();
+    res.json({ ok: true });
+  } catch (err) { next(err); }
 });
 
 router.get('/:id', requireObjectId('id'), requireAuth, async (req, res, next) => {

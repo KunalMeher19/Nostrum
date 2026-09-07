@@ -477,6 +477,19 @@
   border-color: var(--ad-gold);
 }
 
+.ad__subscription-cancel {
+  border: 1px solid color-mix(in srgb, #e9967a 68%, transparent);
+  background: transparent;
+  color: #f2b29d;
+  padding: 0.45rem 0.7rem;
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ad__subscription-cancel:disabled { opacity: .55; cursor: wait; }
+
 .ad__history {
   list-style: none;
   margin: 0;

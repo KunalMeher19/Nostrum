@@ -637,6 +637,10 @@
     "help_subtitle": "Estamos aquí para ayudarte a encontrar el aceite de oliva perfecto.",
     "contact_us": "Contáctanos"
   },
+  "subscription": {
+    "schedule": "Frecuencia de entrega", "schedule_note": "Elige una entrega recurrente o mantén esta compra como única.", "one_time": "Una vez", "every": "Cada", "month": "mes", "months": "meses", "custom": "Personalizado", "recurring_cart_error": "Una compra recurrente solo puede contener productos con la misma frecuencia de entrega.", "recurring_orders": "Pedidos recurrentes", "scheduled_delivery": "Entrega programada", "active": "Activo", "next_delivery": "Próxima entrega", "cancel_subscription": "Cancelar suscripción", "cancelling": "Cancelando…", "cancel_confirm": "¿Cancelar esta compra recurrente? No se realizarán futuras entregas ni cobros."
+  },
+  "admin_extra": { "newsletter": "Boletín", "recurring_orders": "Pedidos recurrentes", "active_subscribers": "suscriptores activos", "total": "total", "newsletter_load_error": "No se han podido cargar los suscriptores del boletín.", "status": "Estado", "unsubscribed": "Dado de baja", "subscriptions_note": "Las compras recurrentes activas se cobran mediante Stripe según la frecuencia elegida. Cancelarlas aquí detiene futuros cobros y entregas.", "subscriptions_load_error": "No se han podido cargar las compras recurrentes.", "subscriptions_none": "No hay compras recurrentes activas.", "customer": "Cliente", "products": "Productos", "schedule": "Frecuencia", "next_renewal": "Próxima renovación", "cancel_confirm": "¿Cancelar esta compra recurrente inmediatamente?" },
   "a11y": {
     "home": "Inicio de Nostrum",
     "open_menu": "abrir menú",

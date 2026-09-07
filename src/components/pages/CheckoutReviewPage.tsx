@@ -106,6 +106,8 @@ export default function CheckoutReviewPage() {
 
   const shippingCost = 0; // Free shipping for now
   const total = subtotal + shippingCost;
+  const subscriptionIntervals = [...new Set(items.map((it) => it.intervalMonths).filter((v): v is number => typeof v === "number"))];
+  const subscriptionInterval = subscriptionIntervals.length === 1 && items.every((it) => it.intervalMonths === subscriptionIntervals[0]) ? subscriptionIntervals[0] : undefined;
 
   async function handleProceedToPayment(e: React.FormEvent) {
     e.preventDefault();
@@ -127,7 +129,12 @@ export default function CheckoutReviewPage() {
       }));
 
       // Pass the shipping address to the checkout API
-      const { url } = await startCheckout(payload, locale, address);
+      if (subscriptionIntervals.length && !subscriptionInterval) {
+        setCheckoutError(t("subscription.recurring_cart_error"));
+        setCheckoutLoading(false);
+        return;
+      }
+      const { url } = await startCheckout(payload, locale, address, subscriptionInterval);
 
       // Store address in sessionStorage to show on success page
       sessionStorage.setItem("checkoutAddress", JSON.stringify(address));

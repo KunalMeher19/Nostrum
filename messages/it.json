@@ -637,6 +637,10 @@
     "help_subtitle": "Siamo qui per aiutarti a trovare l'olio d'oliva perfetto.",
     "contact_us": "Contattaci"
   },
+  "subscription": {
+    "schedule": "Frequenza di consegna", "schedule_note": "Scegli una consegna ricorrente o mantieni questo acquisto come una tantum.", "one_time": "Una volta", "every": "Ogni", "month": "mese", "months": "mesi", "custom": "Personalizzato", "recurring_cart_error": "Un acquisto ricorrente può contenere solo prodotti con la stessa frequenza di consegna.", "recurring_orders": "Ordini ricorrenti", "scheduled_delivery": "Consegna programmata", "active": "Attivo", "next_delivery": "Prossima consegna", "cancel_subscription": "Annulla abbonamento", "cancelling": "Annullamento…", "cancel_confirm": "Annullare questo acquisto ricorrente? Non verranno effettuate future consegne né addebiti."
+  },
+  "admin_extra": { "newsletter": "Newsletter", "recurring_orders": "Ordini ricorrenti", "active_subscribers": "iscritti attivi", "total": "totale", "newsletter_load_error": "Impossibile caricare gli iscritti alla newsletter.", "status": "Stato", "unsubscribed": "Disiscritto", "subscriptions_note": "Gli acquisti ricorrenti attivi vengono addebitati da Stripe secondo la frequenza selezionata. Annullando qui si interrompono addebiti e consegne future.", "subscriptions_load_error": "Impossibile caricare gli acquisti ricorrenti.", "subscriptions_none": "Nessun acquisto ricorrente attivo.", "customer": "Cliente", "products": "Prodotti", "schedule": "Frequenza", "next_renewal": "Prossimo rinnovo", "cancel_confirm": "Annullare subito questo acquisto ricorrente?" },
   "a11y": {
     "home": "Home di Nostrum",
     "open_menu": "apri il menu",

@@ -637,6 +637,10 @@
     "help_subtitle": "Som aquí per ajudar-te a trobar l'oli d'oliva perfecte.",
     "contact_us": "Contacta'ns"
   },
+  "subscription": {
+    "schedule": "Freqüència de lliurament", "schedule_note": "Tria un lliurament recurrent o mantén aquesta compra com a única.", "one_time": "Una vegada", "every": "Cada", "month": "mes", "months": "mesos", "custom": "Personalitzat", "recurring_cart_error": "Una compra recurrent només pot contenir productes amb la mateixa freqüència de lliurament.", "recurring_orders": "Comandes recurrents", "scheduled_delivery": "Lliurament programat", "active": "Activa", "next_delivery": "Pròxim lliurament", "cancel_subscription": "Cancel·lar subscripció", "cancelling": "S'està cancel·lant…", "cancel_confirm": "Voleu cancel·lar aquesta compra recurrent? No es faran futurs lliuraments ni cobraments."
+  },
+  "admin_extra": { "newsletter": "Butlletí", "recurring_orders": "Comandes recurrents", "active_subscribers": "subscriptors actius", "total": "total", "newsletter_load_error": "No s'han pogut carregar els subscriptors del butlletí.", "status": "Estat", "unsubscribed": "Donat de baixa", "subscriptions_note": "Les compres recurrents actives es cobren mitjançant Stripe segons la freqüència escollida. Cancel·lar-les aquí atura futurs cobraments i lliuraments.", "subscriptions_load_error": "No s'han pogut carregar les compres recurrents.", "subscriptions_none": "No hi ha compres recurrents actives.", "customer": "Client", "products": "Productes", "schedule": "Freqüència", "next_renewal": "Pròxima renovació", "cancel_confirm": "Voleu cancel·lar aquesta compra recurrent immediatament?" },
   "a11y": {
     "home": "Inici de Nostrum",
     "open_menu": "obrir menú",

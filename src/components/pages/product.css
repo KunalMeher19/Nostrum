@@ -783,6 +783,13 @@
   margin-top: 1.4rem;
 }
 
+.pdp__subscription-note {
+  margin: -0.25rem 0 0.75rem;
+  color: var(--nostrum-shop-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
 .pdp__b2b {
   position: relative;
   isolation: isolate;

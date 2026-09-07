@@ -15,6 +15,8 @@ import {
   euro,
   PRODUCT_LOCALES,
   type AdminCustomer,
+  type AdminSubscription,
+  type NewsletterSubscriber,
   type AdminProduct,
   type AuditEvent,
   type OrderDetail,
@@ -47,7 +49,7 @@ const STATUSES: OrderStatus[] = [
   "cancelled",
 ];
 
-type View = "orders" | "customers" | "shop" | "journal" | "content" | "audit";
+type View = "orders" | "customers" | "newsletter" | "subscriptions" | "shop" | "journal" | "content" | "audit";
 
 export default function AdminPortal({ name }: { name: string | null }) {
   const { t, locale } = useLocale();
@@ -71,7 +73,7 @@ export default function AdminPortal({ name }: { name: string | null }) {
         </header>
 
         <nav className="ad__tabs" role="tablist">
-          {(["orders", "customers", "shop", "journal", "content", "audit"] as View[]).map((v) => (
+          {(["orders", "customers", "newsletter", "subscriptions", "shop", "journal", "content", "audit"] as View[]).map((v) => (
             <button
               key={v}
               type="button"
@@ -80,13 +82,15 @@ export default function AdminPortal({ name }: { name: string | null }) {
               className={`ad__tab${view === v ? " is--on" : ""}`}
               onClick={() => setView(v)}
             >
-              {t(`admin.tab_${v}`)}
+              {v === "newsletter" ? t("admin_extra.newsletter") : v === "subscriptions" ? t("admin_extra.recurring_orders") : t(`admin.tab_${v}`)}
             </button>
           ))}
         </nav>
 
         {view === "orders" && <OrdersView />}
         {view === "customers" && <CustomersView />}
+        {view === "newsletter" && <NewsletterView />}
+        {view === "subscriptions" && <SubscriptionsView />}
         {view === "shop" && <ShopView />}
         {view === "journal" && <JournalAdmin />}
         {view === "content" && <ContentView />}
@@ -535,6 +539,41 @@ function CustomerDetailPanel({
       </div>
     </div>
   );
+}
+
+function NewsletterView() {
+  const { t } = useLocale();
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { api<{ subscribers: NewsletterSubscriber[] }>("/api/admin/newsletter/subscribers").then((d) => setSubscribers(d.subscribers)).catch(() => setFailed(true)); }, []);
+  const day = (date: string | null) => date ? new Date(date).toLocaleDateString() : "—";
+  const active = subscribers?.filter((s) => !s.unsubscribedAt).length ?? 0;
+  return <div className="ad__view">
+    <div className="ad__view-bar"><p className="ad__quiet">{subscribers ? `${active} ${t("admin_extra.active_subscribers")} · ${subscribers.length} ${t("admin_extra.total")}` : ""}</p><a className="ad__export" href={downloadPath("/api/admin/newsletter/subscribers.csv")} onClick={(e) => { e.preventDefault(); downloadFile("/api/admin/newsletter/subscribers.csv").catch(() => { window.location.href = downloadPath("/api/admin/newsletter/subscribers.csv"); }); }}>{t("admin.export_csv")} <span aria-hidden="true">↓</span></a></div>
+    {subscribers === null && !failed && <AdminSkeleton variant="table" />}
+    {failed && <p className="ad__quiet">{t("admin_extra.newsletter_load_error")}</p>}
+    {subscribers && <div className="ad__table-wrap"><table className="ad__table"><thead><tr><th>{t("account.field_email")}</th><th>{t("admin.cust_locale")}</th><th>{t("admin.col_joined")}</th><th>{t("admin.col_consent")}</th><th>{t("admin_extra.status")}</th></tr></thead><tbody>{subscribers.map((s) => <tr key={s.id}><td>{s.email}</td><td>{s.locale || "—"}</td><td>{day(s.createdAt)}</td><td>{day(s.consentAt)}</td><td>{s.unsubscribedAt ? `${t("admin_extra.unsubscribed")} ${day(s.unsubscribedAt)}` : t("subscription.active")}</td></tr>)}</tbody></table></div>}
+  </div>;
+}
+
+function SubscriptionsView() {
+  const { t } = useLocale();
+  const [subscriptions, setSubscriptions] = useState<AdminSubscription[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [cancelling, setCancelling] = useState<string | null>(null);
+  useEffect(() => { api<{ subscriptions: AdminSubscription[] }>("/api/admin/subscriptions").then((d) => setSubscriptions(d.subscriptions)).catch(() => setFailed(true)); }, []);
+  const cancel = async (id: string) => {
+    if (!window.confirm(t("admin_extra.cancel_confirm"))) return;
+    setCancelling(id);
+    try { await api(`/api/admin/subscriptions/${id}`, { method: "DELETE" }); setSubscriptions((all) => all?.filter((s) => s.id !== id) ?? null); } finally { setCancelling(null); }
+  };
+  return <div className="ad__view">
+    <p className="ad__note">{t("admin_extra.subscriptions_note")}</p>
+    {subscriptions === null && !failed && <AdminSkeleton variant="table" />}
+    {failed && <p className="ad__quiet">{t("admin_extra.subscriptions_load_error")}</p>}
+    {subscriptions !== null && subscriptions.length === 0 && <p className="ad__quiet">{t("admin_extra.subscriptions_none")}</p>}
+    {subscriptions && subscriptions.length > 0 && <div className="ad__table-wrap"><table className="ad__table"><thead><tr><th>{t("admin_extra.customer")}</th><th>{t("admin_extra.products")}</th><th>{t("admin_extra.schedule")}</th><th>{t("admin_extra.next_renewal")}</th><th /></tr></thead><tbody>{subscriptions.map((s) => <tr key={s.id}><td>{s.email}</td><td>{s.items.map((i) => `${i.productName} · ${i.sizeLabel} ×${i.qty}`).join(", ")}</td><td>{t("subscription.every")} {s.intervalMonths} {s.intervalMonths === 1 ? t("subscription.month") : t("subscription.months")}</td><td>{s.currentPeriodEnd ? new Date(s.currentPeriodEnd).toLocaleDateString() : "—"}</td><td><button className="ad__subscription-cancel" type="button" disabled={cancelling === s.id} onClick={() => cancel(s.id)}>{cancelling === s.id ? t("subscription.cancelling") : t("admin.cancel")}</button></td></tr>)}</tbody></table></div>}
+  </div>;
 }
 
 /* ── Audit trail (read-only, append-only on the backend) ───────────── */

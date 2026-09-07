@@ -14,6 +14,7 @@ import {
   type OrderSummary,
   type Profile,
   type ShippingAddress,
+  type CustomerSubscription,
 } from "@/lib/api";
 import "./account-portal.css";
 
@@ -56,6 +57,8 @@ export default function AccountPortal({
   const [failed, setFailed] = useState(false);
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<CustomerSubscription[] | null>(null);
+  const [cancellingSubscription, setCancellingSubscription] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -65,6 +68,14 @@ export default function AccountPortal({
     return () => {
       alive = false;
     };
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    api<{ subscriptions: CustomerSubscription[] }>("/api/orders/subscriptions")
+      .then((d) => alive && setSubscriptions(d.subscriptions))
+      .catch(() => alive && setSubscriptions([]));
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -151,6 +162,17 @@ export default function AccountPortal({
       month: "short",
       year: "numeric",
     });
+
+  const cancelSubscription = async (id: string) => {
+    if (!window.confirm(t("subscription.cancel_confirm"))) return;
+    setCancellingSubscription(id);
+    try {
+      await api(`/api/orders/subscriptions/${id}`, { method: "DELETE" });
+      setSubscriptions((all) => all?.filter((subscription) => subscription.id !== id) ?? []);
+    } finally {
+      setCancellingSubscription(null);
+    }
+  };
 
   return (
     <section className="pt" aria-labelledby="pt-title">
@@ -242,6 +264,32 @@ export default function AccountPortal({
                 <p className="pt__empty-line">{t("portal.empty_title")}</p>
                 <p className="pt__quiet">{t("portal.empty_lede")}</p>
               </div>
+            )}
+
+            {subscriptions && subscriptions.length > 0 && (
+              <section className="pt__subscriptions" aria-labelledby="pt-subscriptions-title">
+                <div className="pt__subscriptions-head">
+                  <div>
+                    <p className="pt__subscriptions-kicker">{t("subscription.scheduled_delivery")}</p>
+                    <h2 id="pt-subscriptions-title" className="pt__section-title">{t("subscription.recurring_orders")}</h2>
+                  </div>
+                  <span className="pt__subscription-live">{t("subscription.active")}</span>
+                </div>
+                <ul className="pt__subscriptions-list">
+                  {subscriptions.map((subscription) => (
+                    <li key={subscription.id} className="pt__subscription">
+                      <div className="pt__subscription-copy">
+                        <p>{subscription.items.map((item) => `${item.productName} · ${item.sizeLabel} ×${item.qty}`).join(", ")}</p>
+                        <span>{t("subscription.every")} {subscription.intervalMonths} {subscription.intervalMonths === 1 ? t("subscription.month") : t("subscription.months")}</span>
+                        {subscription.currentPeriodEnd && <span>{t("subscription.next_delivery")}: {dateFmt(subscription.currentPeriodEnd)}</span>}
+                      </div>
+                      <button type="button" className="pt__subscription-cancel" disabled={cancellingSubscription === subscription.id} onClick={() => cancelSubscription(subscription.id)}>
+                        {cancellingSubscription === subscription.id ? t("subscription.cancelling") : t("subscription.cancel_subscription")}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
 
             {active.length > 0 && (

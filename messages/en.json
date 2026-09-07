@@ -637,6 +637,10 @@
     "help_subtitle": "We're here to help you find the perfect olive oil.",
     "contact_us": "Contact us"
   },
+  "subscription": {
+    "schedule": "Delivery schedule", "schedule_note": "Choose a repeat delivery, or keep this as a one-time purchase.", "one_time": "One time", "every": "Every", "month": "month", "months": "months", "custom": "Custom", "recurring_cart_error": "A recurring checkout can only contain items on the same delivery schedule.", "recurring_orders": "Recurring orders", "scheduled_delivery": "Scheduled delivery", "active": "Active", "next_delivery": "Next delivery", "cancel_subscription": "Cancel subscription", "cancelling": "Cancelling…", "cancel_confirm": "Cancel this recurring purchase? No future deliveries or payments will be made."
+  },
+  "admin_extra": { "newsletter": "Newsletter", "recurring_orders": "Recurring orders", "active_subscribers": "active subscribers", "total": "total", "newsletter_load_error": "Unable to load newsletter subscribers.", "status": "Status", "unsubscribed": "Unsubscribed", "subscriptions_note": "Active recurring purchases are billed by Stripe on their selected schedule. Cancelling here stops future charges and deliveries.", "subscriptions_load_error": "Unable to load recurring purchases.", "subscriptions_none": "No active recurring purchases.", "customer": "Customer", "products": "Products", "schedule": "Schedule", "next_renewal": "Next renewal", "cancel_confirm": "Cancel this recurring purchase immediately?" },
   "a11y": {
     "home": "Nostrum home",
     "open_menu": "open menu",

@@ -156,6 +156,20 @@ export type AdminCustomer = {
   };
 };
 
+export type NewsletterSubscriber = {
+  id: string; email: string; locale: string; consentAt: string | null;
+  unsubscribedAt: string | null; createdAt: string | null;
+};
+
+export type AdminSubscription = {
+  id: string; email: string; intervalMonths: number; status: string;
+  currentPeriodEnd: string | null; createdAt: string; items: Array<{
+    productName: string; sizeLabel: string; qty: number; unitPrice: number;
+  }>;
+};
+
+export type CustomerSubscription = AdminSubscription;
+
 /* Product page copy (2026-09-06). The DESCRIPTION tab is free prose (blank
    lines separate paragraphs); the DETAILS tab is a list of label/value rows.
    `id` is the row's cross-locale identity — minted once on the English copy
@@ -342,7 +356,7 @@ export type CheckoutShippingAddress = {
  *  in localStorage. If the user clicks checkout multiple times or the
  *  request is retried, the same key is sent so Stripe returns the existing
  *  session instead of creating duplicate charges. */
-export function startCheckout(items: CheckoutItem[], locale: string, shippingAddress: CheckoutShippingAddress) {
+export function startCheckout(items: CheckoutItem[], locale: string, shippingAddress: CheckoutShippingAddress, intervalMonths?: number) {
   // Generate or retrieve idempotency key from localStorage
   const storageKey = 'nostrum_checkout_idempotency';
   let idempotencyKey: string;
@@ -383,7 +397,7 @@ export function startCheckout(items: CheckoutItem[], locale: string, shippingAdd
 
   return api<{ url: string }>("/api/checkout", {
     method: "POST",
-    body: JSON.stringify({ items, locale, idempotencyKey, shippingAddress }),
+    body: JSON.stringify({ items, locale, idempotencyKey, shippingAddress, intervalMonths }),
   });
 }
 

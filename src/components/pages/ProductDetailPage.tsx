@@ -102,6 +102,8 @@ export default function ProductPage() {
   const [photoVariantIdx, setPhotoVariantIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [customQty, setCustomQty] = useState(false);
+  const [intervalMonths, setIntervalMonths] = useState<number | null>(null);
+  const [customInterval, setCustomInterval] = useState(false);
   const [added, setAdded] = useState(false);
   const [liveProduct, setLiveProduct] = useState<Product | null>(null);
   // Raw API record, kept alongside the converted Product so the tab copy can
@@ -368,6 +370,7 @@ export default function ProductPage() {
         sizeId: size.id,
         sizeLabel: size.label,
         image: size.image,
+        intervalMonths: intervalMonths ?? undefined,
       },
       qty,
       opts
@@ -596,6 +599,17 @@ export default function ProductPage() {
                   )}
                 </div>
               )}
+            </fieldset>
+
+            <fieldset className="pdp__field pdp__subscription" data-rise>
+              <legend className="pdp__label">{t("subscription.schedule")}</legend>
+              <p className="pdp__subscription-note">{t("subscription.schedule_note")}</p>
+              <div className="pdp__segments" role="radiogroup" aria-label={t("subscription.schedule")}>
+                <button type="button" role="radio" aria-checked={intervalMonths === null} className={`pdp__segment${intervalMonths === null ? " is--active" : ""}`} onClick={() => { setIntervalMonths(null); setCustomInterval(false); }}>{t("subscription.one_time")}</button>
+                {[1, 2, 3].map((months) => <button key={months} type="button" role="radio" aria-checked={intervalMonths === months && !customInterval} className={`pdp__segment${intervalMonths === months && !customInterval ? " is--active" : ""}`} onClick={() => { setIntervalMonths(months); setCustomInterval(false); }}>{t("subscription.every")} {months} {months === 1 ? t("subscription.month") : t("subscription.months")}</button>)}
+                <button type="button" role="radio" aria-checked={customInterval} className={`pdp__segment${customInterval ? " is--active" : ""}`} onClick={() => { setCustomInterval(true); setIntervalMonths(intervalMonths ?? 4); }}>{t("subscription.custom")}</button>
+              </div>
+              {customInterval && <label className="pdp__custom">{t("subscription.every")} <input className="pdp__custom-input" type="number" min={1} max={12} value={intervalMonths ?? 4} onChange={(e) => setIntervalMonths(Math.min(12, Math.max(1, Number(e.target.value) || 1)))} /> {t("subscription.months")}</label>}
             </fieldset>
 
             {/* ---- CTAs ------------------------------------------------ */}
