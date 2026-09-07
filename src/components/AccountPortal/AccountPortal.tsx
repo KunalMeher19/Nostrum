@@ -77,6 +77,44 @@ export default function AccountPortal({
     };
   }, []);
 
+  // A second tab can retain this already-rendered portal after another tab
+  // signs out. Re-read the shared Auth.js cookie when this tab is revisited
+  // and return to the account entry page as soon as the session is gone.
+  useEffect(() => {
+    let checking = false;
+    let disposed = false;
+
+    const refreshSession = async () => {
+      if (checking || disposed || document.visibilityState !== "visible") return;
+      checking = true;
+      try {
+        const response = await fetch("/api/auth/session", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (!response.ok || !(await response.json())?.user) {
+          window.location.replace(`/${locale}/account`);
+        }
+      } catch {
+        // Do not sign out a customer just because their network is briefly down.
+      } finally {
+        checking = false;
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshSession();
+    };
+
+    window.addEventListener("focus", refreshSession);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      disposed = true;
+      window.removeEventListener("focus", refreshSession);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [locale]);
+
   const toggle = useCallback(
     (id: string) => {
       setOpen((cur) => (cur === id ? null : id));
