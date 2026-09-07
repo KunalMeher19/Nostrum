@@ -883,3 +883,83 @@
     transform: none;
   }
 }
+
+/* ---- Final checkout balance ---------------------------------------
+   Keep both desktop columns in view while the address content can scroll,
+   and give the order panel a compact, composed retail-card rhythm. */
+@media (min-width: 1000px) {
+  .checkout-review__summary {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+  }
+
+  .checkout-review__main {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}
+
+.checkout-review__summary-panel {
+  padding: clamp(1.35rem, 2.4vw, 1.7rem);
+  border: 1px solid rgba(20, 22, 15, 0.1);
+  box-shadow: 0 18px 38px -30px rgba(20, 22, 15, 0.48);
+}
+
+.checkout-review__summary-title {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.13em;
+}
+
+.checkout-review__items { margin-bottom: 0.9rem; }
+
+.checkout-review__item {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.checkout-review__item-image {
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid rgba(20, 22, 15, 0.05);
+}
+
+.checkout-review__item-name { font-size: 0.78rem; }
+.checkout-review__item-qty { margin-top: 0.15rem; font-size: 0.7rem; }
+.checkout-review__item-price { font-size: 0.82rem; }
+
+.checkout-review__totals {
+  margin-bottom: 1rem;
+  padding: 0.8rem 0 0;
+  border-top-width: 1px;
+}
+
+.checkout-review__total-line { padding: 0.35rem 0; font-size: 0.82rem; }
+.checkout-review__total-line--final {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  font-size: 1.22rem;
+}
+
+.checkout-review__summary-note {
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+  padding: 0.75rem 0.8rem;
+}
+
+.checkout-review__summary-note p { font-size: 0.72rem; line-height: 1.5; }
+.checkout-review__btn-primary { margin-bottom: 0.55rem; padding: 0.85rem 1.2rem; }
+.checkout-review__btn-back { padding: 0.76rem 1.2rem; }
+
+.checkout-review__trust-row { padding: 1.2rem 0.3rem 0; }
+.checkout-review__trust-row > div { gap: 0.45rem; }
+.checkout-review__trust-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: #405d32;
+}

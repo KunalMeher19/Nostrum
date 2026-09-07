@@ -358,10 +358,10 @@ export default function CheckoutReviewPage() {
             </section>
 
             <div className="checkout-review__trust-row" aria-label="Checkout benefits">
-              <div><span aria-hidden="true">&#9744;</span><strong>{t("checkout.trust_secure") || "Secure checkout"}</strong><small>{t("checkout.trust_secure_note") || "Your payment is safe and encrypted"}</small></div>
-              <div><span aria-hidden="true">&#10022;</span><strong>{t("checkout.trust_quality") || "Premium quality"}</strong><small>{t("checkout.trust_quality_note") || "100% authentic extra virgin olive oil"}</small></div>
-              <div><span aria-hidden="true">&#9633;</span><strong>{t("checkout.trust_delivery") || "Fast & reliable"}</strong><small>{t("checkout.trust_delivery_note") || "Carefully packed and delivered to you"}</small></div>
-              <div><span aria-hidden="true">&#8634;</span><strong>{t("checkout.trust_returns") || "Easy returns"}</strong><small>{t("checkout.trust_returns_note") || "Returns accepted within 14 days"}</small></div>
+              <div><TrustIcon type="secure" /><strong>{t("checkout.trust_secure") || "Secure checkout"}</strong><small>{t("checkout.trust_secure_note") || "Your payment is safe and encrypted"}</small></div>
+              <div><TrustIcon type="quality" /><strong>{t("checkout.trust_quality") || "Premium quality"}</strong><small>{t("checkout.trust_quality_note") || "100% authentic extra virgin olive oil"}</small></div>
+              <div><TrustIcon type="delivery" /><strong>{t("checkout.trust_delivery") || "Fast & reliable"}</strong><small>{t("checkout.trust_delivery_note") || "Carefully packed and delivered to you"}</small></div>
+              <div><TrustIcon type="returns" /><strong>{t("checkout.trust_returns") || "Easy returns"}</strong><small>{t("checkout.trust_returns_note") || "Returns accepted within 14 days"}</small></div>
             </div>
           </div>
 
@@ -441,6 +441,17 @@ export default function CheckoutReviewPage() {
       </div>
     </main>
   );
+}
+
+function TrustIcon({ type }: { type: "secure" | "quality" | "delivery" | "returns" }) {
+  const paths = {
+    secure: <><rect x="5" y="7" width="14" height="12" rx="2" /><path d="M8 7V5a4 4 0 0 1 8 0v2M12 11v4" /></>,
+    quality: <><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" /><path d="m18 3 .7 2.1L21 6l-2.3.9L18 9l-.7-2.1L15 6l2.3-.9L18 3Z" /></>,
+    delivery: <><path d="M3 7h11v10H3zM14 10h3l3 3v4h-6z" /><circle cx="7" cy="18" r="1.5" /><circle cx="17" cy="18" r="1.5" /></>,
+    returns: <><path d="M7 7H4V4" /><path d="M4 7a8 8 0 1 1-1 7" /><path d="M17 17h3v3" /></>,
+  };
+
+  return <svg className="checkout-review__trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[type]}</svg>;
 }
 
 function AddressFormSkeleton() {
