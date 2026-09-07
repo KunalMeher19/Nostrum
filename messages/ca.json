@@ -428,7 +428,11 @@
     "verify_lede": "Confirma el teu correu per protegir el compte i afegir les comandes anteriors fetes com a convidat.",
     "verify_send": "Enviar correu de verificació",
     "verify_sending": "Enviant…",
-    "verify_sent": "Correu enviat"
+    "verify_sent": "Correu enviat",
+    "claim_kicker": "Compra com a convidat",
+    "claim_title": "Ja vas fer una comanda com a convidat?",
+    "claim_lede": "Obre Detalls per verificar el teu correu i afegir de manera segura les comandes anteriors fetes com a convidat.",
+    "claim_action": "Verificar i reclamar comandes"
   },
   "admin": {
     "eyebrow": "La rebotiga",

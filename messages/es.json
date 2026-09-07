@@ -428,7 +428,11 @@
     "verify_lede": "Confirma tu correo para proteger tu cuenta y añadir los pedidos anteriores realizados como invitado.",
     "verify_send": "Enviar correo de verificación",
     "verify_sending": "Enviando…",
-    "verify_sent": "Correo enviado"
+    "verify_sent": "Correo enviado",
+    "claim_kicker": "Compra como invitado",
+    "claim_title": "¿Ya hiciste un pedido como invitado?",
+    "claim_lede": "Abre Detalles para verificar tu correo y añadir de forma segura los pedidos anteriores realizados como invitado.",
+    "claim_action": "Verificar y reclamar pedidos"
   },
   "admin": {
     "eyebrow": "La trastienda",

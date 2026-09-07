@@ -428,7 +428,11 @@
     "verify_lede": "Conferma la tua email per proteggere il tuo account e aggiungere gli ordini passati effettuati come ospite.",
     "verify_send": "Invia email di verifica",
     "verify_sending": "Invio…",
-    "verify_sent": "Email inviata"
+    "verify_sent": "Email inviata",
+    "claim_kicker": "Acquisto come ospite",
+    "claim_title": "Hai già ordinato come ospite?",
+    "claim_lede": "Apri Dettagli per verificare la tua email e aggiungere in modo sicuro i precedenti ordini effettuati come ospite.",
+    "claim_action": "Verifica e riscatta ordini"
   },
   "admin": {
     "eyebrow": "Il retrobottega",

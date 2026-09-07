@@ -54,12 +54,23 @@ export default function AccountPortal({
   const [open, setOpen] = useState<string | null>(null); // expanded order id
   const [detail, setDetail] = useState<Record<string, OrderDetail>>({});
   const [failed, setFailed] = useState(false);
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
     let alive = true;
     api<{ orders: OrderSummary[] }>("/api/orders")
       .then((d) => alive && setOrders(d.orders))
       .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    api<Profile>("/api/me")
+      .then((profile) => alive && setEmailVerified(Boolean(profile.emailVerified)))
+      .catch(() => alive && setEmailVerified(null));
     return () => {
       alive = false;
     };
@@ -167,6 +178,23 @@ export default function AccountPortal({
               <OrderListSkeleton />
             )}
             {failed && <p className="pt__quiet">{t("portal.error_load")}</p>}
+
+            {emailVerified === false && (
+              <section className="pt__claim" aria-labelledby="pt-claim-title">
+                <svg className="pt__claim-mark" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M16 3.5 26 7v7.9c0 6.4-4.2 11.2-10 13.6-5.8-2.4-10-7.2-10-13.6V7l10-3.5Z" />
+                  <path d="m11.5 15.7 3 3 6-6" />
+                </svg>
+                <div>
+                  <p className="pt__claim-kicker">{t("portal.claim_kicker")}</p>
+                  <h2 id="pt-claim-title">{t("portal.claim_title")}</h2>
+                  <p>{t("portal.claim_lede")}</p>
+                </div>
+                <button type="button" onClick={() => setTab("details")}>
+                  {t("portal.claim_action")}
+                </button>
+              </section>
+            )}
 
             {orders !== null && orders.length === 0 && (
               <div className="pt__empty">
@@ -499,7 +527,13 @@ function DetailsForm() {
     if (verificationState === "sending") return;
     setVerificationState("sending");
     try {
-      await api("/api/auth/verify/resend", { method: "POST" });
+      // This is a Next.js Auth.js route, not an Express backend route, so it
+      // must stay on the current origin rather than going through /api/proxy.
+      const response = await fetch("/api/auth/verify/resend", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error(`verify_resend_${response.status}`);
       setVerificationState("sent");
     } catch {
       setVerificationState("error");

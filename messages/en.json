@@ -428,7 +428,11 @@
     "verify_lede": "Confirm your email to protect your account and add any past guest orders to your history.",
     "verify_send": "Send verification email",
     "verify_sending": "Sending…",
-    "verify_sent": "Email sent"
+    "verify_sent": "Email sent",
+    "claim_kicker": "Guest purchase",
+    "claim_title": "Already ordered as a guest?",
+    "claim_lede": "Open Details to verify your email, then any past guest orders will be added to this account securely.",
+    "claim_action": "Verify & claim orders"
   },
   "admin": {
     "eyebrow": "The back room",
