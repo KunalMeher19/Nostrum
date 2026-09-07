@@ -76,6 +76,44 @@ export default function AccountSection() {
     };
   }, []);
 
+  // The Auth.js session cookie is shared by tabs in the same browser profile.
+  // If another tab signs in, refresh this stale entry screen on return so it
+  // becomes the signed-in account portal without asking the customer again.
+  useEffect(() => {
+    let checking = false;
+    let disposed = false;
+
+    const refreshSession = async () => {
+      if (checking || disposed || document.visibilityState !== "visible") return;
+      checking = true;
+      try {
+        const response = await fetch("/api/auth/session", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (response.ok && (await response.json())?.user) {
+          window.location.replace(`/${locale}/account`);
+        }
+      } catch {
+        // A temporary network failure should leave the entry screen usable.
+      } finally {
+        checking = false;
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void refreshSession();
+    };
+
+    window.addEventListener("focus", refreshSession);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      disposed = true;
+      window.removeEventListener("focus", refreshSession);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [locale]);
+
   /* Email-verification / reset landing (?verified=1|0, ?reset=1). */
   useEffect(() => {
     const v = params.get("verified");
