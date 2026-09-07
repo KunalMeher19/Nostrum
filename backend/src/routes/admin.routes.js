@@ -244,7 +244,20 @@ router.get('/newsletter/subscribers.csv', async (req, res, next) => {
 
 router.get('/subscriptions', async (req, res, next) => {
   try {
-    const subscriptions = await Subscription.find({ status: { $in: ['active', 'trialing', 'past_due'] } }).sort({ createdAt: -1 }).lean();
+    let subscriptions = await Subscription.find({ status: { $in: ['active', 'trialing', 'past_due'] } }).sort({ createdAt: -1 }).lean();
+    // Backfill subscriptions created before currentPeriodEnd was persisted.
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (key && subscriptions.some((s) => !s.currentPeriodEnd)) {
+      const stripe = new Stripe(key, { apiVersion: '2024-11-20.acacia' });
+      await Promise.all(subscriptions.filter((s) => !s.currentPeriodEnd).map(async (s) => {
+        try {
+          const remote = await stripe.subscriptions.retrieve(s.stripeSubscriptionId);
+          const seconds = remote.current_period_end ?? remote.items?.data?.[0]?.current_period_end;
+          if (seconds) await Subscription.updateOne({ _id: s._id }, { $set: { currentPeriodEnd: new Date(seconds * 1000), status: remote.status, updatedAt: new Date() } });
+        } catch (err) { console.warn(`[subscriptions] Stripe sync failed for ${s.stripeSubscriptionId}:`, err.message); }
+      }));
+      subscriptions = await Subscription.find({ status: { $in: ['active', 'trialing', 'past_due'] } }).sort({ createdAt: -1 }).lean();
+    }
     res.json({ subscriptions: subscriptions.map((s) => ({ ...s, id: String(s._id), _id: undefined })) });
   } catch (err) { next(err); }
 });

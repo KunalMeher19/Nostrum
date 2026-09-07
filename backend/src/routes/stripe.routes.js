@@ -29,6 +29,13 @@ function getStripe() {
   return new Stripe(key, { apiVersion: '2024-11-20.acacia' });
 }
 
+// Newer Stripe API versions expose the period on the subscription item;
+// older payloads expose it on the subscription itself. Support both forms.
+function periodEndFor(subscription) {
+  const seconds = subscription?.current_period_end ?? subscription?.items?.data?.[0]?.current_period_end;
+  return seconds ? new Date(seconds * 1000) : null;
+}
+
 // Build the order payload from a completed Stripe Checkout Session.
 // The cart is carried in session.metadata.cartJson so we don't have to
 // list the session's line_items (which requires an extra API call and
@@ -175,7 +182,7 @@ router.post(
         { stripeSubscriptionId: sub.id },
         { $set: {
           status: sub.status,
-          currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000) : null,
+          currentPeriodEnd: periodEndFor(sub),
           updatedAt: new Date(),
           ...(sub.status === 'canceled' ? { cancelledAt: new Date() } : {}),
         } }
@@ -259,6 +266,10 @@ router.post(
       const order = await orders.createOrder(payload);
       if (session.mode === 'subscription' && session.subscription) {
         const intervalMonths = Number(session.metadata?.intervalMonths) || 1;
+        // Checkout only supplies the subscription id. Retrieve the canonical
+        // Stripe object so the first account/admin view has a renewal date
+        // even if subscription.updated arrived before this record existed.
+        const stripeSubscription = await stripe.subscriptions.retrieve(String(session.subscription));
         await Subscription.findOneAndUpdate(
           { stripeSubscriptionId: String(session.subscription) },
           { $setOnInsert: {
@@ -271,7 +282,7 @@ router.post(
               sizeId: item.sizeId, sizeLabel: item.sizeLabel,
               unitPrice: item.unitPrice, qty: item.qty,
             })),
-            intervalMonths, status: 'active', shippingAddress: payload.shippingAddress,
+            intervalMonths, status: stripeSubscription.status, currentPeriodEnd: periodEndFor(stripeSubscription), shippingAddress: payload.shippingAddress,
             createdAt: new Date(), updatedAt: new Date(),
           } },
           { upsert: true, new: true }
